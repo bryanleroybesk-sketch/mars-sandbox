@@ -1,0 +1,31 @@
+; Engine configuration file.
+; A.V.A "Mars Sandbox" — Godot 4.3+ (Forward+ renderer)
+
+config_version=5
+
+[application]
+
+config/name="A.V.A Mars Sandbox"
+config/description="Isometric multi-agent Mars colony driven by a local Python/Ollama backend."
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.4", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_2="agents"
+
+[navigation]
+
+3d/default_cell_size=0.25
+3d/default_cell_height=0.25
+
+[rendering]
+
+anti_aliasing/quality/msaa_3d=2
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
