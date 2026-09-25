@@ -182,6 +182,10 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 
 func _ready() -> void:
 	collision_layer = 2  # agents
 	collision_mask = 1   # world only — agents avoid each other via RVO
+	# Uneven terrain: walk up/down dunes without sliding or hopping off crests.
+	floor_max_angle = deg_to_rad(40.0)
+	floor_snap_length = 0.8
+	floor_constant_speed = true
 	_ensure_collision_shape()
 	_ensure_navigation_agent()
 	_build_model()
@@ -204,6 +208,8 @@ func _process(delta: float) -> void:
 	if _anim_player == null:
 		_animate_placeholder(delta)
 	if _debug_label:
+		# Labels only when zoomed in enough to read them.
+		_debug_label.visible = world == null or world.get_zoom() < 40.0
 		_debug_label.text = "%s\n%s  E%d B%d" % [agent_name, get_state_name(), roundi(energy), roundi(boredom)]
 
 

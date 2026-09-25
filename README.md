@@ -19,7 +19,8 @@ A stylized isometric Mars colony where five AI executive agents (CEO, CMO, Creat
 
 | File | Attach to / run | Role |
 |---|---|---|
-| `mars_world.gd` | root `Node3D` (main.tscn) | Environment, isometric camera, hub `Marker3D` anchors, navmesh bake, agent roster, meeting orchestration |
+| `mars_world.gd` | root `Node3D` (main.tscn) | Cinematic lighting, isometric camera with smooth zoom, hub `Marker3D` anchors, navmesh bake, agent roster, meeting orchestration |
+| `mars_terrain.gd` | created by the world | Uneven procedural terrain: dunes, terraced crater rim, boulders; flattens a pad under every building and grades roads between them |
 | `mars_agent.gd` | `CharacterBody3D` (auto-spawned) | State machine (IDLE / WORKING / MEETING / SOCIALIZING / AWAITING_REVIEW), NavigationAgent3D steering and RVO avoidance, needs, animation hooks |
 | `agent_bridge.gd` | `Node` child of the world | WebSocket client with auto-reconnect; routes backend payloads to agents; sends the review safety hook out |
 | `agent_bridge.py` | `python agent_bridge.py` | FastAPI engine on :8000, Ollama/Qwen router with keyword fallback, WebSocket hub, voice prompt, review gate |
@@ -66,7 +67,25 @@ curl -X POST localhost:8000/review -H 'content-type: application/json' \
 
 Other endpoints: `GET /health`, `GET /agents` (live state), `GET /jobs/{id}` (for `"wait": false` commands), `GET /events?since=N` (polling fallback).
 
-Godot debug hotkeys: **M** toggles a meeting, **T** sends a random test task, **R** rebakes the navmesh, **WASD** pans, **mouse wheel** zooms.
+### Camera controls
+
+| Action | Input |
+|---|---|
+| Zoom (toward the cursor) | Mouse wheel · trackpad pinch · two-finger scroll · `+` / `-` · PageUp / PageDown |
+| Pan | WASD / arrow keys · hold right or middle mouse and drag |
+| Reset view | Home |
+
+Tune it in the MarsWorld inspector under **Camera Zoom**: `zoom_min`, `zoom_max`, `zoom_step`, `zoom_smoothing` (glide feel), `zoom_to_cursor`.
+
+Debug hotkeys: **M** toggles a meeting, **T** sends a random test task, **R** rebakes the navmesh.
+
+### Terrain and lighting
+
+- The ground is generated at startup by `mars_terrain.gd`: rolling dunes, wind ripples, a terraced crater rim and boulders. Each building gets a **flat pad at its natural ground height** that blends back into the dunes, and graded roads link every hub to the Command Center plaza.
+- **The terrain adapts when a building moves.** `await world.move_hub(&"creative_lab", Vector3(24, 0, 4))` fills the old pad back in, levels a new one, re-grades the roads, lifts the building onto its pad and rebakes the navmesh. Hand-placed `Marker3D` hubs in the editor are respected too.
+- Inspector knobs, under **Terrain & Navigation**: `terrain_seed` (a new landscape), `terrain_relief` (dune height), `crater_rim_height`.
+- **Cinematic Lighting** knobs: `sun_elevation_deg` (lower means longer golden-hour shadows), `sun_azimuth_deg`, `sun_color`, `sun_energy`, `fill_color` / `fill_energy` (cool bounce light) and `valley_haze` (dust pooling in low ground).
+- The full look (soft shadows, SSAO/SSIL, bloom) needs the **Forward+** renderer, which is the project default. The Compatibility renderer still works, just flatter.
 
 ### Environment variables (`agent_bridge.py`)
 
