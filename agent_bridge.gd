@@ -25,6 +25,11 @@ extends Node
 ##                      waits for human voice/HTTP confirmation.
 ## =============================================================================
 
+## Loaded by path (not via global class names) so this file parses even before
+## Godot has built its class cache.
+const MarsWorldScript := preload("res://mars_world.gd")
+const MarsAgentScript := preload("res://mars_agent.gd")
+
 signal connected
 signal disconnected
 signal message_received(message: Dictionary)
@@ -44,7 +49,7 @@ signal review_resolved(agent_name: String, approved: bool)
 
 const MAX_OUTBOX := 200
 
-var _world: MarsWorld
+var _world: MarsWorldScript
 var _ws: WebSocketPeer
 var _last_ready_state := WebSocketPeer.STATE_CLOSED
 var _reconnect_delay := 1.0
@@ -55,7 +60,7 @@ var _plaintext_task := RegEx.new()
 
 func _ready() -> void:
 	_plaintext_task.compile("(?i)^\\s*(?<agent>[A-Za-z _-]+?)\\s+task\\s+received\\s*:\\s*(?<task>.+)$")
-	_world = get_node_or_null(world_path) as MarsWorld
+	_world = get_node_or_null(world_path) as MarsWorldScript
 	if _world == null:
 		push_error("[AgentBridge] world_path does not point to a MarsWorld node.")
 		return
@@ -209,7 +214,7 @@ func _handle_plaintext(text: String) -> void:
 # =============================================================================
 #  Outbound: agent events + SAFETY REVIEW HOOK
 # =============================================================================
-func _wire_agent(agent: MarsAgent) -> void:
+func _wire_agent(agent: MarsAgentScript) -> void:
 	if not agent.review_requested.is_connected(_on_agent_review_requested):
 		agent.review_requested.connect(_on_agent_review_requested)
 		agent.task_started.connect(_on_agent_task_event.bind("task_started"))
@@ -217,7 +222,7 @@ func _wire_agent(agent: MarsAgent) -> void:
 		agent.state_changed.connect(_on_agent_state_changed)
 
 
-func _on_agent_review_requested(agent: MarsAgent, task: Dictionary) -> void:
+func _on_agent_review_requested(agent: MarsAgentScript, task: Dictionary) -> void:
 	var title := String(task.get("title", ""))
 	# Keep acronyms ("CMO") intact; "CREATIVE_DIRECTOR" → "Creative Director".
 	var spoken := agent.agent_name if agent.agent_name.length() <= 3 else agent.agent_name.replace("_", " ").capitalize()
@@ -234,11 +239,11 @@ func _on_agent_review_requested(agent: MarsAgent, task: Dictionary) -> void:
 	send_json(payload)
 
 
-func _on_agent_task_event(agent: MarsAgent, task: Dictionary, kind: String) -> void:
+func _on_agent_task_event(agent: MarsAgentScript, task: Dictionary, kind: String) -> void:
 	send_json({"type": kind, "agent": agent.agent_name, "task": task.get("title", ""), "task_id": task.get("id", "")})
 
 
-func _on_agent_state_changed(agent: MarsAgent, _previous: int, _current: int) -> void:
+func _on_agent_state_changed(agent: MarsAgentScript, _previous: int, _current: int) -> void:
 	if send_state_updates:
 		var data := agent.to_dict()
 		data["type"] = "state"

@@ -136,8 +136,10 @@ const ANIM_TALKING := &"talking"
 # -----------------------------------------------------------------------------
 #  Runtime references & state
 # -----------------------------------------------------------------------------
-## Injected by MarsWorld before the agent enters the tree.
-var world: MarsWorld
+## The MarsWorld node, injected before the agent enters the tree. Left
+## untyped on purpose: mars_world.gd depends on this script, so typing it here
+## would create a circular dependency between the two scripts.
+var world = null
 var nav_agent: NavigationAgent3D
 
 var current_task: Dictionary = {}
@@ -339,7 +341,7 @@ func _on_destination_reached() -> void:
 			_look_at_point = current_task.get("look_at")
 			_play(ANIM_WORKING)
 		State.AWAITING_REVIEW:
-			_look_at_point = world.get_hub_center(MarsWorld.HUB_REVIEW_TERMINAL) if world else null
+			_look_at_point = world.get_hub_center(&"review_terminal") if world else null
 			_play(ANIM_TALKING)
 			if not _review_pending:
 				_review_pending = true
@@ -405,7 +407,7 @@ func _pick_hangout_spot() -> void:
 	var spot := Vector3.INF
 
 	if world:
-		var peers := world.get_free_agents(self)
+		var peers: Array = world.get_free_agents(self)
 		if not peers.is_empty():
 			# Favour the nearest few, but keep some randomness.
 			peers.sort_custom(func(a: MarsAgent, b: MarsAgent) -> bool:

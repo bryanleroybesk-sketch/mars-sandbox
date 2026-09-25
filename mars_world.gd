@@ -38,12 +38,20 @@ extends Node3D
 ## =============================================================================
 
 # -----------------------------------------------------------------------------
+#  Script dependencies
+# -----------------------------------------------------------------------------
+## Loaded by path rather than through the global `class_name` registry, so
+## this file parses even before Godot has built its class cache (for example
+## on the first open of a freshly unzipped project).
+const MarsAgentScript := preload("res://mars_agent.gd")
+
+# -----------------------------------------------------------------------------
 #  Signals
 # -----------------------------------------------------------------------------
 ## Navigation mesh finished baking and the navigation map is synchronized.
 signal navigation_ready
 ## A new agent was added to the colony (AgentBridge listens to this).
-signal agent_spawned(agent: MarsAgent)
+signal agent_spawned(agent: MarsAgentScript)
 signal meeting_started(center: Vector3)
 ## Every attendee is physically inside the meeting radius.
 signal meeting_assembled
@@ -206,7 +214,7 @@ var _agents: Dictionary = {}
 
 var is_navigation_ready := false
 var is_meeting_active := false
-var _meeting_attendees: Array[MarsAgent] = []
+var _meeting_attendees: Array[MarsAgentScript] = []
 var _meeting_assembled_emitted := false
 var _meeting_timer: SceneTreeTimer
 
@@ -613,11 +621,14 @@ func rebake_navigation() -> void:
 	# Parsing happens on the main thread; the heavy voxel bake runs threaded.
 	nav_region.bake_navigation_mesh(true)
 	await nav_region.bake_finished
-	# The navigation map only applies region changes on its next sync. Wait
-	# until the iteration id moves on, so queries see the new polygons.
-	for i in 120:
+	# The navigation map only applies region changes on a later sync, and how
+	# many syncs that takes differs between Godot versions (4.7 needs one more
+	# than 4.4). Wait until the map has moved on AND a query really lands on
+	# baked polygons; otherwise every query would return (0, 0, 0).
+	for i in 180:
 		await get_tree().physics_frame
-		if NavigationServer3D.map_get_iteration_id(map) > iteration_before:
+		if NavigationServer3D.map_get_iteration_id(map) > iteration_before \
+				and NavigationServer3D.map_get_closest_point_owner(map, Vector3.ZERO).is_valid():
 			break
 	is_navigation_ready = true
 	navigation_ready.emit()
@@ -689,11 +700,11 @@ func resolve_hub_id(value: String) -> StringName:
 func _spawn_agents() -> void:
 	var i := 0
 	for entry: Dictionary in AGENT_ROSTER:
-		var agent: MarsAgent
+		var agent: MarsAgentScript
 		if agent_scene_template:
-			agent = agent_scene_template.instantiate() as MarsAgent
+			agent = agent_scene_template.instantiate() as MarsAgentScript
 		else:
-			agent = MarsAgent.new()
+			agent = MarsAgentScript.new()
 		agent.name = String(entry.name).to_pascal_case()
 		agent.agent_name = entry.name
 		agent.home_hub = entry.hub
@@ -723,22 +734,22 @@ func _get_agent_model_scene(agent_name: String) -> PackedScene:
 
 
 ## Public so hand-placed agents (in the .tscn) can register themselves too.
-func register_agent(agent: MarsAgent) -> void:
+func register_agent(agent: MarsAgentScript) -> void:
 	if agent.world == null:
 		agent.world = self
 	_agents[agent.agent_name] = agent
 	agent_spawned.emit(agent)
 
 
-func get_agents() -> Array[MarsAgent]:
-	var result: Array[MarsAgent] = []
-	for agent: MarsAgent in _agents.values():
+func get_agents() -> Array[MarsAgentScript]:
+	var result: Array[MarsAgentScript] = []
+	for agent: MarsAgentScript in _agents.values():
 		result.append(agent)
 	return result
 
 
 ## Case/format-insensitive lookup: "cmo", "Creative Director", "ops" …
-func get_agent(agent_name: String) -> MarsAgent:
+func get_agent(agent_name: String) -> MarsAgentScript:
 	if _agents.has(agent_name):
 		return _agents[agent_name]
 	var key := agent_name.strip_edges().to_lower().replace(" ", "").replace("_", "").replace("-", "")
@@ -751,9 +762,9 @@ func get_agent(agent_name: String) -> MarsAgent:
 
 
 ## Agents available for socializing (IDLE or SOCIALIZING), excluding `asker`.
-func get_free_agents(asker: MarsAgent = null) -> Array[MarsAgent]:
-	var result: Array[MarsAgent] = []
-	for agent: MarsAgent in _agents.values():
+func get_free_agents(asker: MarsAgentScript = null) -> Array[MarsAgentScript]:
+	var result: Array[MarsAgentScript] = []
+	for agent: MarsAgentScript in _agents.values():
 		if agent != asker and agent.is_free():
 			result.append(agent)
 	return result
@@ -798,10 +809,10 @@ func start_meeting(duration: float = -1.0) -> void:
 	var ring_radius: float = minf(meeting_radius - 1.0, HUB_LAYOUT[HUB_COMMAND_CENTER].footprint_radius + nav_agent_radius + 1.5)
 	# Sort attendees by their current angle around the dome and hand out slots
 	# in that same order, so nobody has to cross the crowd around the dome.
-	var angle_of := func(a: MarsAgent) -> float:
+	var angle_of := func(a: MarsAgentScript) -> float:
 		var d := a.global_position - center
 		return fposmod(atan2(d.z, d.x), TAU)
-	attendees.sort_custom(func(a: MarsAgent, b: MarsAgent) -> bool: return angle_of.call(a) < angle_of.call(b))
+	attendees.sort_custom(func(a: MarsAgentScript, b: MarsAgentScript) -> bool: return angle_of.call(a) < angle_of.call(b))
 	var start_angle: float = angle_of.call(attendees[0])
 	for i in attendees.size():
 		var angle := start_angle + TAU * float(i) / attendees.size()
@@ -846,7 +857,7 @@ func _check_meeting_assembled() -> void:
 # =============================================================================
 func get_colony_snapshot() -> Dictionary:
 	var agents := []
-	for agent: MarsAgent in _agents.values():
+	for agent: MarsAgentScript in _agents.values():
 		agents.append(agent.to_dict())
 	return {
 		"meeting_active": is_meeting_active,
