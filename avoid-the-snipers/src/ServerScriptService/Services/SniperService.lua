@@ -202,6 +202,8 @@ local function damageForPart(part: BasePart): (number, boolean)
 	return GameConfig.LIMB_DAMAGE, false
 end
 
+local resolveShot
+
 local function onFire(player: Player, direction: any, claimedPart: any, claimedPosition: any)
 	-- 1) Validate the arguments' TYPES (exploiters can send anything)
 	if typeof(direction) ~= "Vector3" or not isFiniteVector(direction) or direction.Magnitude < 0.1 then
@@ -229,7 +231,11 @@ local function onFire(player: Player, direction: any, claimedPart: any, claimedP
 		return -- firing faster than the bolt allows
 	end
 	lastShotAt[player] = now
+	resolveShot(player, character :: Model, tool :: Tool, head :: BasePart, direction, claimedPart, claimedPosition)
+end
 
+-- Steps 3-6, shared by players and bots.
+function resolveShot(player: Player, character: Model, tool: Tool, head: BasePart, direction: Vector3, claimedPart: BasePart?, claimedPosition: Vector3?)
 	-- 3) Server raycast from the head to where the client aimed
 	local origin = head.Position
 	local target: Vector3 = claimedPosition or (origin + direction.Unit * GameConfig.SNIPER_MAX_RANGE)
@@ -276,11 +282,11 @@ local function onFire(player: Player, direction: any, claimedPart: any, claimedP
 	-- 6) Damage, decided by the server from the body part
 	if hitPart then
 		local victimCharacter = characterOf(hitPart)
-		local victim = victimCharacter and Players:GetPlayerFromCharacter(victimCharacter)
+		local victim = victimCharacter and RoundState.GetCombatantFromCharacter(victimCharacter)
 		if victim then
 			local damage, headshot = damageForPart(hitPart)
 			local applied, killed = DamageService.ApplyDamage(victim, damage, player, headshot)
-			if applied then
+			if applied and not RoundState.IsBot(player) then
 				Remotes.Get("HitMarker"):FireClient(player, headshot, killed)
 			end
 		end
@@ -300,12 +306,12 @@ end
 
 function SniperService.GiveSniper(player: Player)
 	local backpack = player:FindFirstChildOfClass("Backpack")
-	if not backpack then
+	if not backpack and not RoundState.IsBot(player) then
 		return
 	end
 	local tool = createRifle()
 	applySkin(tool, DataService.GetEquippedSkin(player))
-	tool.Parent = backpack
+	tool.Parent = backpack -- bots have no backpack; EquipTool below handles them
 
 	-- Equip it right away
 	local character = player.Character
@@ -316,6 +322,31 @@ function SniperService.GiveSniper(player: Player)
 end
 
 -- Re-color the rifle the player is holding (after buying/equipping a skin).
+-- A bot pulls the trigger at `aimPoint`. Same checks and damage rules as a
+-- player's shot (alive, round running, holding the rifle, cooldown).
+function SniperService.BotFire(bot: Player, aimPoint: Vector3)
+	if not RoundState.IsRoundActive() or not RoundState.IsAlive(bot) then
+		return
+	end
+	local character = bot.Character
+	local head = character and character:FindFirstChild("Head") :: BasePart?
+	local tool = character and character:FindFirstChildOfClass("Tool")
+	if not character or not head or not tool or not tool:GetAttribute("IsSniper") then
+		return
+	end
+	local now = os.clock()
+	if lastShotAt[bot] and now - lastShotAt[bot] < GameConfig.SNIPER_FIRE_COOLDOWN then
+		return
+	end
+	lastShotAt[bot] = now
+	local direction = aimPoint - head.Position
+	if direction.Magnitude < 1 then
+		return
+	end
+	-- Aim a little past the point so the ray reaches whatever is there
+	resolveShot(bot, character, tool, head, direction.Unit, nil, aimPoint + direction.Unit * 4)
+end
+
 function SniperService.RefreshSkin(player: Player)
 	local skinId = DataService.GetEquippedSkin(player)
 	for _, container in { player.Character, player:FindFirstChildOfClass("Backpack") } do

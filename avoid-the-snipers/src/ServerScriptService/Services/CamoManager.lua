@@ -254,8 +254,23 @@ function CamoManager.FinalizeSelection(players: { Player })
 			choices[player] = CamoData.DEFAULT_CAMO
 			applyToPlayer(player, CamoData.DEFAULT_CAMO)
 		end
-		menuEvent:FireClient(player, false)
+		if not RoundState.IsBot(player) then
+			menuEvent:FireClient(player, false)
+		end
 	end
+end
+
+-- Bots pick a random free camo.
+function CamoManager.ChooseForBot(bot: Player)
+	local free = {}
+	for _, camo in CamoData.List do
+		if camo.Price == 0 then
+			table.insert(free, camo.Name)
+		end
+	end
+	local name = free[math.random(1, #free)]
+	choices[bot] = name
+	applyToPlayer(bot, name)
 end
 
 function CamoManager.GetChoice(player: Player): string

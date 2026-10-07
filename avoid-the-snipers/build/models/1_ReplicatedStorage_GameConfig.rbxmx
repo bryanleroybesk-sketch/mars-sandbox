@@ -117,6 +117,22 @@ GameConfig.TEAMS = {
 }
 
 ---------------------------------------------------------------------------
+-- BOTS (so you can test alone in Studio)
+-- With bots on, a round starts with just 1 player who pressed Play, and
+-- each team is filled with bots up to BOTS_FILL_TEAM_TO.
+-- Set BOTS_ENABLED = false for real matches.
+---------------------------------------------------------------------------
+GameConfig.BOTS_ENABLED = true
+GameConfig.BOTS_FILL_TEAM_TO = 3
+GameConfig.BOT_VIEW_RANGE = 250 -- bots can't spot anyone farther than this
+GameConfig.BOT_REACTION_TIME = 1.2 -- must see you this long before firing
+GameConfig.BOT_SPREAD = 0.015 -- aim error per stud of distance (higher = worse aim)
+GameConfig.BOT_HEADSHOT_CHANCE = 0.25 -- how often they aim for the head
+GameConfig.BOT_SPOT_CROUCHED_IN_GRASS = 25 -- crouching in tall grass: only seen this close
+GameConfig.BOT_SPOT_STANDING_IN_GRASS = 120 -- standing in tall grass: seen this close
+GameConfig.BOT_HIDE_TIME = { 6, 16 } -- seconds a bot waits at a hiding spot
+
+---------------------------------------------------------------------------
 -- DATA
 ---------------------------------------------------------------------------
 -- Bump the "_v1" if you ever change the saved data format.

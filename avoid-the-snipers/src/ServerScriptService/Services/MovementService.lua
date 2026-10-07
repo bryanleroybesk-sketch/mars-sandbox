@@ -222,6 +222,23 @@ function MovementService.SetFrozen(player: Player, frozen: boolean)
 	applyStance(player)
 end
 
+-- Used by BotService: bots get the same speeds, pose and sounds as players.
+function MovementService.SetupCharacter(who: Player, character: Model)
+	onCharacterAdded(who, character)
+end
+
+function MovementService.SetStance(who: Player, stance: string)
+	local state = getState(who)
+	if VALID_STANCES[stance] and state.Stance ~= stance then
+		state.Stance = stance
+		applyStance(who)
+	end
+end
+
+function MovementService.Forget(who: Player)
+	states[who] = nil
+end
+
 -- Is this player sprinting AND actually moving?
 function MovementService.IsSprinting(player: Player): boolean
 	local state = states[player]

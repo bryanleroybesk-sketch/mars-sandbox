@@ -37,14 +37,24 @@ local nameLabel = UIUtil.label("", {
 
 local index = 1
 
--- Alive players on MY team (not me)
-local function aliveTeammates(): { Player }
+-- Alive teammates (players and bots, never me): { Name, Humanoid }
+local function aliveTeammates(): { { Name: string, Humanoid: Humanoid } }
 	local list = {}
+	local myKey = player.Team and player.Team:GetAttribute("TeamKey")
+	local bots = workspace:FindFirstChild("Bots")
+	if bots and myKey then
+		for _, model in bots:GetChildren() do
+			local humanoid = model:FindFirstChildOfClass("Humanoid")
+			if model:GetAttribute("TeamKey") == myKey and humanoid and humanoid.Health > 0 then
+				table.insert(list, { Name = model.Name, Humanoid = humanoid })
+			end
+		end
+	end
 	for _, other in Players:GetPlayers() do
 		if other ~= player and other.Team == player.Team and not other.Neutral and not other:GetAttribute("Spectating") then
 			local humanoid = other.Character and other.Character:FindFirstChildOfClass("Humanoid")
 			if humanoid and humanoid.Health > 0 then
-				table.insert(list, other)
+				table.insert(list, { Name = other.DisplayName, Humanoid = humanoid })
 			end
 		end
 	end
@@ -64,11 +74,8 @@ local function refresh()
 	end
 	index = ((index - 1) % #mates) + 1
 	local target = mates[index]
-	local humanoid = target.Character and target.Character:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		camera.CameraSubject = humanoid
-		nameLabel.Text = "Spectating " .. target.DisplayName
-	end
+	camera.CameraSubject = target.Humanoid
+	nameLabel.Text = "Spectating " .. target.Name
 end
 
 local function step(delta: number)

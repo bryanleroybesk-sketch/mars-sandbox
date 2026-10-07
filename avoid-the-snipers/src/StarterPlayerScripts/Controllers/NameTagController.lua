@@ -33,10 +33,32 @@ local function update()
 	end
 end
 
+-- Bots (workspace.Bots) carry a "TeamKey" attribute on their body
+local function updateBots()
+	local myKey = if player.Neutral or not player.Team then nil else player.Team:GetAttribute("TeamKey")
+	local folder = workspace:FindFirstChild("Bots")
+	if not folder or not myKey then
+		return
+	end
+	for _, model in folder:GetChildren() do
+		local humanoid = model:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			local friendly = model:GetAttribute("TeamKey") == myKey
+			humanoid.DisplayDistanceType = if friendly
+				then Enum.HumanoidDisplayDistanceType.Viewer
+				else Enum.HumanoidDisplayDistanceType.None
+			humanoid.HealthDisplayType = if friendly
+				then Enum.HumanoidHealthDisplayType.DisplayWhenDamaged
+				else Enum.HumanoidHealthDisplayType.AlwaysOff
+		end
+	end
+end
+
 function NameTagController.Init()
 	task.spawn(function()
 		while true do
 			update()
+			updateBots()
 			task.wait(0.5)
 		end
 	end)

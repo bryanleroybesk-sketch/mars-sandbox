@@ -193,6 +193,16 @@ To test faster, temporarily lower times in GameConfig, e.g. `ROUND_TIME = 60`, `
 
 ---
 
+### Bots (solo testing)
+- **File:** `BotService`, which is switched on with `GameConfig.BOTS_ENABLED = true`.
+- **Getting into a round alone:** with bots on, one player pressing **PLAY** is enough to start. Each team is filled with bots up to `BOTS_FILL_TEAM_TO` (3), so you play 3v3: you plus 2 bot teammates against 3 bot enemies.
+- **Same rules as players:** bots use the same server systems as you, so their shots, damage, spawn protection, safe zones, footsteps and birds all work the same way. They also get a random free camo.
+- **Spotting you:** a bot needs line of sight, and sees no farther than 250 studs. If you crouch in tall grass, it only sees you within 25 studs.
+- **Shooting:** a bot only fires after seeing you for 1.2 s, and its aim gets worse with distance.
+- **Moving:** bots move between grass patches and ruins and hide crouched for a while. Sometimes they stay too long and the birds give them away.
+- **Spectating and name tags:** after you die you can spectate your bot teammates, and they show their name tag to you.
+- **Difficulty:** tune it with the `BOT_*` values in GameConfig. Set `BOTS_ENABLED = false` for real matches.
+
 ## 4. Tweaking
 
 - **Settings:** every number is in `GameConfig`.

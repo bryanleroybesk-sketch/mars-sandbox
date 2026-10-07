@@ -22,6 +22,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GameConfig = require(ReplicatedStorage.GameConfig)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local BirdSystem = require(script.Parent.BirdSystem)
+local BotService = require(script.Parent.BotService)
 local CamoManager = require(script.Parent.CamoManager)
 local DamageService = require(script.Parent.DamageService)
 local DataService = require(script.Parent.DataService)
@@ -51,6 +52,9 @@ local function setStatus(state: string, duration: number?, text: string?)
 end
 
 local function notify(player: Player, text: string)
+	if RoundState.IsBot(player) then
+		return -- bots have no screen
+	end
 	Remotes.Get("Notify"):FireClient(player, text)
 end
 
@@ -176,12 +180,14 @@ end
 ---------------------------------------------------------------------------
 local function waitingPhase()
 	RoundState.Phase = "Waiting"
+	-- With bots on, one real player is enough (bots fill the teams)
+	local needed = if GameConfig.BOTS_ENABLED then 1 else GameConfig.MIN_PLAYERS_TO_START
 	while true do
 		local count = #readyPlayers()
-		if count >= GameConfig.MIN_PLAYERS_TO_START then
+		if count >= needed then
 			return
 		end
-		setStatus("Waiting", nil, ("Waiting for players (%d/%d)"):format(count, GameConfig.MIN_PLAYERS_TO_START))
+		setStatus("Waiting", nil, ("Waiting for players (%d/%d)"):format(count, needed))
 		task.wait(1)
 	end
 end
@@ -211,6 +217,15 @@ local function camoSelectPhase(): boolean
 
 	local endsAt = serverNow() + GameConfig.CAMO_SELECT_TIME
 	CamoManager.BeginSelection(players, endsAt)
+
+	-- Fill the teams with bots (only if GameConfig.BOTS_ENABLED).
+	-- Done after BeginSelection, which resets everyone's camo choice.
+	for _, bot in BotService.FillTeams(players) do
+		RoundState.Participants[bot] = bot.TeamKey
+		task.spawn(BotService.SpawnBot, bot, function()
+			onParticipantDied(bot)
+		end)
+	end
 	while serverNow() < endsAt and not CamoManager.AllChosen(participantList()) do
 		task.wait(0.25)
 	end
@@ -251,6 +266,7 @@ local function roundPhase()
 
 	BirdSystem.Start()
 	SafeZoneService.Start(DamageService.ApplyZoneDamage)
+	BotService.StartAI()
 
 	local endTime = os.clock() + GameConfig.ROUND_TIME
 	while os.clock() < endTime do
@@ -264,6 +280,7 @@ end
 
 local function resultsPhase()
 	RoundState.Phase = "Results"
+	BotService.StopAI()
 	BirdSystem.Stop()
 	SafeZoneService.Stop()
 	updateAliveCounts()
@@ -302,12 +319,14 @@ local function resultsPhase()
 				earned += GameConfig.COINS_PER_ROUND_WIN
 				DataService.AddWin(player)
 			end
-			if earned > 0 then
+			if earned > 0 and not RoundState.IsBot(player) then
 				DataService.AddCoins(player, earned)
 				notify(player, ("+%d Coins this round"):format(earned))
 			end
-			SniperService.RemoveSniper(player)
-			ItemService.RemoveItems(player)
+			if not RoundState.IsBot(player) then
+				SniperService.RemoveSniper(player)
+				ItemService.RemoveItems(player)
+			end
 		end
 	end
 
@@ -317,6 +336,7 @@ end
 
 local function intermissionPhase()
 	RoundState.Phase = "Intermission"
+	BotService.DespawnAll()
 	table.clear(RoundState.Participants)
 	table.clear(RoundState.Alive)
 	RoundState.RoundStartedAt = 0
