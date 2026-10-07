@@ -1,0 +1,1662 @@
+<roblox version="4">
+  <Item class="Folder" referent="0">
+    <Properties>
+      <string name="Name">AvoidTheSnipers_Client</string>
+    </Properties>
+    <Item class="LocalScript" referent="1">
+      <Properties>
+        <string name="Name">ClientMain</string>
+        <string name="Source"><![CDATA[--[[
+	ClientMain  (LocalScript in StarterPlayer/StarterPlayerScripts)
+
+	Starts every client controller once. All UI is created by code from
+	here (instead of StarterGui) so it never resets or duplicates when
+	your character respawns. StarterGui stays empty on purpose.
+]]
+
+local Controllers = script.Parent:WaitForChild("Controllers")
+
+local order = {
+	"MainMenu",
+	"HudController",
+	"CamoMenu",
+	"ShopUI",
+	"SniperClient",
+	"ItemClient",
+	"BirdEffects",
+	"MovementController",
+	"SpectateController",
+	"NameTagController",
+}
+
+for _, name in order do
+	local ok, err = pcall(function()
+		require(Controllers:WaitForChild(name)).Init()
+	end)
+	if not ok then
+		warn("[ClientMain] " .. name .. " failed to start: " .. tostring(err))
+	end
+end
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="Folder" referent="2">
+      <Properties>
+        <string name="Name">Controllers</string>
+      </Properties>
+      <Item class="ModuleScript" referent="3">
+        <Properties>
+          <string name="Name">BirdEffects</string>
+          <string name="Source"><![CDATA[--[[
+	BirdEffects  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Draws the bird flocks the SERVER announces (BirdSystem decides where
+	and when). Each bird is 3 tiny parts (body + 2 wings), created only on
+	this client, flies up and away over BIRD_FLIGHT_TIME, then is deleted.
+	Very lightweight: one RenderStepped connection per flock.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+
+local BirdEffects = {}
+
+local BIRD_COLOR = Color3.fromRGB(34, 30, 28)
+
+local function makePart(name: string, size: Vector3, parent: Instance): BasePart
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size
+	p.Color = BIRD_COLOR
+	p.Material = Enum.Material.SmoothPlastic
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.CastShadow = false
+	p.Parent = parent
+	return p
+end
+
+type Bird = {
+	Body: BasePart,
+	LeftWing: BasePart,
+	RightWing: BasePart,
+	Start: Vector3,
+	Finish: Vector3,
+	Delay: number,
+	FlapSpeed: number,
+}
+
+local function spawnFlock(position: Vector3, count: number, kind: string)
+	if typeof(position) ~= "Vector3" or typeof(count) ~= "number" then
+		return
+	end
+	count = math.clamp(math.floor(count), 1, 12)
+
+	local folder = Instance.new("Folder")
+	folder.Name = "Flock"
+	folder.Parent = workspace
+
+	local rng = Random.new()
+	-- The whole flock heads roughly the same way
+	local heading = rng:NextNumber(0, math.pi * 2)
+	local birds: { Bird } = {}
+	for _ = 1, count do
+		local start = position + Vector3.new(rng:NextNumber(-3, 3), rng:NextNumber(0.5, 2), rng:NextNumber(-3, 3))
+		local angle = heading + rng:NextNumber(-0.5, 0.5)
+		local distance = rng:NextNumber(35, 55)
+		table.insert(birds, {
+			Body = makePart("Body", Vector3.new(0.35, 0.3, 0.8), folder),
+			LeftWing = makePart("Wing", Vector3.new(0.9, 0.06, 0.45), folder),
+			RightWing = makePart("Wing", Vector3.new(0.9, 0.06, 0.45), folder),
+			Start = start,
+			Finish = start + Vector3.new(math.cos(angle) * distance, rng:NextNumber(28, 42), math.sin(angle) * distance),
+			Delay = rng:NextNumber(0, 0.35),
+			FlapSpeed = rng:NextNumber(22, 30),
+		})
+	end
+
+	-- Sounds: flapping for small flocks, loud crows for danger flocks
+	if kind == "Danger" then
+		SoundUtil.PlayAt(position, GameConfig.SOUNDS.CrowCall, { Volume = 1.6, MinDistance = 30, MaxDistance = 350, PlaybackSpeed = 0.6 })
+		SoundUtil.PlayAt(position, GameConfig.SOUNDS.BirdFlap, { Volume = 1.2, MinDistance = 20, MaxDistance = 250 })
+	elseif kind == "Warning" then
+		SoundUtil.PlayAt(position, GameConfig.SOUNDS.BirdFlap, { Volume = 1, MinDistance = 15, MaxDistance = 180 })
+	else
+		SoundUtil.PlayAt(position, GameConfig.SOUNDS.BirdFlap, { Volume = 0.6, MinDistance = 10, MaxDistance = 90 })
+	end
+
+	local duration = GameConfig.BIRD_FLIGHT_TIME
+	local elapsed = 0
+	local connection: RBXScriptConnection
+	connection = RunService.RenderStepped:Connect(function(dt)
+		elapsed += dt
+		for _, bird in birds do
+			local t = math.clamp((elapsed - bird.Delay) / duration, 0, 1)
+			-- ease out: fast take-off, slowing as they leave
+			local eased = 1 - (1 - t) ^ 2
+			local pos = bird.Start:Lerp(bird.Finish, eased)
+			local look = CFrame.lookAt(pos, pos + (bird.Finish - bird.Start).Unit)
+			local flap = math.sin(elapsed * bird.FlapSpeed) * 0.9
+			bird.Body.CFrame = look
+			bird.LeftWing.CFrame = look * CFrame.Angles(0, 0, flap) * CFrame.new(-0.55, 0, 0)
+			bird.RightWing.CFrame = look * CFrame.Angles(0, 0, -flap) * CFrame.new(0.55, 0, 0)
+		end
+		if elapsed >= duration + 0.4 then
+			connection:Disconnect()
+			folder:Destroy()
+		end
+	end)
+end
+
+function BirdEffects.Init()
+	Remotes.Get("BirdFlock").OnClientEvent:Connect(spawnFlock)
+end
+
+-- Exposed so you can test visuals from the command bar
+BirdEffects.SpawnFlock = spawnFlock
+
+return BirdEffects
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="4">
+        <Properties>
+          <string name="Name">CamoMenu</string>
+          <string name="Source"><![CDATA[--[[
+	CamoMenu  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Full-screen camo picker shown during camo selection. Each button has
+	a 3-color swatch preview. Clicking sends ONLY the camo name; the
+	server checks it and paints your character (you see it instantly).
+	The server also decides which camos you're allowed to see here.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local CamoData = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("CamoData"))
+local Remotes = require(ReplicatedStorage.Shared:WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+local UIUtil = require(script.Parent.UIUtil)
+
+local CamoMenu = {}
+local C = UIUtil.Colors
+
+local gui = UIUtil.screen("CamoMenu", 10)
+gui.Enabled = false
+
+local backdrop = UIUtil.new("Frame", {
+	Size = UDim2.fromScale(1, 1),
+	BackgroundColor3 = Color3.new(0, 0, 0),
+	BackgroundTransparency = 0.35,
+}, gui)
+
+UIUtil.label("CHOOSE YOUR CAMOUFLAGE", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0.1, 0),
+	Size = UDim2.new(0.8, 0, 0, 44),
+}, backdrop)
+local timerLabel = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0.1, 50),
+	Size = UDim2.new(0.6, 0, 0, 26),
+	TextColor3 = C.TextDim,
+	Font = UIUtil.FontRegular,
+}, backdrop)
+
+local grid = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0.1, 100),
+	Size = UDim2.new(0.9, 0, 0.65, 0),
+	BackgroundTransparency = 1,
+}, backdrop)
+UIUtil.new("UIGridLayout", {
+	CellSize = UDim2.new(0, 150, 0, 150),
+	CellPadding = UDim2.new(0, 12, 0, 12),
+	HorizontalAlignment = Enum.HorizontalAlignment.Center,
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}, grid)
+
+local buttons: { [string]: TextButton } = {}
+local selected: string? = nil
+local endsAt = 0
+
+local function highlight()
+	for name, button in buttons do
+		local stroke = button:FindFirstChildOfClass("UIStroke")
+		if stroke then
+			stroke.Enabled = name == selected
+		end
+	end
+end
+
+local function build(available: { string })
+	for _, button in buttons do
+		button:Destroy()
+	end
+	table.clear(buttons)
+
+	for index, camo in CamoData.List do
+		if not table.find(available, camo.Name) then
+			continue -- not owned: don't show it
+		end
+		local button = UIUtil.button("", {
+			LayoutOrder = index,
+			BackgroundColor3 = C.Panel,
+		}, grid)
+		UIUtil.new("UIStroke", { Color = C.Gold, Thickness = 3, Enabled = false }, button)
+
+		-- 3-color swatch preview
+		for i, color in camo.Colors do
+			local swatch = UIUtil.new("Frame", {
+				Position = UDim2.new((i - 1) / 3, 6, 0, 8),
+				Size = UDim2.new(1 / 3, -8, 0.6, 0),
+				BackgroundColor3 = color,
+				BorderSizePixel = 0,
+			}, button)
+			UIUtil.corner(swatch, 6)
+		end
+		UIUtil.label(camo.Name, {
+			Position = UDim2.new(0, 6, 0.7, 0),
+			Size = UDim2.new(1, -12, 0.25, 0),
+		}, button)
+
+		button.MouseButton1Click:Connect(function()
+			selected = camo.Name
+			highlight()
+			SoundUtil.Play2D(GameConfig.SOUNDS.UIClick, 0.4)
+			Remotes.Get("SelectCamo"):FireServer(camo.Name)
+		end)
+		buttons[camo.Name] = button
+	end
+end
+
+function CamoMenu.Init()
+	Remotes.Get("CamoMenu").OnClientEvent:Connect(function(open: boolean, available: { string }?, closesAt: number?)
+		if open then
+			selected = nil
+			endsAt = closesAt or 0
+			build(available or {})
+			highlight()
+			gui.Enabled = true
+			task.spawn(function()
+				while gui.Enabled do
+					local left = endsAt - workspace:GetServerTimeNow()
+					timerLabel.Text = ("%d seconds left - %s is chosen if you don't pick"):format(
+						math.max(0, math.ceil(left)),
+						CamoData.DEFAULT_CAMO
+					)
+					task.wait(0.2)
+				end
+			end)
+		else
+			gui.Enabled = false
+		end
+	end)
+end
+
+return CamoMenu
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="5">
+        <Properties>
+          <string name="Name">HudController</string>
+          <string name="Source"><![CDATA[--[[
+	HudController  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Top-of-screen UI. It only DISPLAYS what the server put in
+	ReplicatedStorage.GameStatus and in player attributes:
+	  * round timer + state text
+	  * players alive per team
+	  * results banner
+	  * kill feed ("X eliminated Y" - never locations)
+	  * small notifications (coins, shop messages)
+	  * hit marker, enemy-spawn warning, subtle bird icon
+	  * round start / end sounds
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+local UIUtil = require(script.Parent.UIUtil)
+
+local HudController = {}
+
+local player = Players.LocalPlayer
+local status = Remotes.GetStatus()
+local C = UIUtil.Colors
+
+local gui = UIUtil.screen("HUD", 1)
+
+---------------------------------------------------------------------------
+-- Top bar: [GREEN n]  [ 2:31 / state ]  [n BROWN]
+---------------------------------------------------------------------------
+local bar = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 8),
+	Size = UDim2.new(0, 420, 0, 58),
+	BackgroundColor3 = C.Panel,
+	BackgroundTransparency = 0.25,
+}, gui)
+UIUtil.corner(bar, 10)
+
+local greenBox = UIUtil.label("GREEN 0", {
+	Position = UDim2.new(0, 10, 0, 8),
+	Size = UDim2.new(0, 110, 0, 42),
+	TextColor3 = C.Green,
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, bar)
+local brownBox = UIUtil.label("0 BROWN", {
+	Position = UDim2.new(1, -120, 0, 8),
+	Size = UDim2.new(0, 110, 0, 42),
+	TextColor3 = C.Brown,
+	TextXAlignment = Enum.TextXAlignment.Right,
+}, bar)
+local timerLabel = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 4),
+	Size = UDim2.new(0, 160, 0, 30),
+}, bar)
+local stateLabel = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 34),
+	Size = UDim2.new(0, 180, 0, 18),
+	TextColor3 = C.TextDim,
+	Font = UIUtil.FontRegular,
+}, bar)
+local teamLabel = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 70),
+	Size = UDim2.new(0, 260, 0, 20),
+	Font = UIUtil.FontRegular,
+}, gui)
+
+---------------------------------------------------------------------------
+-- Results banner
+---------------------------------------------------------------------------
+local banner = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0.2, 0),
+	Size = UDim2.new(0.7, 0, 0, 60),
+	BackgroundColor3 = C.Panel,
+	BackgroundTransparency = 0.2,
+	TextColor3 = C.Gold,
+	Visible = false,
+}, gui)
+UIUtil.corner(banner, 12)
+UIUtil.new("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) }, banner)
+
+---------------------------------------------------------------------------
+-- Kill feed (top right) and notifications (bottom center)
+---------------------------------------------------------------------------
+local feed = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -10, 0, 80),
+	Size = UDim2.new(0, 300, 0, 200),
+	BackgroundTransparency = 1,
+}, gui)
+UIUtil.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4) }, feed)
+
+local notes = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.5, 0, 1, -110),
+	Size = UDim2.new(0, 420, 0, 120),
+	BackgroundTransparency = 1,
+}, gui)
+UIUtil.new("UIListLayout", {
+	SortOrder = Enum.SortOrder.LayoutOrder,
+	VerticalAlignment = Enum.VerticalAlignment.Bottom,
+	Padding = UDim.new(0, 4),
+}, notes)
+
+local order = 0
+local function pushLine(parent: Instance, text: string, color: Color3, lifetime: number)
+	order += 1
+	local line = UIUtil.label(text, {
+		Size = UDim2.new(1, 0, 0, 24),
+		BackgroundColor3 = C.Panel,
+		BackgroundTransparency = 0.35,
+		TextColor3 = color,
+		Font = UIUtil.FontRegular,
+		LayoutOrder = order,
+	}, parent)
+	UIUtil.corner(line, 6)
+	Debris:AddItem(line, lifetime)
+end
+
+---------------------------------------------------------------------------
+-- Center: hit marker, enemy-zone warning. Bottom-left: bird icon.
+---------------------------------------------------------------------------
+local hitMarker = UIUtil.label("X", {
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.new(0, 34, 0, 34),
+	Visible = false,
+	ZIndex = 10,
+}, gui)
+
+local zoneWarning = UIUtil.label("ENEMY SPAWN - LEAVE NOW! You are taking damage.", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0.3, 0),
+	Size = UDim2.new(0.6, 0, 0, 36),
+	BackgroundColor3 = Color3.fromRGB(80, 20, 15),
+	BackgroundTransparency = 0.2,
+	TextColor3 = C.Danger,
+	Visible = false,
+}, gui)
+UIUtil.corner(zoneWarning, 8)
+
+local birdIcon = UIUtil.label("🐦 Birds flew up near you - keep moving", {
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, 14, 1, -14),
+	Size = UDim2.new(0, 300, 0, 22),
+	TextColor3 = C.TextDim,
+	TextTransparency = 0.2,
+	Font = UIUtil.FontRegular,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	Visible = false,
+}, gui)
+
+---------------------------------------------------------------------------
+-- Updating
+---------------------------------------------------------------------------
+local STATE_TEXT = {
+	CamoSelect = "Camo selection",
+	Round = "Round in progress",
+	Results = "Round over",
+	Intermission = "Intermission",
+}
+
+local function refreshTeam()
+	local team = player.Team
+	if team and not player.Neutral then
+		teamLabel.Text = "You are on " .. team.Name
+		teamLabel.TextColor3 = if team:GetAttribute("TeamKey") == "Green" then C.Green else C.Brown
+	else
+		teamLabel.Text = ""
+	end
+end
+
+local lastState = ""
+local function onStateChanged()
+	local state = status:GetAttribute("State") or "Waiting"
+	if state == "Round" and lastState ~= "Round" then
+		SoundUtil.Play2D(GameConfig.SOUNDS.RoundStart, 0.6)
+		pushLine(notes, "Round started! Shop open for " .. GameConfig.SHOP_OPEN_TIME .. "s at your supply crate.", C.Accent, 6)
+	elseif state == "Results" and lastState == "Round" then
+		SoundUtil.Play2D(GameConfig.SOUNDS.RoundEnd, 0.6)
+	end
+	lastState = state
+	local inRound = state == "CamoSelect" or state == "Round" or state == "Results"
+	greenBox.Visible = inRound
+	brownBox.Visible = inRound
+end
+
+local function onResultChanged()
+	local text = status:GetAttribute("ResultText") or ""
+	banner.Text = text
+	banner.Visible = text ~= ""
+end
+
+function HudController.Init()
+	status:GetAttributeChangedSignal("State"):Connect(onStateChanged)
+	status:GetAttributeChangedSignal("ResultText"):Connect(onResultChanged)
+	player:GetPropertyChangedSignal("Team"):Connect(refreshTeam)
+	player:GetPropertyChangedSignal("Neutral"):Connect(refreshTeam)
+	onStateChanged()
+	onResultChanged()
+	refreshTeam()
+
+	-- Timer + alive counts, every frame (cheap)
+	RunService.Heartbeat:Connect(function()
+		local state = status:GetAttribute("State") or "Waiting"
+		local endsAt = status:GetAttribute("EndsAt") or 0
+		if endsAt > 0 then
+			timerLabel.Text = UIUtil.formatTime(endsAt - workspace:GetServerTimeNow())
+		else
+			timerLabel.Text = "--:--"
+		end
+		local text = status:GetAttribute("StatusText")
+		stateLabel.Text = if text and text ~= "" then text else (STATE_TEXT[state] or "")
+		greenBox.Text = "GREEN " .. (status:GetAttribute("GreenAlive") or 0)
+		brownBox.Text = (status:GetAttribute("BrownAlive") or 0) .. " BROWN"
+	end)
+
+	Remotes.Get("KillFeed").OnClientEvent:Connect(function(killerName: string?, victimName: string, headshot: boolean)
+		local text
+		if killerName then
+			text = killerName .. " eliminated " .. victimName .. (if headshot then " (headshot)" else "")
+		else
+			text = victimName .. " was eliminated"
+		end
+		pushLine(feed, text, C.Text, 6)
+	end)
+
+	Remotes.Get("Notify").OnClientEvent:Connect(function(text: string)
+		if typeof(text) == "string" then
+			pushLine(notes, text, C.Gold, 4)
+		end
+	end)
+
+	Remotes.Get("HitMarker").OnClientEvent:Connect(function(headshot: boolean, killed: boolean)
+		hitMarker.TextColor3 = if headshot or killed then C.Danger else Color3.new(1, 1, 1)
+		hitMarker.Visible = true
+		SoundUtil.Play2D(GameConfig.SOUNDS.HitMarker, if killed then 0.9 else 0.6)
+		task.delay(0.25, function()
+			hitMarker.Visible = false
+		end)
+	end)
+
+	player:GetAttributeChangedSignal("InEnemyZone"):Connect(function()
+		zoneWarning.Visible = player:GetAttribute("InEnemyZone") == true
+	end)
+
+	-- The server only tells us birds were spotted, never the stillness timer
+	player:GetAttributeChangedSignal("BirdsSpottedAt"):Connect(function()
+		local stamp = player:GetAttribute("BirdsSpottedAt")
+		birdIcon.Visible = true
+		task.delay(4, function()
+			if player:GetAttribute("BirdsSpottedAt") == stamp then
+				birdIcon.Visible = false
+			end
+		end)
+	end)
+end
+
+return HudController
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="6">
+        <Properties>
+          <string name="Name">ItemClient</string>
+          <string name="Source"><![CDATA[--[[
+	ItemClient  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Client side of the one-round shop items:
+	  Binoculars    - click (or tap) to toggle zoom. Purely visual.
+	  Bird Whistle  - click to whistle at the spot you aim at
+	  Smoke Grenade - click to throw at the spot you aim at
+	  Bandage       - click to start healing (stand still!)
+	Whistle/smoke/bandage only send a REQUEST; the server validates it.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local Zoom = require(script.Parent.Zoom)
+
+local ItemClient = {}
+
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+local function onActivated(tool: Tool)
+	local itemId = tool:GetAttribute("ItemId")
+	if itemId == "Binoculars" then
+		Zoom.Set(if Zoom.Get() == "Binoculars" then nil else "Binoculars")
+	elseif itemId == "BirdWhistle" or itemId == "SmokeGrenade" then
+		Remotes.Get("UseItem"):FireServer(itemId, mouse.Hit.Position)
+	elseif itemId == "Bandage" then
+		Remotes.Get("UseItem"):FireServer(itemId)
+	end
+end
+
+local function watchCharacter(character: Model)
+	character.ChildAdded:Connect(function(child)
+		if child:IsA("Tool") and child:GetAttribute("ItemId") then
+			local conn = child.Activated:Connect(function()
+				onActivated(child)
+			end)
+			child.Unequipped:Once(function()
+				conn:Disconnect()
+				if child:GetAttribute("ItemId") == "Binoculars" and Zoom.Get() == "Binoculars" then
+					Zoom.Set(nil)
+				end
+			end)
+		end
+	end)
+end
+
+function ItemClient.Init()
+	player.CharacterAdded:Connect(watchCharacter)
+	if player.Character then
+		watchCharacter(player.Character)
+	end
+end
+
+return ItemClient
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="7">
+        <Properties>
+          <string name="Name">MainMenu</string>
+          <string name="Source"><![CDATA[--[[
+	MainMenu  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Simple full-screen menu with a Play button and your saved stats.
+	Pressing Play tells the server you're ready to be put into rounds
+	(players still on this menu are left out of the next round).
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+local UIUtil = require(script.Parent.UIUtil)
+
+local MainMenu = {}
+
+local player = Players.LocalPlayer
+local C = UIUtil.Colors
+
+function MainMenu.Init()
+	local gui = UIUtil.screen("MainMenu", 20)
+
+	local backdrop = UIUtil.new("Frame", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.fromRGB(16, 24, 14),
+		BackgroundTransparency = 0.1,
+	}, gui)
+	UIUtil.new("UIGradient", {
+		Color = ColorSequence.new(Color3.fromRGB(40, 60, 32), Color3.fromRGB(10, 14, 9)),
+		Rotation = 90,
+	}, backdrop)
+
+	UIUtil.label("AVOID THE SNIPERS", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0.18, 0),
+		Size = UDim2.new(0.8, 0, 0, 70),
+		TextColor3 = C.Accent,
+	}, backdrop)
+	UIUtil.label("Hide. Spot. Shoot first. Don't stay still - the birds will give you away.", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0.18, 78),
+		Size = UDim2.new(0.8, 0, 0, 24),
+		TextColor3 = C.TextDim,
+		Font = UIUtil.FontRegular,
+	}, backdrop)
+
+	local stats = UIUtil.label("", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0.45, 0),
+		Size = UDim2.new(0.6, 0, 0, 24),
+		TextColor3 = C.Gold,
+		Font = UIUtil.FontRegular,
+	}, backdrop)
+	local function refreshStats()
+		stats.Text = ("Total kills: %d    Total wins: %d    Coins: %d"):format(
+			player:GetAttribute("TotalKills") or 0,
+			player:GetAttribute("TotalWins") or 0,
+			player:GetAttribute("Coins") or 0
+		)
+	end
+	for _, name in { "TotalKills", "TotalWins", "Coins" } do
+		player:GetAttributeChangedSignal(name):Connect(refreshStats)
+	end
+	refreshStats()
+
+	local play = UIUtil.button("PLAY", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0.55, 0),
+		Size = UDim2.new(0, 240, 0, 64),
+		BackgroundColor3 = Color3.fromRGB(70, 110, 50),
+	}, backdrop)
+
+	UIUtil.label("Shift: sprint   C / Ctrl: crouch   Right mouse / Q: scope   Click: shoot", {
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -30),
+		Size = UDim2.new(0.8, 0, 0, 20),
+		TextColor3 = C.TextDim,
+		Font = UIUtil.FontRegular,
+	}, backdrop)
+
+	play.MouseButton1Click:Connect(function()
+		SoundUtil.Play2D(GameConfig.SOUNDS.UIClick, 0.5)
+		Remotes.Get("PlayerReady"):FireServer()
+		gui:Destroy()
+	end)
+end
+
+return MainMenu
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="8">
+        <Properties>
+          <string name="Name">MovementController</string>
+          <string name="Source"><![CDATA[--[[
+	MovementController  (ModuleScript in StarterPlayerScripts/Controllers)
+	Client half of movement (server half: MovementService).
+
+	  Hold C or Left Ctrl -> crouch
+	  Hold Left Shift     -> sprint
+	  Mobile: on-screen "Crouch" and "Sprint" buttons (tap to toggle)
+
+	The client only tells the server which stance it WANTS. The server sets
+	the real speed, the crouch pose, and the footstep/rustle sounds.
+]]
+
+local ContextActionService = game:GetService("ContextActionService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+
+local MovementController = {}
+
+local player = Players.LocalPlayer
+local crouchHeld = false
+local sprintHeld = false
+local currentStance = "Walk"
+local crouchTrack: AnimationTrack? = nil
+
+-- Crouch wins over sprint; otherwise walk.
+local function updateStance()
+	local wanted = if crouchHeld then "Crouch" elseif sprintHeld then "Sprint" else "Walk"
+	if wanted ~= currentStance then
+		currentStance = wanted
+		Remotes.Get("SetStance"):FireServer(wanted)
+	end
+end
+
+local function handle(actionName: string, state: Enum.UserInputState, input: InputObject)
+	local isTouch = input.UserInputType == Enum.UserInputType.Touch
+	if isTouch then
+		-- Mobile buttons toggle, so your thumbs stay free to move and aim
+		if state ~= Enum.UserInputState.Begin then
+			return Enum.ContextActionResult.Sink
+		end
+		if actionName == "Crouch" then
+			crouchHeld = not crouchHeld
+			sprintHeld = false
+		else
+			sprintHeld = not sprintHeld
+			crouchHeld = false
+		end
+	else
+		local down = state == Enum.UserInputState.Begin
+		if state ~= Enum.UserInputState.Begin and state ~= Enum.UserInputState.End then
+			return Enum.ContextActionResult.Pass
+		end
+		if actionName == "Crouch" then
+			crouchHeld = down
+		else
+			sprintHeld = down
+		end
+	end
+	updateStance()
+	return Enum.ContextActionResult.Sink
+end
+
+-- Optional uploaded crouch animation (GameConfig.CROUCH_ANIMATION_ID).
+-- Animations played on your own character replicate to everyone.
+local function watchCrouchAnimation(character: Model)
+	if GameConfig.CROUCH_ANIMATION_ID == "" then
+		return
+	end
+	local humanoid = character:WaitForChild("Humanoid") :: Humanoid
+	local animator = humanoid:WaitForChild("Animator") :: Animator
+	local animation = Instance.new("Animation")
+	animation.AnimationId = GameConfig.CROUCH_ANIMATION_ID
+	crouchTrack = animator:LoadAnimation(animation)
+	character:GetAttributeChangedSignal("Stance"):Connect(function()
+		local track = crouchTrack
+		if not track then
+			return
+		end
+		if character:GetAttribute("Stance") == "Crouch" then
+			track:Play(0.2)
+		else
+			track:Stop(0.2)
+		end
+	end)
+end
+
+function MovementController.Init()
+	ContextActionService:BindAction("Crouch", handle, true, Enum.KeyCode.C, Enum.KeyCode.LeftControl, Enum.KeyCode.ButtonB)
+	ContextActionService:BindAction("Sprint", handle, true, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
+	-- Titles/positions only matter for the mobile buttons
+	ContextActionService:SetTitle("Crouch", "Crouch")
+	ContextActionService:SetTitle("Sprint", "Sprint")
+	ContextActionService:SetPosition("Crouch", UDim2.new(1, -230, 1, -90))
+	ContextActionService:SetPosition("Sprint", UDim2.new(1, -230, 1, -150))
+
+	player.CharacterAdded:Connect(function(character)
+		-- New character starts walking (the server resets too)
+		crouchHeld, sprintHeld, currentStance = false, false, "Walk"
+		watchCrouchAnimation(character)
+	end)
+	if player.Character then
+		task.spawn(watchCrouchAnimation, player.Character)
+	end
+end
+
+return MovementController
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="9">
+        <Properties>
+          <string name="Name">NameTagController</string>
+          <string name="Source"><![CDATA[--[[
+	NameTagController  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	During rounds the SERVER hides every name tag and health bar
+	(DisplayDistanceType = None). This script turns them back on, on YOUR
+	screen only, for YOUR TEAMMATES. Enemy names stay hidden.
+
+	(Changing a property of someone else's Humanoid on the client only
+	affects your own screen - it doesn't replicate.)
+]]
+
+local Players = game:GetService("Players")
+
+local NameTagController = {}
+
+local player = Players.LocalPlayer
+
+local function update()
+	local myTeam = if player.Neutral then nil else player.Team
+	for _, other in Players:GetPlayers() do
+		if other ~= player then
+			local humanoid = other.Character and other.Character:FindFirstChildOfClass("Humanoid")
+			if humanoid and myTeam and not other.Neutral then
+				if other.Team == myTeam then
+					humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
+					humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.DisplayWhenDamaged
+				else
+					humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+					humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+				end
+			end
+		end
+	end
+end
+
+function NameTagController.Init()
+	task.spawn(function()
+		while true do
+			update()
+			task.wait(0.5)
+		end
+	end)
+end
+
+return NameTagController
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="10">
+        <Properties>
+          <string name="Name">ShopUI</string>
+          <string name="Source"><![CDATA[--[[
+	ShopUI  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	The supply-crate shop window. It opens only when the SERVER says so
+	(after checking team, house and time), shows items, prices and your
+	Coins, and sends ONLY the item id when you click Buy. The server
+	re-checks everything and answers with the new state.
+
+	It also hides the enemy team's crate prompt on your screen, and hides
+	your own crate's prompt once the shop has closed.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local ShopCatalog = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ShopCatalog"))
+local Remotes = require(ReplicatedStorage.Shared:WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+local UIUtil = require(script.Parent.UIUtil)
+
+local ShopUI = {}
+
+local player = Players.LocalPlayer
+local status = Remotes.GetStatus()
+local C = UIUtil.Colors
+
+local gui = UIUtil.screen("Shop", 8)
+gui.Enabled = false
+
+local panel = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.new(0, 560, 0, 440),
+	BackgroundColor3 = C.Panel,
+	BackgroundTransparency = 0.05,
+}, gui)
+UIUtil.corner(panel, 12)
+
+UIUtil.label("SUPPLY CRATE", {
+	Position = UDim2.new(0, 16, 0, 10),
+	Size = UDim2.new(0, 220, 0, 30),
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, panel)
+local coinsLabel = UIUtil.label("Coins: 0", {
+	Position = UDim2.new(0, 250, 0, 12),
+	Size = UDim2.new(0, 160, 0, 26),
+	TextColor3 = C.Gold,
+}, panel)
+local timeLabel = UIUtil.label("", {
+	Position = UDim2.new(0, 16, 0, 42),
+	Size = UDim2.new(1, -32, 0, 18),
+	TextColor3 = C.TextDim,
+	Font = UIUtil.FontRegular,
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, panel)
+local closeButton = UIUtil.button("X", {
+	Position = UDim2.new(1, -46, 0, 10),
+	Size = UDim2.new(0, 34, 0, 34),
+	BackgroundColor3 = Color3.fromRGB(90, 40, 30),
+}, panel)
+local messageLabel = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, 16, 1, -8),
+	Size = UDim2.new(1, -32, 0, 22),
+	TextColor3 = C.Gold,
+	Font = UIUtil.FontRegular,
+}, panel)
+
+local list = UIUtil.new("ScrollingFrame", {
+	Position = UDim2.new(0, 12, 0, 66),
+	Size = UDim2.new(1, -24, 1, -104),
+	BackgroundTransparency = 1,
+	ScrollBarThickness = 6,
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	CanvasSize = UDim2.new(),
+}, panel)
+UIUtil.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) }, list)
+
+local shopState: any = nil
+
+local function header(text: string, order: number)
+	UIUtil.label(text, {
+		Size = UDim2.new(1, -8, 0, 24),
+		TextColor3 = C.Accent,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		LayoutOrder = order,
+	}, list)
+end
+
+-- One row: [swatch] Name / description ............ [button]
+local function row(order: number, name: string, description: string, buttonText: string, enabled: boolean, color: Color3?, onClick: () -> ())
+	local frame = UIUtil.new("Frame", {
+		Size = UDim2.new(1, -8, 0, 52),
+		BackgroundColor3 = C.PanelLight,
+		LayoutOrder = order,
+	}, list)
+	UIUtil.corner(frame, 8)
+	local textX = 10
+	if color then
+		local swatch = UIUtil.new("Frame", {
+			Position = UDim2.new(0, 8, 0, 8),
+			Size = UDim2.new(0, 36, 0, 36),
+			BackgroundColor3 = color,
+		}, frame)
+		UIUtil.corner(swatch, 6)
+		textX = 52
+	end
+	UIUtil.label(name, {
+		Position = UDim2.new(0, textX, 0, 4),
+		Size = UDim2.new(1, -textX - 130, 0, 22),
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, frame)
+	UIUtil.label(description, {
+		Position = UDim2.new(0, textX, 0, 27),
+		Size = UDim2.new(1, -textX - 130, 0, 18),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = C.TextDim,
+		Font = UIUtil.FontRegular,
+	}, frame)
+	local button = UIUtil.button(buttonText, {
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -8, 0.5, 0),
+		Size = UDim2.new(0, 112, 0, 36),
+		BackgroundColor3 = if enabled then Color3.fromRGB(70, 100, 50) else Color3.fromRGB(60, 60, 60),
+		AutoButtonColor = enabled,
+	}, frame)
+	if enabled then
+		button.MouseButton1Click:Connect(onClick)
+	end
+end
+
+local function buy(itemId: string)
+	SoundUtil.Play2D(GameConfig.SOUNDS.UIClick, 0.4)
+	Remotes.Get("ShopBuy"):FireServer(itemId)
+end
+
+local function render()
+	for _, child in list:GetChildren() do
+		if not child:IsA("UIListLayout") then
+			child:Destroy()
+		end
+	end
+	if not shopState then
+		return
+	end
+	coinsLabel.Text = "Coins: " .. tostring(shopState.Coins)
+	local coins = shopState.Coins
+
+	local order = 0
+	local function nextOrder()
+		order += 1
+		return order
+	end
+
+	header("THIS ROUND ONLY", nextOrder())
+	for _, item in ShopCatalog.RoundItems do
+		local bought = shopState.Bought[item.Id]
+		local text = if bought then "Bought" else (item.Price .. " coins")
+		row(nextOrder(), item.Name, item.Description, text, not bought and coins >= item.Price, nil, function()
+			buy(item.Id)
+		end)
+	end
+
+	header("CAMOS (PERMANENT)", nextOrder())
+	for _, item in ShopCatalog.Camos do
+		local owned = table.find(shopState.OwnedCamos, item.CamoName) ~= nil
+		local text = if owned then "Owned" else (item.Price .. " coins")
+		row(nextOrder(), item.Name, "Unlock forever. Pick it in camo selection.", text, not owned and coins >= item.Price, item.Color, function()
+			buy(item.Id)
+		end)
+	end
+
+	header("SNIPER SKINS (COSMETIC)", nextOrder())
+	for _, item in ShopCatalog.Skins do
+		local owned = table.find(shopState.OwnedSkins, item.Id) ~= nil
+		local equipped = shopState.EquippedSkin == item.Id
+		local text = if equipped then "Unequip" elseif owned then "Equip" else (item.Price .. " coins")
+		local enabled = owned or coins >= item.Price
+		row(nextOrder(), item.Name, "Muted rifle color. Looks only.", text, enabled, item.Color, function()
+			buy(item.Id)
+		end)
+	end
+end
+
+local function close()
+	gui.Enabled = false
+	shopState = nil
+end
+
+-- Show your own crate's prompt only while the shop is open
+local prompts: { ProximityPrompt } = {}
+local function updatePrompts()
+	local myKey = player.Team and not player.Neutral and player.Team:GetAttribute("TeamKey")
+	local roundStart = status:GetAttribute("RoundStartedAt") or 0
+	local open = status:GetAttribute("State") == "Round"
+		and workspace:GetServerTimeNow() - roundStart <= GameConfig.SHOP_OPEN_TIME
+	if #prompts == 0 then
+		-- Find the crate prompts once (the map has thousands of parts)
+		local map = workspace:FindFirstChild("Map")
+		if not map then
+			return
+		end
+		for _, d in map:GetDescendants() do
+			if d:IsA("ProximityPrompt") and d.Name == "ShopPrompt" then
+				table.insert(prompts, d)
+			end
+		end
+	end
+	for _, prompt in prompts do
+		local crate = prompt.Parent
+		prompt.Enabled = open and myKey ~= nil and crate ~= nil and crate:GetAttribute("Team") == myKey
+	end
+end
+
+function ShopUI.Init()
+	closeButton.MouseButton1Click:Connect(close)
+
+	Remotes.Get("OpenShop").OnClientEvent:Connect(function(state)
+		shopState = state
+		messageLabel.Text = ""
+		render()
+		gui.Enabled = true
+	end)
+
+	Remotes.Get("ShopResult").OnClientEvent:Connect(function(success: boolean, message: string, state)
+		messageLabel.TextColor3 = if success then C.Gold else C.Danger
+		messageLabel.Text = message or ""
+		if state and gui.Enabled then
+			shopState = state
+			render()
+		end
+	end)
+
+	-- Countdown, auto-close, prompt visibility
+	task.spawn(function()
+		while true do
+			updatePrompts()
+			if gui.Enabled and shopState then
+				local left = (shopState.ClosesAt or 0) - workspace:GetServerTimeNow()
+				timeLabel.Text = ("Shop closes in %d s"):format(math.max(0, math.ceil(left)))
+				if left <= 0 or status:GetAttribute("State") ~= "Round" then
+					close()
+				end
+			end
+			task.wait(0.25)
+		end
+	end)
+end
+
+return ShopUI
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="11">
+        <Properties>
+          <string name="Name">SniperClient</string>
+          <string name="Source"><![CDATA[--[[
+	SniperClient  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Client side of the sniper. It ONLY:
+	  * aims (camera/mouse ray) and sends a fire REQUEST to the server
+	  * handles the scope zoom (right mouse / Q / mobile "Scope" button)
+	  * draws tracers and plays gunshots the server tells it about
+	The server decides if the shot hit and how much damage it did.
+]]
+
+local ContextActionService = game:GetService("ContextActionService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+local Zoom = require(script.Parent.Zoom)
+
+local SniperClient = {}
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local mouse = player:GetMouse()
+
+local equipped: Tool? = nil
+local lastShot = 0
+
+-- Where is the player aiming? Returns (direction, hitPart, hitPosition)
+local function aim(): (Vector3, BasePart?, Vector3?)
+	local ray
+	if Zoom.Get() == "Scope" then
+		local size = camera.ViewportSize
+		ray = camera:ViewportPointToRay(size.X / 2, size.Y / 2)
+	else
+		ray = mouse.UnitRay -- also follows the last tap on mobile
+	end
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { player.Character :: Instance }
+	local result = workspace:Raycast(ray.Origin, ray.Direction * GameConfig.SNIPER_MAX_RANGE, params)
+	if result then
+		return ray.Direction, result.Instance :: BasePart, result.Position
+	end
+	return ray.Direction, nil, nil
+end
+
+local function fire()
+	if not equipped then
+		return
+	end
+	if os.clock() - lastShot < GameConfig.SNIPER_FIRE_COOLDOWN then
+		return
+	end
+	lastShot = os.clock()
+	local direction, hitPart, hitPosition = aim()
+	Remotes.Get("FireSniper"):FireServer(direction, hitPart, hitPosition)
+end
+
+local function setScoped(scoped: boolean)
+	if scoped and equipped then
+		Zoom.Set("Scope")
+	elseif Zoom.Get() == "Scope" then
+		Zoom.Set(nil)
+	end
+end
+
+local function onScopeAction(_, state: Enum.UserInputState, input: InputObject)
+	if not equipped then
+		return Enum.ContextActionResult.Pass
+	end
+	if input.UserInputType == Enum.UserInputType.MouseButton2 then
+		setScoped(state == Enum.UserInputState.Begin) -- hold right mouse
+	elseif state == Enum.UserInputState.Begin then
+		setScoped(Zoom.Get() ~= "Scope") -- Q / touch button toggles
+	end
+	return Enum.ContextActionResult.Sink
+end
+
+local activatedConn: RBXScriptConnection? = nil
+
+local function onEquipped(tool: Tool)
+	equipped = tool
+	activatedConn = tool.Activated:Connect(fire)
+	ContextActionService:BindAction("SniperScope", onScopeAction, true, Enum.UserInputType.MouseButton2, Enum.KeyCode.Q, Enum.KeyCode.ButtonL2)
+	ContextActionService:SetTitle("SniperScope", "Scope")
+	ContextActionService:SetPosition("SniperScope", UDim2.new(1, -170, 1, -150))
+end
+
+local function onUnequipped()
+	equipped = nil
+	if activatedConn then
+		activatedConn:Disconnect()
+		activatedConn = nil
+	end
+	ContextActionService:UnbindAction("SniperScope")
+	setScoped(false)
+end
+
+local function watchCharacter(character: Model)
+	onUnequipped()
+	character.ChildAdded:Connect(function(child)
+		if child:IsA("Tool") and child:GetAttribute("IsSniper") then
+			onEquipped(child)
+		end
+	end)
+	character.ChildRemoved:Connect(function(child)
+		if child == equipped then
+			onUnequipped()
+		end
+	end)
+end
+
+-- Tracer + gunshot for EVERY shot on the map (yours and enemies')
+local function onShotFired(origin: Vector3, hitPosition: Vector3, soundId: string)
+	local distance = (hitPosition - origin).Magnitude
+	if distance > 0.5 then
+		local tracer = Instance.new("Part")
+		tracer.Name = "Tracer"
+		tracer.Anchored = true
+		tracer.CanCollide = false
+		tracer.CanQuery = false
+		tracer.CanTouch = false
+		tracer.CastShadow = false
+		tracer.Material = Enum.Material.Neon
+		tracer.Color = Color3.fromRGB(255, 236, 170)
+		tracer.Transparency = 0.2
+		tracer.Size = Vector3.new(0.12, 0.12, distance)
+		tracer.CFrame = CFrame.lookAt((origin + hitPosition) / 2, hitPosition)
+		tracer.Parent = workspace
+		TweenService:Create(tracer, TweenInfo.new(GameConfig.TRACER_LIFETIME), { Transparency = 1 }):Play()
+		Debris:AddItem(tracer, GameConfig.TRACER_LIFETIME + 0.1)
+	end
+	-- Loud: heard across the whole map, so shooting reveals your position
+	SoundUtil.PlayAt(origin, soundId, { Volume = 2, MinDistance = 80, MaxDistance = 3000 })
+end
+
+function SniperClient.Init()
+	player.CharacterAdded:Connect(watchCharacter)
+	if player.Character then
+		watchCharacter(player.Character)
+	end
+	Remotes.Get("ShotFired").OnClientEvent:Connect(onShotFired)
+end
+
+return SniperClient
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="12">
+        <Properties>
+          <string name="Name">SpectateController</string>
+          <string name="Source"><![CDATA[--[[
+	SpectateController  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	When you die in a round the server sets your "Spectating" attribute.
+	You can then watch ALIVE TEAMMATES ONLY (never enemies), so dead
+	players can't scout enemy positions. Use the < > buttons or the
+	Left/Right arrow keys to switch.
+]]
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local UIUtil = require(script.Parent.UIUtil)
+
+local SpectateController = {}
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local C = UIUtil.Colors
+
+local gui = UIUtil.screen("Spectate", 3)
+gui.Enabled = false
+local bar = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.5, 0, 1, -20),
+	Size = UDim2.new(0, 380, 0, 50),
+	BackgroundColor3 = C.Panel,
+	BackgroundTransparency = 0.2,
+}, gui)
+UIUtil.corner(bar, 10)
+local prevButton = UIUtil.button("<", { Position = UDim2.new(0, 6, 0, 6), Size = UDim2.new(0, 38, 0, 38) }, bar)
+local nextButton = UIUtil.button(">", { Position = UDim2.new(1, -44, 0, 6), Size = UDim2.new(0, 38, 0, 38) }, bar)
+local nameLabel = UIUtil.label("", {
+	Position = UDim2.new(0, 50, 0, 6),
+	Size = UDim2.new(1, -100, 0, 38),
+}, bar)
+
+local index = 1
+
+-- Alive players on MY team (not me)
+local function aliveTeammates(): { Player }
+	local list = {}
+	for _, other in Players:GetPlayers() do
+		if other ~= player and other.Team == player.Team and not other.Neutral and not other:GetAttribute("Spectating") then
+			local humanoid = other.Character and other.Character:FindFirstChildOfClass("Humanoid")
+			if humanoid and humanoid.Health > 0 then
+				table.insert(list, other)
+			end
+		end
+	end
+	return list
+end
+
+local function refresh()
+	local spectating = player:GetAttribute("Spectating") == true and player.Team ~= nil and not player.Neutral
+	gui.Enabled = spectating
+	if not spectating then
+		return
+	end
+	local mates = aliveTeammates()
+	if #mates == 0 then
+		nameLabel.Text = "No teammates left"
+		return
+	end
+	index = ((index - 1) % #mates) + 1
+	local target = mates[index]
+	local humanoid = target.Character and target.Character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		camera.CameraSubject = humanoid
+		nameLabel.Text = "Spectating " .. target.DisplayName
+	end
+end
+
+local function step(delta: number)
+	index += delta
+	refresh()
+end
+
+function SpectateController.Init()
+	prevButton.MouseButton1Click:Connect(function()
+		step(-1)
+	end)
+	nextButton.MouseButton1Click:Connect(function()
+		step(1)
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed or not gui.Enabled then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.Left then
+			step(-1)
+		elseif input.KeyCode == Enum.KeyCode.Right then
+			step(1)
+		end
+	end)
+
+	player:GetAttributeChangedSignal("Spectating"):Connect(function()
+		index = 1
+		refresh()
+		if not player:GetAttribute("Spectating") then
+			-- back to our own character
+			local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+			if humanoid then
+				camera.CameraSubject = humanoid
+			end
+		end
+	end)
+
+	-- Re-check every second (teammates die, leave, etc.)
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			if gui.Enabled or player:GetAttribute("Spectating") then
+				refresh()
+			end
+		end
+	end)
+end
+
+return SpectateController
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="13">
+        <Properties>
+          <string name="Name">UIUtil</string>
+          <string name="Source"><![CDATA[--[[
+	UIUtil  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Builds UI from code so the whole game is plain text.
+	  UIUtil.new("TextLabel", { Text = "Hi", Size = ... }, parent)
+	Also holds shared colors/fonts so every screen looks the same.
+]]
+
+local Players = game:GetService("Players")
+
+local UIUtil = {}
+
+UIUtil.Colors = {
+	Panel = Color3.fromRGB(24, 32, 22),
+	PanelLight = Color3.fromRGB(40, 52, 36),
+	Text = Color3.fromRGB(232, 236, 222),
+	TextDim = Color3.fromRGB(170, 180, 160),
+	Accent = Color3.fromRGB(150, 190, 90),
+	Green = Color3.fromRGB(110, 180, 90),
+	Brown = Color3.fromRGB(190, 130, 70),
+	Danger = Color3.fromRGB(220, 90, 70),
+	Gold = Color3.fromRGB(230, 200, 90),
+}
+UIUtil.Font = Enum.Font.GothamBold
+UIUtil.FontRegular = Enum.Font.Gotham
+
+function UIUtil.new(className: string, props: { [string]: any }?, parent: Instance?): any
+	local instance = Instance.new(className)
+	if props then
+		for key, value in props do
+			(instance :: any)[key] = value
+		end
+	end
+	if parent then
+		instance.Parent = parent
+	end
+	return instance
+end
+
+-- Rounded corners on any GuiObject
+function UIUtil.corner(parent: Instance, radius: number?)
+	UIUtil.new("UICorner", { CornerRadius = UDim.new(0, radius or 8) }, parent)
+end
+
+-- A ScreenGui that survives respawns
+function UIUtil.screen(name: string, displayOrder: number?): ScreenGui
+	return UIUtil.new("ScreenGui", {
+		Name = name,
+		ResetOnSpawn = false,
+		IgnoreGuiInset = true,
+		DisplayOrder = displayOrder or 0,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+	}, Players.LocalPlayer:WaitForChild("PlayerGui"))
+end
+
+-- A standard label
+function UIUtil.label(text: string, props: { [string]: any }?, parent: Instance?): TextLabel
+	local label = UIUtil.new("TextLabel", {
+		Text = text,
+		BackgroundTransparency = 1,
+		TextColor3 = UIUtil.Colors.Text,
+		Font = UIUtil.Font,
+		TextScaled = true,
+	}, parent)
+	if props then
+		for key, value in props do
+			(label :: any)[key] = value
+		end
+	end
+	return label
+end
+
+-- A standard button
+function UIUtil.button(text: string, props: { [string]: any }?, parent: Instance?): TextButton
+	local button = UIUtil.new("TextButton", {
+		Text = text,
+		BackgroundColor3 = UIUtil.Colors.PanelLight,
+		TextColor3 = UIUtil.Colors.Text,
+		Font = UIUtil.Font,
+		TextScaled = true,
+		AutoButtonColor = true,
+	}, parent)
+	if props then
+		for key, value in props do
+			(button :: any)[key] = value
+		end
+	end
+	UIUtil.corner(button)
+	return button
+end
+
+-- "1:05" style time text
+function UIUtil.formatTime(seconds: number): string
+	seconds = math.max(0, math.ceil(seconds))
+	return string.format("%d:%02d", seconds // 60, seconds % 60)
+end
+
+return UIUtil
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="14">
+        <Properties>
+          <string name="Name">Zoom</string>
+          <string name="Source"><![CDATA[--[[
+	Zoom  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Camera zoom shared by the sniper scope and the binoculars.
+	Zoom is purely visual, so it's fine for the client to do it.
+	  Zoom.Set("Scope")       -> sniper scope (crosshair overlay)
+	  Zoom.Set("Binoculars")  -> binocular view (two circles overlay)
+	  Zoom.Set(nil)           -> back to normal
+]]
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local GameConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("GameConfig"))
+local UIUtil = require(script.Parent.UIUtil)
+
+local Zoom = {}
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local current: string? = nil
+local normalFov = 70
+local normalCameraMode = Enum.CameraMode.Classic
+
+local gui = UIUtil.screen("ZoomOverlay", 5)
+gui.Enabled = false
+
+-- Scope overlay: black edges + a thin crosshair in the middle
+local scopeFrame = UIUtil.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1 }, gui)
+do
+	local ring = UIUtil.new("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.9, 0.9),
+		BackgroundTransparency = 1,
+	}, scopeFrame)
+	UIUtil.new("UIAspectRatioConstraint", { AspectRatio = 1 }, ring)
+	UIUtil.new("UIStroke", { Thickness = 2000, Color = Color3.new(0, 0, 0) }, ring) -- huge stroke = black outside the circle
+	UIUtil.corner(ring, 10000)
+	for _, size in { UDim2.new(1, 0, 0, 2), UDim2.new(0, 2, 1, 0) } do
+		UIUtil.new("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = size,
+			BackgroundColor3 = Color3.new(0, 0, 0),
+			BorderSizePixel = 0,
+		}, ring)
+	end
+end
+
+-- Binocular overlay: two overlapping circles
+local binoFrame = UIUtil.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1 }, gui)
+for _, x in { 0.38, 0.62 } do
+	local circle = UIUtil.new("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(x, 0.5),
+		Size = UDim2.fromScale(0.62, 0.62),
+		BackgroundTransparency = 1,
+	}, binoFrame)
+	UIUtil.new("UIAspectRatioConstraint", { AspectRatio = 1 }, circle)
+	UIUtil.new("UIStroke", { Thickness = 6, Color = Color3.new(0, 0, 0) }, circle)
+	UIUtil.corner(circle, 10000)
+end
+
+function Zoom.Get(): string?
+	return current
+end
+
+function Zoom.Set(mode: string?)
+	if mode == current then
+		return
+	end
+	if current == nil then
+		-- remember the normal view before zooming
+		normalFov = camera.FieldOfView
+		normalCameraMode = player.CameraMode
+	end
+	current = mode
+
+	if mode == nil then
+		camera.FieldOfView = normalFov
+		player.CameraMode = normalCameraMode
+		UserInputService.MouseDeltaSensitivity = 1
+		gui.Enabled = false
+		return
+	end
+
+	player.CameraMode = Enum.CameraMode.LockFirstPerson
+	gui.Enabled = true
+	scopeFrame.Visible = mode == "Scope"
+	binoFrame.Visible = mode == "Binoculars"
+	if mode == "Scope" then
+		camera.FieldOfView = GameConfig.SNIPER_SCOPE_FOV
+		UserInputService.MouseDeltaSensitivity = GameConfig.SCOPE_SENSITIVITY
+	else
+		camera.FieldOfView = GameConfig.BINOCULARS_FOV
+		UserInputService.MouseDeltaSensitivity = 0.4
+	end
+end
+
+-- Leave zoom when the character dies or respawns
+player.CharacterAdded:Connect(function()
+	Zoom.Set(nil)
+end)
+
+return Zoom
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+</roblox>

@@ -1,0 +1,18 @@
+<roblox version="4">
+  <Item class="LocalScript" referent="0">
+    <Properties>
+      <string name="Name">RbxCharacterSounds</string>
+      <string name="Source"><![CDATA[--[[
+	RbxCharacterSounds  (LocalScript in StarterPlayer/StarterPlayerScripts)
+
+	A LocalScript with this exact name REPLACES Roblox's default character
+	sounds script. We do this on purpose: the default footsteps would play
+	even while crouching. Footsteps and rustling are made by the server
+	instead (MovementService), based on your stance.
+
+	Leave this script empty.
+]]
+]]></string>
+    </Properties>
+  </Item>
+</roblox>

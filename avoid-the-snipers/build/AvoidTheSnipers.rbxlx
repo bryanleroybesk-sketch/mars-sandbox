@@ -1,0 +1,5567 @@
+<roblox version="4">
+  <Item class="Players" referent="0">
+    <Properties>
+      <string name="Name">Players</string>
+      <bool name="CharacterAutoLoads">false</bool>
+    </Properties>
+  </Item>
+  <Item class="ReplicatedStorage" referent="1">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+    <Item class="ModuleScript" referent="2">
+      <Properties>
+        <string name="Name">GameConfig</string>
+        <string name="Source"><![CDATA[--[[
+	GameConfig  (ModuleScript in ReplicatedStorage)
+
+	EVERY tunable number in "Avoid the Snipers" lives here.
+	Both the server and the clients read this file, but only the SERVER
+	ever makes decisions with it (damage, coins, round timing, etc.).
+	Changing a value here on the client does nothing to the real game.
+
+	Times are in seconds, distances are in studs.
+]]
+
+local GameConfig = {}
+
+---------------------------------------------------------------------------
+-- ROUND FLOW
+---------------------------------------------------------------------------
+GameConfig.MIN_PLAYERS_TO_START = 2 -- players who pressed "Play"
+GameConfig.CAMO_SELECT_TIME = 15
+GameConfig.ROUND_TIME = 180
+GameConfig.RESULTS_TIME = 6 -- how long the results banner stays up
+GameConfig.INTERMISSION_TIME = 10
+GameConfig.SPAWN_PROTECTION_TIME = 3
+
+---------------------------------------------------------------------------
+-- BIRDS (anti-camping)
+---------------------------------------------------------------------------
+GameConfig.STILLNESS_CHECK_INTERVAL = 0.5 -- how often the server samples positions
+GameConfig.STILLNESS_WARNING_TIME = 20 -- first, small bird reveal
+GameConfig.STILLNESS_DANGER_TIME = 40 -- strong bird reveal
+GameConfig.DANGER_REPEAT_INTERVAL = 10 -- repeat strong reveal while still
+GameConfig.STILL_MOVE_THRESHOLD = 2 -- moving less than this counts as "still"
+GameConfig.WARNING_REVEAL_OFFSET = 25 -- birds appear this far from the player
+GameConfig.DANGER_REVEAL_OFFSET = 8
+GameConfig.SPRINT_BIRD_CHANCE = 0.15 -- chance PER SECOND while sprinting in tall grass
+
+GameConfig.WARNING_FLOCK_SIZE = { 3, 4 } -- {min, max}
+GameConfig.DANGER_FLOCK_SIZE = { 8, 10 }
+GameConfig.SPRINT_FLOCK_SIZE = { 1, 2 }
+GameConfig.WHISTLE_FLOCK_SIZE = { 8, 10 } -- looks just like a danger flock
+GameConfig.BIRD_FLIGHT_TIME = 3
+
+---------------------------------------------------------------------------
+-- SNIPER
+---------------------------------------------------------------------------
+GameConfig.HEADSHOT_DAMAGE = 100
+GameConfig.BODY_DAMAGE = 60
+GameConfig.LIMB_DAMAGE = 35
+
+GameConfig.SNIPER_FIRE_COOLDOWN = 1.5 -- seconds between shots (bolt action)
+GameConfig.SNIPER_MAX_RANGE = 1000
+GameConfig.SNIPER_HIT_TOLERANCE = 8 -- lag allowance when validating hits
+GameConfig.SNIPER_SCOPE_FOV = 12 -- camera FOV while scoped (smaller = more zoom)
+GameConfig.SCOPE_SENSITIVITY = 0.25 -- mouse sensitivity multiplier while scoped
+GameConfig.FRIENDLY_FIRE = false
+GameConfig.TRACER_LIFETIME = 0.6
+
+-- Name of the Weapons Kit sniper you put in ServerStorage/Weapons (see README)
+GameConfig.SNIPER_TEMPLATE_NAME = "SniperRifle"
+
+---------------------------------------------------------------------------
+-- MOVEMENT
+---------------------------------------------------------------------------
+GameConfig.WALK_SPEED = 12
+GameConfig.CROUCH_SPEED = 6
+GameConfig.SPRINT_SPEED = 20
+GameConfig.JUMP_HEIGHT = 6
+
+-- Optional: an R15 crouch animation you uploaded. Leave "" to use the
+-- built-in "kneel" pose made by bending the leg joints.
+GameConfig.CROUCH_ANIMATION_ID = ""
+
+GameConfig.WALK_FOOTSTEP_VOLUME = 0.25
+GameConfig.WALK_FOOTSTEP_DISTANCE = 30 -- quiet: only heard close by
+GameConfig.SPRINT_RUSTLE_VOLUME = 1.2
+GameConfig.SPRINT_RUSTLE_DISTANCE = 90 -- loud: heard from far away
+
+---------------------------------------------------------------------------
+-- SPAWNS / SAFE ZONES
+---------------------------------------------------------------------------
+GameConfig.SPAWN_SAFE_ZONE_RADIUS = 15
+GameConfig.ENEMY_SAFE_ZONE_DPS = 20 -- damage per second to enemies camping your spawn
+
+---------------------------------------------------------------------------
+-- COINS & SHOP
+---------------------------------------------------------------------------
+GameConfig.COINS_PER_KILL = 25
+GameConfig.COINS_HEADSHOT_BONUS = 15
+GameConfig.COINS_PER_ROUND_WIN = 50
+GameConfig.COINS_FOR_SURVIVING = 20
+GameConfig.SHOP_OPEN_TIME = 20 -- shop only works for the first X seconds of a round
+
+GameConfig.BANDAGE_HEAL = 40
+GameConfig.BANDAGE_TIME = 3
+GameConfig.SMOKE_DURATION = 8
+GameConfig.SMOKE_THROW_RANGE = 60
+GameConfig.WHISTLE_RANGE = 150
+GameConfig.BINOCULARS_FOV = 25
+
+---------------------------------------------------------------------------
+-- TEAMS
+---------------------------------------------------------------------------
+GameConfig.TEAMS = {
+	Green = {
+		Name = "Team Green",
+		TeamColor = BrickColor.new("Camo"),
+		ArmbandColor = Color3.fromRGB(95, 170, 80),
+	},
+	Brown = {
+		Name = "Team Brown",
+		TeamColor = BrickColor.new("Brown"),
+		ArmbandColor = Color3.fromRGB(165, 105, 55),
+	},
+}
+
+---------------------------------------------------------------------------
+-- DATA
+---------------------------------------------------------------------------
+-- Bump the "_v1" if you ever change the saved data format.
+GameConfig.DATASTORE_NAME = "AvoidTheSnipers_PlayerData_v1"
+GameConfig.AUTOSAVE_INTERVAL = 120
+
+---------------------------------------------------------------------------
+-- SOUNDS
+-- These use sounds that ship with every Roblox install so the game works
+-- out of the box. For a better feel, replace them with sounds from the
+-- Creator Store (Toolbox > Audio), e.g. "rbxassetid://1234567890".
+-- If the Weapons Kit sniper contains a fire sound, it is used for the
+-- gunshot automatically (see SniperService).
+---------------------------------------------------------------------------
+GameConfig.SOUNDS = {
+	Gunshot = "rbxasset://sounds/collide.wav",
+	HitMarker = "rbxasset://sounds/electronicpingshort.wav",
+	BirdFlap = "rbxasset://sounds/swoosh.wav",
+	CrowCall = "rbxasset://sounds/swoosh.wav",
+	Footstep = "rbxasset://sounds/action_footsteps_plastic.mp3",
+	Rustle = "rbxasset://sounds/action_footsteps_plastic.mp3",
+	RoundStart = "rbxasset://sounds/electronicpingshort.wav",
+	RoundEnd = "rbxasset://sounds/victory.wav",
+	UIClick = "rbxasset://sounds/clickfast.wav",
+}
+
+return GameConfig
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="Folder" referent="3">
+      <Properties>
+        <string name="Name">Shared</string>
+      </Properties>
+      <Item class="ModuleScript" referent="4">
+        <Properties>
+          <string name="Name">CamoData</string>
+          <string name="Source"><![CDATA[--[[
+	CamoData  (ModuleScript in ReplicatedStorage/Shared)
+
+	The list of every camouflage. Each camo has three colors that are
+	spread over the body parts to give a blotchy camo look.
+
+	Price = 0  -> free for everyone (the 5 starter camos)
+	Price > 0  -> permanent unlock bought in the shop
+
+	Optional: put Shirt/Pants template IDs from the Creator Store in
+	ShirtTemplate / PantsTemplate to also dress players in real camo
+	clothing. Leave them "" to use plain colored body parts.
+]]
+
+local CamoData = {}
+
+CamoData.DEFAULT_CAMO = "Jungle"
+
+CamoData.List = {
+	-- The 5 free starter camos (shown in this order in the menu)
+	{
+		Name = "Jungle",
+		Price = 0,
+		Colors = { Color3.fromRGB(46, 74, 38), Color3.fromRGB(30, 50, 25), Color3.fromRGB(70, 92, 45) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Grass",
+		Price = 0,
+		Colors = { Color3.fromRGB(110, 150, 60), Color3.fromRGB(88, 128, 48), Color3.fromRGB(138, 168, 80) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Rice Field",
+		Price = 0,
+		Colors = { Color3.fromRGB(158, 164, 72), Color3.fromRGB(128, 138, 55), Color3.fromRGB(184, 178, 96) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Mud",
+		Price = 0,
+		Colors = { Color3.fromRGB(95, 70, 45), Color3.fromRGB(74, 54, 35), Color3.fromRGB(116, 90, 60) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Shadow",
+		Price = 0,
+		Colors = { Color3.fromRGB(20, 28, 20), Color3.fromRGB(12, 16, 12), Color3.fromRGB(34, 42, 30) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+
+	-- Permanent unlocks (bought with Coins in the shop)
+	{
+		Name = "Bamboo",
+		Price = 150,
+		Colors = { Color3.fromRGB(120, 140, 70), Color3.fromRGB(92, 110, 50), Color3.fromRGB(158, 158, 98) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Autumn",
+		Price = 250,
+		Colors = { Color3.fromRGB(138, 90, 42), Color3.fromRGB(108, 70, 35), Color3.fromRGB(158, 120, 62) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Swamp",
+		Price = 300,
+		Colors = { Color3.fromRGB(60, 70, 45), Color3.fromRGB(45, 55, 40), Color3.fromRGB(84, 90, 55) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Temple Stone",
+		Price = 400,
+		Colors = { Color3.fromRGB(110, 110, 95), Color3.fromRGB(85, 88, 75), Color3.fromRGB(130, 128, 110) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+}
+
+-- Quick lookup: CamoData.ByName["Mud"]
+CamoData.ByName = {}
+for _, camo in CamoData.List do
+	CamoData.ByName[camo.Name] = camo
+end
+
+-- Is this camo free for everyone?
+function CamoData.IsFree(name: string): boolean
+	local camo = CamoData.ByName[name]
+	return camo ~= nil and camo.Price == 0
+end
+
+return CamoData
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="5">
+        <Properties>
+          <string name="Name">Remotes</string>
+          <string name="Source"><![CDATA[--[[
+	Remotes  (ModuleScript in ReplicatedStorage/Shared)
+
+	One place that creates (on the server) or finds (on the client) every
+	RemoteEvent the game uses, plus the "GameStatus" folder whose attributes
+	tell clients what the round is doing.
+
+	Client -> Server events are REQUESTS. The server checks every one of them.
+	Server -> Client events are just information for UI and effects.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local Remotes = {}
+
+local EVENT_NAMES = {
+	-- Client -> Server (always validated on the server)
+	"PlayerReady", -- (no args) player pressed Play on the main menu
+	"SelectCamo", -- (camoName: string)
+	"SetStance", -- (stance: "Crouch" | "Walk" | "Sprint")
+	"FireSniper", -- (direction: Vector3, hitPart: BasePart?, hitPosition: Vector3?)
+	"ShopBuy", -- (itemId: string)
+	"UseItem", -- (itemId: string, aimPosition: Vector3?)
+
+	-- Server -> Client
+	"CamoMenu", -- (open: boolean, ownedCamos: {string}?, endsAt: number?)
+	"ShotFired", -- (origin: Vector3, hitPosition: Vector3, soundId: string)
+	"HitMarker", -- (isHeadshot: boolean, killed: boolean)
+	"KillFeed", -- (killerName: string?, victimName: string, headshot: boolean)
+	"BirdFlock", -- (position: Vector3, count: number, kind: string)
+	"OpenShop", -- (shopState: table)
+	"ShopResult", -- (success: boolean, message: string, shopState: table?)
+	"Notify", -- (text: string)
+}
+
+local isServer = RunService:IsServer()
+local folder: Folder
+local statusFolder: Folder
+
+if isServer then
+	local existing = ReplicatedStorage:FindFirstChild("Remotes")
+	if existing then
+		folder = existing :: any
+	else
+		local newFolder = Instance.new("Folder")
+		newFolder.Name = "Remotes"
+		newFolder.Parent = ReplicatedStorage
+		folder = newFolder
+	end
+	for _, name in EVENT_NAMES do
+		if not folder:FindFirstChild(name) then
+			local event = Instance.new("RemoteEvent")
+			event.Name = name
+			event.Parent = folder
+		end
+	end
+
+	local existingStatus = ReplicatedStorage:FindFirstChild("GameStatus")
+	if existingStatus then
+		statusFolder = existingStatus :: any
+	else
+		local newStatus = Instance.new("Folder")
+		newStatus.Name = "GameStatus"
+		newStatus.Parent = ReplicatedStorage
+		statusFolder = newStatus
+	end
+else
+	folder = ReplicatedStorage:WaitForChild("Remotes") :: Folder
+	statusFolder = ReplicatedStorage:WaitForChild("GameStatus") :: Folder
+end
+
+-- Returns the RemoteEvent with this name.
+function Remotes.Get(name: string): RemoteEvent
+	local event = if isServer then folder:FindFirstChild(name) else folder:WaitForChild(name)
+	assert(event, "Unknown remote: " .. name)
+	return event :: RemoteEvent
+end
+
+-- The folder whose attributes describe the round. Attributes used:
+--   State        "Waiting" | "CamoSelect" | "Round" | "Results" | "Intermission"
+--   EndsAt       server time (workspace:GetServerTimeNow()) when this state ends, or 0
+--   StatusText   short text for the top bar ("Waiting for players (1/2)")
+--   GreenAlive / BrownAlive   players alive per team
+--   ResultText   the results banner text
+--   RoundStartedAt  server time the current round started
+function Remotes.GetStatus(): Folder
+	return statusFolder
+end
+
+return Remotes
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="6">
+        <Properties>
+          <string name="Name">ShopCatalog</string>
+          <string name="Source"><![CDATA[--[[
+	ShopCatalog  (ModuleScript in ReplicatedStorage/Shared)
+
+	Everything the supply crate sells. The CLIENT only uses this to draw
+	the shop; the SERVER uses it to check prices. A hacked client cannot
+	change prices because the server reads its own copy.
+
+	BALANCE RULE: nothing here raises damage, range or max health.
+	Coins only buy tactics (one-round items) and style (camos, skins).
+]]
+
+local CamoData = require(script.Parent.CamoData)
+
+local ShopCatalog = {}
+
+-- One-round items: given as Tools, removed when the round ends.
+ShopCatalog.RoundItems = {
+	{
+		Id = "Binoculars",
+		Name = "Binoculars",
+		Price = 40,
+		Description = "Zoom in to scout without raising your rifle scope.",
+	},
+	{
+		Id = "BirdWhistle",
+		Name = "Bird Whistle",
+		Price = 60,
+		Description = "One use. Birds fly up where you aim - fake your position!",
+	},
+	{
+		Id = "SmokeGrenade",
+		Name = "Smoke Grenade",
+		Price = 50,
+		Description = "One throw. A smoke cloud for 8 seconds to cross open ground.",
+	},
+	{
+		Id = "Bandage",
+		Name = "Bandage",
+		Price = 35,
+		Description = "One use. Heals 40 health over 3 seconds. Stand still!",
+	},
+}
+
+-- Sniper skins: cosmetic only, muted colors only (nothing bright or glowing).
+ShopCatalog.Skins = {
+	{ Id = "Skin_OliveDrab", Name = "Olive Drab", Price = 200, Color = Color3.fromRGB(85, 90, 55) },
+	{ Id = "Skin_DesertTan", Name = "Desert Tan", Price = 300, Color = Color3.fromRGB(150, 130, 95) },
+	{ Id = "Skin_Charcoal", Name = "Charcoal", Price = 350, Color = Color3.fromRGB(45, 45, 45) },
+	{ Id = "Skin_Moss", Name = "Moss", Price = 400, Color = Color3.fromRGB(70, 95, 55) },
+	{ Id = "Skin_Rust", Name = "Rust", Price = 500, Color = Color3.fromRGB(110, 65, 40) },
+}
+
+-- Camo unlocks are generated from CamoData (any camo with a price).
+ShopCatalog.Camos = {}
+for _, camo in CamoData.List do
+	if camo.Price > 0 then
+		table.insert(ShopCatalog.Camos, {
+			Id = "Camo_" .. camo.Name,
+			Name = camo.Name .. " Camo",
+			CamoName = camo.Name,
+			Price = camo.Price,
+			Color = camo.Colors[1],
+		})
+	end
+end
+
+-- Lookup tables used by the server: ShopCatalog.ById["Bandage"]
+ShopCatalog.ById = {}
+for _, item in ShopCatalog.RoundItems do
+	ShopCatalog.ById[item.Id] = { Kind = "RoundItem", Item = item }
+end
+for _, item in ShopCatalog.Skins do
+	ShopCatalog.ById[item.Id] = { Kind = "Skin", Item = item }
+end
+for _, item in ShopCatalog.Camos do
+	ShopCatalog.ById[item.Id] = { Kind = "Camo", Item = item }
+end
+
+return ShopCatalog
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="7">
+        <Properties>
+          <string name="Name">SoundUtil</string>
+          <string name="Source"><![CDATA[--[[
+	SoundUtil  (ModuleScript in ReplicatedStorage/Shared)
+
+	Tiny helpers to play one-shot sounds. Works on server or client.
+	  PlayAt(position, soundId, options)  -> 3D sound in the world
+	  Play2D(soundId, volume)             -> UI sound, no position
+]]
+
+local Debris = game:GetService("Debris")
+local SoundService = game:GetService("SoundService")
+
+local SoundUtil = {}
+
+export type SoundOptions = {
+	Volume: number?,
+	MaxDistance: number?, -- how far away it can be heard
+	MinDistance: number?, -- full volume inside this distance
+	PlaybackSpeed: number?,
+	Lifetime: number?,
+}
+
+function SoundUtil.PlayAt(position: Vector3, soundId: string, options: SoundOptions?): Sound?
+	if not soundId or soundId == "" then
+		return nil
+	end
+	local opts: SoundOptions = options or {}
+
+	-- An Attachment on Terrain is the cheapest way to give a sound a position.
+	local attachment = Instance.new("Attachment")
+	attachment.WorldPosition = position
+	attachment.Parent = workspace.Terrain
+
+	local sound = Instance.new("Sound")
+	sound.SoundId = soundId
+	sound.Volume = opts.Volume or 1
+	sound.PlaybackSpeed = opts.PlaybackSpeed or 1
+	sound.RollOffMode = Enum.RollOffMode.InverseTapered
+	sound.RollOffMinDistance = opts.MinDistance or 10
+	sound.RollOffMaxDistance = opts.MaxDistance or 100
+	sound.Parent = attachment
+	sound:Play()
+
+	Debris:AddItem(attachment, opts.Lifetime or 6)
+	return sound
+end
+
+function SoundUtil.Play2D(soundId: string, volume: number?)
+	if not soundId or soundId == "" then
+		return
+	end
+	local sound = Instance.new("Sound")
+	sound.SoundId = soundId
+	sound.Volume = volume or 0.5
+	sound.Parent = SoundService
+	sound:Play()
+	Debris:AddItem(sound, 6)
+end
+
+return SoundUtil
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="ServerScriptService" referent="8">
+    <Properties>
+      <string name="Name">ServerScriptService</string>
+    </Properties>
+    <Item class="Folder" referent="9">
+      <Properties>
+        <string name="Name">AvoidTheSnipers_Server</string>
+      </Properties>
+      <Item class="Script" referent="10">
+        <Properties>
+          <string name="Name">Main</string>
+          <token name="RunContext">0</token>
+          <string name="Source"><![CDATA[--[[
+	Main  (Script in ServerScriptService)
+
+	The one server Script. It starts every system in the right order and
+	then runs the round loop forever. All the real logic lives in the
+	ModuleScripts inside ServerScriptService/Services.
+]]
+
+local Players = game:GetService("Players")
+local StarterPlayer = game:GetService("StarterPlayer")
+
+local Services = script.Parent:WaitForChild("Services")
+
+-- Place settings the game depends on (set here so you don't have to
+-- remember them in Studio):
+Players.CharacterAutoLoads = false -- the RoundManager decides when people spawn (one life per round)
+StarterPlayer.EnableMouseLockOption = false -- Shift is sprint, not shift-lock
+
+-- Creating the Remotes first so clients can find them right away
+require(game:GetService("ReplicatedStorage").Shared.Remotes)
+
+local TeamManager = require(Services.TeamManager)
+local MapBuilder = require(Services.MapBuilder)
+local DataService = require(Services.DataService)
+local MovementService = require(Services.MovementService)
+local CamoManager = require(Services.CamoManager)
+local SniperService = require(Services.SniperService)
+local ItemService = require(Services.ItemService)
+local ShopService = require(Services.ShopService)
+local RoundManager = require(Services.RoundManager)
+
+TeamManager.Init() -- teams must exist before the map's SpawnLocations
+MapBuilder.Build()
+DataService.Init()
+MovementService.Init()
+CamoManager.Init()
+SniperService.Init()
+ItemService.Init()
+ShopService.Init() -- needs the map's supply crates
+RoundManager.Init()
+
+print("[Avoid the Snipers] Server ready")
+RoundManager.Run()
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="Folder" referent="11">
+        <Properties>
+          <string name="Name">Services</string>
+        </Properties>
+        <Item class="ModuleScript" referent="12">
+          <Properties>
+            <string name="Name">BirdSystem</string>
+            <string name="Source"><![CDATA[--[[
+	BirdSystem  (ModuleScript in ServerScriptService/Services)
+
+	Anti-camping. Every STILLNESS_CHECK_INTERVAL (0.5 s) the server looks at
+	each alive player:
+
+	  * Moved at least STILL_MOVE_THRESHOLD studs from where they started
+	    standing still?  -> stillness timer resets to 0.
+	  * Otherwise the stillness timer goes up.
+
+	  stillness >= STILLNESS_WARNING_TIME (20 s)
+	      -> 3-4 birds fly up WARNING_REVEAL_OFFSET (25) studs away (rough area)
+	  stillness >= STILLNESS_DANGER_TIME (40 s)
+	      -> 8-10 birds + crow calls only DANGER_REVEAL_OFFSET (8) studs away,
+	         repeated every DANGER_REPEAT_INTERVAL (10 s)
+
+	  Sprinting through tall grass: SPRINT_BIRD_CHANCE per second of 1-2 birds.
+
+	The SERVER decides where and when birds appear. It then tells every
+	client "birds at X" and the clients animate them (smooth and cheap).
+	The stillness timer is never sent to the player.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage.GameConfig)
+local Remotes = require(ReplicatedStorage.Shared.Remotes)
+local MapBuilder = require(script.Parent.MapBuilder)
+local MovementService = require(script.Parent.MovementService)
+local RoundState = require(script.Parent.RoundState)
+
+local BirdSystem = {}
+
+type Tracker = {
+	Anchor: Vector3, -- where the player started standing still
+	Stillness: number, -- seconds spent near the anchor
+	WarnedAt: number?, -- stillness value when the warning flock fired
+	LastDangerAt: number?, -- stillness value when the last danger flock fired
+}
+
+local trackers: { [Player]: Tracker } = {}
+local running = false
+local rng = Random.new()
+
+local function randomCount(range: { number }): number
+	return rng:NextInteger(range[1], range[2])
+end
+
+-- A point `distance` studs away from `center` in a random direction, on the ground.
+local function pointAround(center: Vector3, distance: number): Vector3
+	local angle = rng:NextNumber(0, math.pi * 2)
+	local d = distance * rng:NextNumber(0.8, 1.2)
+	local x, z = center.X + math.cos(angle) * d, center.Z + math.sin(angle) * d
+	return Vector3.new(x, MapBuilder.GroundY(x, z), z)
+end
+
+-- Sends a flock to every client. kind: "Warning" | "Danger" | "Sprint"
+function BirdSystem.SpawnFlock(position: Vector3, count: number, kind: string)
+	Remotes.Get("BirdFlock"):FireAllClients(position, count, kind)
+end
+
+-- Lets the player's own HUD show a small bird icon (not the timer!).
+local function flagPlayer(player: Player)
+	player:SetAttribute("BirdsSpottedAt", workspace:GetServerTimeNow())
+end
+
+local function rootPosition(player: Player): Vector3?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	return if root then (root :: BasePart).Position else nil
+end
+
+local function tick(dt: number)
+	-- chance per tick from a chance per second: 1 - (1 - p)^dt
+	local sprintChance = 1 - (1 - GameConfig.SPRINT_BIRD_CHANCE) ^ dt
+
+	for player in RoundState.Alive do
+		local position = rootPosition(player)
+		if not position then
+			continue
+		end
+
+		local tracker = trackers[player]
+		if not tracker then
+			tracker = { Anchor = position, Stillness = 0 }
+			trackers[player] = tracker
+		end
+
+		-- 1) Stillness
+		if (position - tracker.Anchor).Magnitude >= GameConfig.STILL_MOVE_THRESHOLD then
+			-- Real movement: start over from here
+			tracker.Anchor = position
+			tracker.Stillness = 0
+			tracker.WarnedAt = nil
+			tracker.LastDangerAt = nil
+		else
+			tracker.Stillness += dt
+			local still = tracker.Stillness
+
+			if still >= GameConfig.STILLNESS_DANGER_TIME then
+				local due = tracker.LastDangerAt == nil
+					or still - (tracker.LastDangerAt :: number) >= GameConfig.DANGER_REPEAT_INTERVAL
+				if due then
+					tracker.LastDangerAt = still
+					BirdSystem.SpawnFlock(
+						pointAround(position, GameConfig.DANGER_REVEAL_OFFSET),
+						randomCount(GameConfig.DANGER_FLOCK_SIZE),
+						"Danger"
+					)
+					flagPlayer(player)
+				end
+			elseif still >= GameConfig.STILLNESS_WARNING_TIME and not tracker.WarnedAt then
+				tracker.WarnedAt = still
+				BirdSystem.SpawnFlock(
+					pointAround(position, GameConfig.WARNING_REVEAL_OFFSET),
+					randomCount(GameConfig.WARNING_FLOCK_SIZE),
+					"Warning"
+				)
+				flagPlayer(player)
+			end
+		end
+
+		-- 2) Sprinting through tall grass scares birds
+		if MovementService.IsSprinting(player) and MapBuilder.IsInTallGrass(position) then
+			if rng:NextNumber() < sprintChance then
+				BirdSystem.SpawnFlock(pointAround(position, 4), randomCount(GameConfig.SPRINT_FLOCK_SIZE), "Sprint")
+			end
+		end
+	end
+
+	-- Forget players who are no longer alive
+	for player in trackers do
+		if not RoundState.Alive[player] then
+			trackers[player] = nil
+		end
+	end
+end
+
+function BirdSystem.Start()
+	if running then
+		return
+	end
+	running = true
+	table.clear(trackers)
+	task.spawn(function()
+		local interval = GameConfig.STILLNESS_CHECK_INTERVAL
+		while running do
+			local dt = task.wait(interval)
+			if running then
+				tick(math.min(dt, interval * 2))
+			end
+		end
+	end)
+end
+
+function BirdSystem.Stop()
+	running = false
+	table.clear(trackers)
+end
+
+return BirdSystem
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="13">
+          <Properties>
+            <string name="Name">CamoManager</string>
+            <string name="Source"><![CDATA[--[[
+	CamoManager  (ModuleScript in ServerScriptService/Services)
+
+	Handles the camo selection phase and dresses players for battle.
+
+	Flow:
+	  1. RoundManager calls BeginSelection(players, endsAt).
+	     Each player gets the camo menu with the camos they may use.
+	  2. The client sends ONLY a camo name through "SelectCamo".
+	     The server checks: right phase? taking part? real camo? owned?
+	  3. FinalizeSelection() gives "Jungle" to anyone who didn't choose.
+
+	Applying a camo (server side, so everyone sees the same thing):
+	  * removes all accessories, shirts, pants and body textures
+	  * recolors body parts with the camo's colors
+	  * deletes lights, particles, trails, beams, highlights, GUIs...
+	    and turns neon parts into plain plastic (no glowing cheats)
+	  * adds a small team armband on the left upper arm
+	  * hides name tags and health bars (clients re-enable them for
+	    teammates only - see NameTagController)
+
+	Normal avatars come back automatically when players respawn in the
+	lobby after the round (a fresh character loads their real look).
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage.GameConfig)
+local CamoData = require(ReplicatedStorage.Shared.CamoData)
+local Remotes = require(ReplicatedStorage.Shared.Remotes)
+local DataService = require(script.Parent.DataService)
+local RoundState = require(script.Parent.RoundState)
+
+local CamoManager = {}
+
+local choices: { [Player]: string } = {}
+local glowWatchers: { [Model]: RBXScriptConnection } = {}
+
+-- Which of the camo's 3 colors each body part gets (blotchy camo look).
+local PART_COLOR_SLOT = {
+	-- R15
+	Head = 3,
+	UpperTorso = 1,
+	LowerTorso = 2,
+	LeftUpperArm = 2,
+	LeftLowerArm = 1,
+	LeftHand = 3,
+	RightUpperArm = 1,
+	RightLowerArm = 2,
+	RightHand = 3,
+	LeftUpperLeg = 1,
+	LeftLowerLeg = 2,
+	LeftFoot = 2,
+	RightUpperLeg = 2,
+	RightLowerLeg = 1,
+	RightFoot = 2,
+	-- R6
+	Torso = 1,
+	["Left Arm"] = 2,
+	["Right Arm"] = 1,
+	["Left Leg"] = 1,
+	["Right Leg"] = 2,
+}
+
+-- Anything of these classes can glow or stand out -> removed during rounds.
+local GLOWING_CLASSES = {
+	"Light", -- PointLight, SpotLight, SurfaceLight
+	"ParticleEmitter",
+	"Fire",
+	"Smoke",
+	"Sparkles",
+	"Trail",
+	"Beam",
+	"Highlight",
+	"SelectionBox",
+	"BillboardGui",
+	"SurfaceGui",
+	"ForceField",
+}
+
+local function isGlowing(instance: Instance): boolean
+	for _, className in GLOWING_CLASSES do
+		if instance:IsA(className) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Removes or fixes anything that could make a player easy to spot.
+local function stripGlow(instance: Instance)
+	if isGlowing(instance) then
+		instance:Destroy()
+	elseif instance:IsA("BasePart") then
+		if instance.Material == Enum.Material.Neon or instance.Material == Enum.Material.ForceField then
+			instance.Material = Enum.Material.SmoothPlastic
+		end
+		if instance.Name ~= "Armband" and instance.Name ~= "HumanoidRootPart" then
+			-- Very bright colors on attached parts get darkened
+			local h, s, v = instance.Color:ToHSV()
+			if v > 0.75 and s > 0.4 then
+				instance.Color = Color3.fromHSV(h, s * 0.5, 0.45)
+			end
+		end
+	end
+end
+
+-- The camos this player is allowed to pick right now.
+function CamoManager.GetAvailableCamos(player: Player): { string }
+	local list = {}
+	for _, camo in CamoData.List do
+		if camo.Price == 0 or DataService.OwnsCamo(player, camo.Name) then
+			table.insert(list, camo.Name)
+		end
+	end
+	return list
+end
+
+local function addArmband(character: Model, teamKey: string)
+	local old = character:FindFirstChild("Armband")
+	if old then
+		old:Destroy()
+	end
+	local arm = (character:FindFirstChild("LeftUpperArm") or character:FindFirstChild("Left Arm")) :: any
+	if not arm then
+		return
+	end
+	local band = Instance.new("Part")
+	band.Name = "Armband"
+	band.Size = Vector3.new(arm.Size.X + 0.12, 0.3, arm.Size.Z + 0.12)
+	band.CFrame = arm.CFrame * CFrame.new(0, arm.Size.Y * 0.2, 0)
+	band.Color = GameConfig.TEAMS[teamKey].ArmbandColor
+	band.Material = Enum.Material.Fabric
+	band.CanCollide = false
+	band.CanQuery = false -- bullets hit the arm, not the band
+	band.CanTouch = false
+	band.Massless = true
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = arm
+	weld.Part1 = band
+	weld.Parent = band
+	band.Parent = character
+end
+
+-- Dresses a character in a camo. Safe to call more than once.
+function CamoManager.ApplyCamo(character: Model, camoName: string, teamKey: string)
+	local camo = CamoData.ByName[camoName] or CamoData.ByName[CamoData.DEFAULT_CAMO]
+
+	for _, child in character:GetChildren() do
+		if child:IsA("Accessory") or child:IsA("Shirt") or child:IsA("Pants") or child:IsA("ShirtGraphic") or child:IsA("BodyColors") then
+			child:Destroy()
+		end
+	end
+
+	for _, part in character:GetChildren() do
+		local slot = PART_COLOR_SLOT[part.Name]
+		if slot and part:IsA("BasePart") then
+			part.Color = camo.Colors[slot]
+			part.Material = Enum.Material.Fabric
+			if part:IsA("MeshPart") then
+				part.TextureID = "" -- some avatar bodies have bright textures
+			end
+			for _, child in part:GetChildren() do
+				if child:IsA("SurfaceAppearance") then
+					child:Destroy()
+				end
+			end
+		end
+	end
+
+	-- Optional real camo clothing (set the templates in CamoData)
+	if camo.ShirtTemplate ~= "" then
+		local shirt = Instance.new("Shirt")
+		shirt.ShirtTemplate = camo.ShirtTemplate
+		shirt.Parent = character
+	end
+	if camo.PantsTemplate ~= "" then
+		local pants = Instance.new("Pants")
+		pants.PantsTemplate = camo.PantsTemplate
+		pants.Parent = character
+	end
+
+	for _, descendant in character:GetDescendants() do
+		stripGlow(descendant)
+	end
+	-- Keep stripping anything added later (e.g. by other scripts)
+	if not glowWatchers[character] then
+		glowWatchers[character] = character.DescendantAdded:Connect(function(descendant)
+			task.defer(function()
+				if not descendant.Parent then
+					return
+				end
+				-- Avatar items that finished loading late are removed too
+				if descendant.Parent == character and (descendant:IsA("Accessory") or descendant:IsA("Clothing") or descendant:IsA("ShirtGraphic")) then
+					descendant:Destroy()
+				else
+					stripGlow(descendant)
+				end
+			end)
+		end)
+		character.Destroying:Connect(function()
+			local conn = glowWatchers[character]
+			if conn then
+				conn:Disconnect()
+				glowWatchers[character] = nil
+			end
+		end)
+	end
+
+	addArmband(character, teamKey)
+
+	-- Hide name + health bar for everyone. Each client turns names back on
+	-- for its own teammates (NameTagController), never for enemies.
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+		humanoid.NameOcclusion = Enum.NameOcclusion.EnemyOcclusion
+	end
+
+	character:SetAttribute("Camo", camo.Name)
+end
+
+local function applyToPlayer(player: Player, camoName: string)
+	local teamKey = RoundState.Participants[player]
+	local character = player.Character
+	if teamKey and character then
+		CamoManager.ApplyCamo(character, camoName, teamKey)
+	end
+end
+
+function CamoManager.BeginSelection(players: { Player }, endsAt: number)
+	table.clear(choices)
+	local menuEvent = Remotes.Get("CamoMenu")
+	for _, player in players do
+		menuEvent:FireClient(player, true, CamoManager.GetAvailableCamos(player), endsAt)
+	end
+end
+
+-- True when every listed player has picked a camo (used to end early).
+function CamoManager.AllChosen(players: { Player }): boolean
+	for _, player in players do
+		if not choices[player] then
+			return false
+		end
+	end
+	return true
+end
+
+function CamoManager.FinalizeSelection(players: { Player })
+	local menuEvent = Remotes.Get("CamoMenu")
+	for _, player in players do
+		if not choices[player] then
+			choices[player] = CamoData.DEFAULT_CAMO
+			applyToPlayer(player, CamoData.DEFAULT_CAMO)
+		end
+		menuEvent:FireClient(player, false)
+	end
+end
+
+function CamoManager.GetChoice(player: Player): string
+	return choices[player] or CamoData.DEFAULT_CAMO
+end
+
+function CamoManager.Init()
+	Remotes.Get("SelectCamo").OnServerEvent:Connect(function(player, camoName)
+		-- VALIDATE EVERYTHING the client sent
+		if RoundState.Phase ~= "CamoSelect" then
+			return
+		end
+		if not RoundState.Participants[player] then
+			return
+		end
+		if typeof(camoName) ~= "string" or #camoName > 40 then
+			return
+		end
+		local camo = CamoData.ByName[camoName]
+		if not camo then
+			return
+		end
+		if camo.Price > 0 and not DataService.OwnsCamo(player, camoName) then
+			return -- trying to use a camo they never bought
+		end
+
+		choices[player] = camoName
+		applyToPlayer(player, camoName) -- instant preview on your character
+	end)
+end
+
+return CamoManager
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="14">
+          <Properties>
+            <string name="Name">DamageService</string>
+            <string name="Source"><![CDATA[--[[
+	DamageService  (ModuleScript in ServerScriptService/Services)
+
+	The ONLY place that lowers a player's health. Every rule about who can
+	be hurt lives here:
+	  * the round must be running and the victim must be alive in it
+	  * no friendly fire (unless GameConfig.FRIENDLY_FIRE = true)
+	  * spawn protection: no damage for SPAWN_PROTECTION_TIME while the
+	    victim is inside their own safe zone
+
+	It also remembers who hit whom last, so RoundManager can award the
+	kill when a Humanoid dies.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage.GameConfig)
+local RoundState = require(script.Parent.RoundState)
+local SafeZoneService = require(script.Parent.SafeZoneService)
+local TeamManager = require(script.Parent.TeamManager)
+
+local DamageService = {}
+
+export type HitInfo = {
+	Attacker: Player?,
+	Headshot: boolean,
+	Time: number,
+}
+
+local lastHit: { [Player]: HitInfo } = {}
+
+local function getHumanoid(player: Player): Humanoid?
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid and humanoid.Health > 0 then
+		return humanoid
+	end
+	return nil
+end
+
+function DamageService.IsSpawnProtected(player: Player): boolean
+	return RoundState.TimeIntoRound() < GameConfig.SPAWN_PROTECTION_TIME and SafeZoneService.IsInOwnSafeZone(player)
+end
+
+-- Deals damage from one player to another. Returns (damageApplied, killed).
+function DamageService.ApplyDamage(victim: Player, amount: number, attacker: Player?, headshot: boolean): (boolean, boolean)
+	if not RoundState.IsRoundActive() or not RoundState.IsAlive(victim) then
+		return false, false
+	end
+	if attacker then
+		if attacker == victim or not RoundState.IsAlive(attacker) then
+			return false, false
+		end
+		if not GameConfig.FRIENDLY_FIRE and not TeamManager.AreEnemies(attacker, victim) then
+			return false, false
+		end
+	end
+	if DamageService.IsSpawnProtected(victim) then
+		return false, false
+	end
+
+	local humanoid = getHumanoid(victim)
+	if not humanoid then
+		return false, false
+	end
+
+	lastHit[victim] = { Attacker = attacker, Headshot = headshot, Time = os.clock() }
+	humanoid.Health = math.max(0, humanoid.Health - amount)
+	return true, humanoid.Health <= 0
+end
+
+-- Damage from standing in the enemy spawn (no attacker).
+function DamageService.ApplyZoneDamage(victim: Player, amount: number)
+	DamageService.ApplyDamage(victim, amount, nil, false)
+end
+
+-- Heals without going over MaxHealth (used by the Bandage).
+function DamageService.Heal(player: Player, amount: number)
+	local humanoid = getHumanoid(player)
+	if humanoid then
+		humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + amount)
+	end
+end
+
+-- Who hit this player last (within the last 15 seconds)?
+function DamageService.GetLastHit(victim: Player): HitInfo?
+	local hit = lastHit[victim]
+	if hit and os.clock() - hit.Time <= 15 then
+		return hit
+	end
+	return nil
+end
+
+function DamageService.Reset()
+	table.clear(lastHit)
+end
+
+return DamageService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="15">
+          <Properties>
+            <string name="Name">DataService</string>
+            <string name="Source"><![CDATA[--[[
+	DataService  (ModuleScript in ServerScriptService/Services)
+
+	Loads and saves each player's permanent data with DataStoreService:
+	  TotalKills, TotalWins, Coins, OwnedCamos, OwnedSkins, EquippedSkin
+
+	Also creates the "leaderstats" folder for the player list:
+	  Kills and Wins = THIS SERVER only (reset when you leave)
+	  Coins          = your saved coins
+
+	Every DataStore call is wrapped in pcall and retried, because Roblox
+	DataStores can fail. Data is saved when a player leaves, every few
+	minutes (autosave), and when the server shuts down (BindToClose).
+
+	NOTE: In Studio, enable Game Settings > Security >
+	"Enable Studio Access to API Services" or saving will be skipped.
+]]
+
+local DataStoreService = game:GetService("DataStoreService")
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage.GameConfig)
+
+local DataService = {}
+
+export type Profile = {
+	TotalKills: number,
+	TotalWins: number,
+	Coins: number,
+	OwnedCamos: { string },
+	OwnedSkins: { string },
+	EquippedSkin: string,
+}
+
+local function defaultProfile(): Profile
+	return {
+		TotalKills = 0,
+		TotalWins = 0,
+		Coins = 0,
+		OwnedCamos = {},
+		OwnedSkins = {},
+		EquippedSkin = "",
+	}
+end
+
+local store: DataStore? = nil
+local profiles: { [Player]: Profile } = {}
+local loaded: { [Player]: boolean } = {} -- only save data we actually loaded
+
+local MAX_RETRIES = 3
+
+local function withRetries(label: string, fn: () -> ()): boolean
+	for attempt = 1, MAX_RETRIES do
+		local ok, err = pcall(fn)
+		if ok then
+			return true
+		end
+		warn(("[DataService] %s failed (attempt %d): %s"):format(label, attempt, tostring(err)))
+		task.wait(attempt)
+	end
+	return false
+end
+
+-- Pushes profile values into leaderstats and player attributes for the UI.
+local function refreshPlayerValues(player: Player)
+	local profile = profiles[player]
+	if not profile then
+		return
+	end
+	local stats = player:FindFirstChild("leaderstats")
+	local coins = stats and stats:FindFirstChild("Coins")
+	if coins then
+		(coins :: IntValue).Value = profile.Coins
+	end
+	player:SetAttribute("Coins", profile.Coins)
+	player:SetAttribute("TotalKills", profile.TotalKills)
+	player:SetAttribute("TotalWins", profile.TotalWins)
+	-- Attributes can't hold tables, so lists are sent as JSON text.
+	player:SetAttribute("OwnedCamos", HttpService:JSONEncode(profile.OwnedCamos))
+	player:SetAttribute("OwnedSkins", HttpService:JSONEncode(profile.OwnedSkins))
+	player:SetAttribute("EquippedSkin", profile.EquippedSkin)
+end
+
+local function createLeaderstats(player: Player)
+	local stats = Instance.new("Folder")
+	stats.Name = "leaderstats"
+	for _, name in { "Kills", "Wins", "Coins" } do
+		local value = Instance.new("IntValue")
+		value.Name = name
+		value.Parent = stats
+	end
+	stats.Parent = player
+end
+
+local function load(player: Player)
+	createLeaderstats(player)
+	local profile = defaultProfile()
+	profiles[player] = profile
+
+	if store then
+		local data
+		local ok = withRetries("Load " .. player.UserId, function()
+			data = (store :: DataStore):GetAsync("Player_" .. player.UserId)
+		end)
+		if ok then
+			loaded[player] = true
+			if type(data) == "table" then
+				-- Copy only known fields with the right types (old/bad data is ignored)
+				for key, default in defaultProfile() do
+					if type(data[key]) == type(default) then
+						(profile :: any)[key] = data[key]
+					end
+				end
+			end
+		else
+			-- Don't save over good data we failed to read.
+			warn("[DataService] Could not load data for " .. player.Name .. "; progress this session won't be saved.")
+		end
+	end
+
+	refreshPlayerValues(player)
+end
+
+local function save(player: Player)
+	local profile = profiles[player]
+	if not (store and profile and loaded[player]) then
+		return
+	end
+	withRetries("Save " .. player.UserId, function()
+		(store :: DataStore):UpdateAsync("Player_" .. player.UserId, function()
+			return profile
+		end)
+	end)
+end
+
+function DataService.Init()
+	local ok, result = pcall(function()
+		return DataStoreService:GetDataStore(GameConfig.DATASTORE_NAME)
+	end)
+	if ok then
+		store = result
+	else
+		warn("[DataService] DataStores unavailable (enable API access in Studio). Data will not be saved.", result)
+	end
+
+	Players.PlayerAdded:Connect(load)
+	for _, player in Players:GetPlayers() do
+		task.spawn(load, player)
+	end
+
+	Players.PlayerRemoving:Connect(function(player)
+		save(player)
+		profiles[player] = nil
+		loaded[player] = nil
+	end)
+
+	-- Save everyone when the server shuts down
+	-- (Roblox gives BindToClose up to 30 seconds; we save everyone in parallel.)
+	game:BindToClose(function()
+		local remaining = 0
+		for _, player in Players:GetPlayers() do
+			remaining += 1
+			task.spawn(function()
+				save(player)
+				remaining -= 1
+			end)
+		end
+		local start = os.clock()
+		while remaining > 0 and os.clock() - start < 25 do
+			task.wait(0.1)
+		end
+	end)
+
+	-- Autosave in case the server crashes
+	task.spawn(function()
+		while true do
+			task.wait(GameConfig.AUTOSAVE_INTERVAL)
+			for _, player in Players:GetPlayers() do
+				task.spawn(save, player)
+			end
+		end
+	end)
+end
+
+-- Waits (up to 10 s) until the player's data is ready.
+function DataService.GetProfile(player: Player): Profile?
+	local start = os.clock()
+	while not profiles[player] and player.Parent and os.clock() - start < 10 do
+		task.wait(0.1)
+	end
+	return profiles[player]
+end
+
+local function addStat(player: Player, statName: string, amount: number)
+	local stats = player:FindFirstChild("leaderstats")
+	local value = stats and stats:FindFirstChild(statName)
+	if value then
+		(value :: IntValue).Value += amount
+	end
+end
+
+function DataService.AddCoins(player: Player, amount: number, reason: string?)
+	local profile = profiles[player]
+	if not profile or amount <= 0 then
+		return
+	end
+	profile.Coins += math.floor(amount)
+	refreshPlayerValues(player)
+end
+
+-- Returns true if the player had enough coins (and they were removed).
+function DataService.SpendCoins(player: Player, amount: number): boolean
+	local profile = profiles[player]
+	if not profile or amount < 0 or profile.Coins < amount then
+		return false
+	end
+	profile.Coins -= amount
+	refreshPlayerValues(player)
+	return true
+end
+
+function DataService.AddKill(player: Player)
+	local profile = profiles[player]
+	if profile then
+		profile.TotalKills += 1
+	end
+	addStat(player, "Kills", 1)
+	refreshPlayerValues(player)
+end
+
+function DataService.AddWin(player: Player)
+	local profile = profiles[player]
+	if profile then
+		profile.TotalWins += 1
+	end
+	addStat(player, "Wins", 1)
+	refreshPlayerValues(player)
+end
+
+function DataService.OwnsCamo(player: Player, camoName: string): boolean
+	local profile = profiles[player]
+	return profile ~= nil and table.find(profile.OwnedCamos, camoName) ~= nil
+end
+
+function DataService.GrantCamo(player: Player, camoName: string)
+	local profile = profiles[player]
+	if profile and not table.find(profile.OwnedCamos, camoName) then
+		table.insert(profile.OwnedCamos, camoName)
+		refreshPlayerValues(player)
+	end
+end
+
+function DataService.OwnsSkin(player: Player, skinId: string): boolean
+	local profile = profiles[player]
+	return profile ~= nil and table.find(profile.OwnedSkins, skinId) ~= nil
+end
+
+function DataService.GrantSkin(player: Player, skinId: string)
+	local profile = profiles[player]
+	if profile and not table.find(profile.OwnedSkins, skinId) then
+		table.insert(profile.OwnedSkins, skinId)
+		refreshPlayerValues(player)
+	end
+end
+
+function DataService.SetEquippedSkin(player: Player, skinId: string)
+	local profile = profiles[player]
+	if profile then
+		profile.EquippedSkin = skinId
+		refreshPlayerValues(player)
+	end
+end
+
+function DataService.GetEquippedSkin(player: Player): string
+	local profile = profiles[player]
+	return if profile then profile.EquippedSkin else ""
+end
+
+return DataService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="16">
+          <Properties>
+            <string name="Name">ItemService</string>
+            <string name="Source"><![CDATA[--[[
+	ItemService  (ModuleScript in ServerScriptService/Services)
+
+	One-round shop items. They are Tools with an "ItemId" attribute and
+	are removed when the round ends.
+
+	  Binoculars    - zoom is purely visual, done by the client
+	  Bird Whistle  - client sends where it aims; SERVER clamps the range
+	                  and spawns a flock that looks like a real danger flock
+	  Smoke Grenade - client sends where it aims; SERVER clamps the range
+	                  and creates the smoke cloud for SMOKE_DURATION
+	  Bandage       - SERVER heals BANDAGE_HEAL over BANDAGE_TIME, and
+	                  cancels if the player moves or the round ends
+
+	Every "UseItem" request is checked: right round state, player alive,
+	and actually HOLDING that item right now.
+]]
+
+local Debris = game:GetService("Debris")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local GameConfig = require(ReplicatedStorage.GameConfig)
+local Remotes = require(ReplicatedStorage.Shared.Remotes)
+local ShopCatalog = require(ReplicatedStorage.Shared.ShopCatalog)
+local BirdSystem = require(script.Parent.BirdSystem)
+local DamageService = require(script.Parent.DamageService)
+local MapBuilder = require(script.Parent.MapBuilder)
+local RoundState = require(script.Parent.RoundState)
+
+local ItemService = {}
+
+local USABLE = { BirdWhistle = true, SmokeGrenade = true, Bandage = true }
+local lastUse: { [Player]: number } = {}
+local bandaging: { [Player]: boolean } = {}
+
+-- Look of each item's handle (muted colors, nothing shiny)
+local ITEM_LOOKS = {
+	Binoculars = { Size = Vector3.new(0.9, 0.45, 0.7), Color = Color3.fromRGB(45, 48, 40) },
+	BirdWhistle = { Size = Vector3.new(0.25, 0.25, 0.9), Color = Color3.fromRGB(110, 82, 55) },
+	SmokeGrenade = { Size = Vector3.new(0.5, 0.8, 0.5), Color = Color3.fromRGB(70, 82, 60) },
+	Bandage = { Size = Vector3.new(0.6, 0.35, 0.6), Color = Color3.fromRGB(150, 140, 118) },
+}
+
+function ItemService.GiveItem(player: Player, itemId: string)
+	local entry = ShopCatalog.ById[itemId]
+	local backpack = player:FindFirstChildOfClass("Backpack")
+	if not entry or entry.Kind ~= "RoundItem" or not backpack then
+		return
+	end
+	local look = ITEM_LOOKS[itemId]
+
+	local tool = Instance.new("Tool")
+	tool.Name = entry.Item.Name
+	tool.ToolTip = entry.Item.Description
+	tool.CanBeDropped = false
+	tool.RequiresHandle = true
+	tool:SetAttribute("ItemId", itemId)
+
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = look.Size
+	handle.Color = look.Color
+	handle.Material = Enum.Material.SmoothPlastic
+	handle.CanCollide = false
+	handle.CanQuery = false
+	handle.Massless = true
+	handle.Parent = tool
+
+	tool.Parent = backpack
+end
+
+-- Removes every round item (and leaves the sniper to SniperService).
+function ItemService.RemoveItems(player: Player)
+	for _, container in { player.Character, player:FindFirstChildOfClass("Backpack") } do
+		if container then
+			for _, tool in container:GetChildren() do
+				if tool:IsA("Tool") and tool:GetAttribute("ItemId") then
+					tool:Destroy()
+				end
+			end
+		end
+	end
+	bandaging[player] = nil
+end
+
+local function notify(player: Player, text: string)
+	Remotes.Get("Notify"):FireClient(player, text)
+end
+
+-- Keeps an aimed point within `range` of the player and puts it on the ground.
+local function clampAim(origin: Vector3, aim: Vector3, range: number): Vector3
+	local offset = aim - origin
+	if offset.Magnitude > range then
+		offset = offset.Unit * range
+	end
+	local p = origin + offset
+	return Vector3.new(p.X, MapBuilder.GroundY(p.X, p.Z), p.Z)
+end
+
+local function spawnSmoke(position: Vector3)
+	local cloud = Instance.new("Folder")
+	cloud.Name = "SmokeCloud"
+	cloud.Parent = workspace
+
+	local rng = Random.new()
+	for i = 1, 7 do
+		local size = rng:NextNumber(14, 18)
+		local puff = Instance.new("Part")
+		puff.Name = "Puff" .. i
+		puff.Shape = Enum.PartType.Ball
+		puff.Anchored = true
+		puff.CanCollide = false
+		puff.CanQuery = false -- bullets pass through smoke; it only blocks vision
+		puff.CanTouch = false
+		puff.CastShadow = false
+		puff.Material = Enum.Material.SmoothPlastic
+		puff.Color = Color3.fromRGB(176, 180, 170)
+		puff.Transparency = 0.1
+		puff.Size = Vector3.new(2, 2, 2)
+		puff.Position = position + Vector3.new(rng:NextNumber(-6, 6), rng:NextNumber(3, 8), rng:NextNumber(-6, 6))
+		puff.Parent = cloud
+		-- grow quickly, then fade out at the end
+		TweenService:Create(puff, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = Vector3.new(size, size, size),
+		}):Play()
+		task.delay(GameConfig.SMOKE_DURATION - 1.5, function()
+			if puff.Parent then
+				TweenService:Create(puff, TweenInfo.new(1.5), { Transparency = 1 }):Play()
+			end
+		end)
+	end
+	Debris:AddItem(cloud, GameConfig.SMOKE_DURATION)
+end
+
+local function startBandage(player: Player, tool: Tool)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not root or bandaging[player] then
+		return
+	end
+	local v = root.AssemblyLinearVelocity
+	if Vector3.new(v.X, 0, v.Z).Magnitude > 1.5 then
+		notify(player, "Stand still to use the bandage.")
+		return
+	end
+
+	bandaging[player] = true
+	notify(player, "Bandaging... don't move!")
+	local startPos = root.Position
+	local steps = 12
+	local perStep = GameConfig.BANDAGE_HEAL / steps
+	for _ = 1, steps do
+		task.wait(GameConfig.BANDAGE_TIME / steps)
+		local stillValid = bandaging[player]
+			and RoundState.IsRoundActive()
+			and RoundState.IsAlive(player)
+			and root.Parent ~= nil
+			and (root.Position - startPos).Magnitude < 1.5
+		if not stillValid then
+			bandaging[player] = nil
+			notify(player, "Bandage interrupted - you moved.")
+			return -- the bandage is NOT used up, try again
+		end
+		DamageService.Heal(player, perStep)
+	end
+	bandaging[player] = nil
+	tool:Destroy() -- one use
+	notify(player, "Bandaged: +" .. GameConfig.BANDAGE_HEAL .. " health")
+end
+
+local function onUseItem(player: Player, itemId: any, aimPosition: any)
+	-- Validate arguments
+	if typeof(itemId) ~= "string" or not USABLE[itemId] then
+		return
+	end
+	if aimPosition ~= nil then
+		if typeof(aimPosition) ~= "Vector3" or aimPosition ~= aimPosition then
+			return
+		end
+	end
+	-- Validate state
+	if not RoundState.IsRoundActive() or not RoundState.IsAlive(player) then
+		return
+	end
+	local now = os.clock()
+	if lastUse[player] and now - lastUse[player] < 0.5 then
+		return
+	end
+	lastUse[player] = now
+
+	-- Must be HOLDING this exact item
+	local character = player.Character
+	local tool = character and character:FindFirstChildOfClass("Tool")
+	local head = character and character:FindFirstChild("Head") :: BasePart?
+	if not tool or tool:GetAttribute("ItemId") ~= itemId or not head then
+		return
+	end
+
+	if itemId == "BirdWhistle" then
+		if not aimPosition then
+			return
+		end
+		local spot = clampAim(head.Position, aimPosition, GameConfig.WHISTLE_RANGE)
+		local size = GameConfig.WHISTLE_FLOCK_SIZE
+		-- Sent as a "Danger" flock so enemies can't tell it's fake
+		BirdSystem.SpawnFlock(spot, math.random(size[1], size[2]), "Danger")
+		tool:Destroy()
+		notify(player, "Whistled! Birds flew up over there.")
+	elseif itemId == "SmokeGrenade" then
+		if not aimPosition then
+			return
+		end
+		spawnSmoke(clampAim(head.Position, aimPosition, GameConfig.SMOKE_THROW_RANGE))
+		tool:Destroy()
+	elseif itemId == "Bandage" then
+		task.spawn(startBandage, player, tool)
+	end
+end
+
+function ItemService.Init()
+	Remotes.Get("UseItem").OnServerEvent:Connect(onUseItem)
+	Players.PlayerRemoving:Connect(function(player)
+		lastUse[player] = nil
+		bandaging[player] = nil
+	end)
+end
+
+return ItemService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="17">
+          <Properties>
+            <string name="Name">MapBuilder</string>
+            <string name="Source"><![CDATA[--[[
+	MapBuilder  (ModuleScript in ServerScriptService/Services)
+
+	Builds the jungle valley with code when the server starts, so the
+	whole game fits in plain text files. Layout (seen from above):
+
+	  -X  [Green hill + ruin house] ---- middle zone ---- [ruin house + Brown hill]  +X
+
+	The middle zone is MIRRORED (point-symmetric), so neither team gets
+	better cover. A fixed random seed means the map is the same every time.
+
+	WANT TO HAND-EDIT THE MAP?
+	  1. Press Play in Studio, select Workspace > Map, copy it (Ctrl+C).
+	  2. Stop, select Workspace, paste (Ctrl+V).
+	  3. Terrain is not copied that way: use the Terrain Editor or keep
+	     BUILD_TERRAIN_IF_MAP_EXISTS = true below.
+	  If a "Map" folder already exists, its parts are kept and only the
+	  markers inside Map/Markers are read (house centers and grass patches).
+
+	Other scripts read map data through MapBuilder.Info:
+	  Info.Houses.Green / .Brown = { Center: Vector3, Crate: BasePart }
+	  Info.GrassPatches = { { Position: Vector3, Radius: number }, ... }
+]]
+
+local Lighting = game:GetService("Lighting")
+local Teams = game:GetService("Teams")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local GameConfig = require(ReplicatedStorage.GameConfig)
+
+local MapBuilder = {}
+
+MapBuilder.Info = {
+	Houses = {} :: { [string]: { Center: Vector3, Crate: BasePart? } },
+	GrassPatches = {} :: { { Position: Vector3, Radius: number } },
+}
+
+---------------------------------------------------------------------------
+-- Layout numbers (studs). The valley runs along the X axis.
+---------------------------------------------------------------------------
+local HALF_LENGTH = 255 -- play area is X from -255 to 255
+local HALF_WIDTH = 140 -- play area is Z from -140 to 140
+local HOUSE_X = 205 -- houses at X = -205 (Green) and +205 (Brown)
+local HOUSE_FLOOR_Y = 1
+local LOBBY_POSITION = Vector3.new(0, 400, 0) -- floating lobby, far above the fog
+local BUILD_TERRAIN_IF_MAP_EXISTS = true
+local SEED = 20240611
+
+-- Muted palette: nothing bright, so the ruin houses blend in.
+local COLORS = {
+	Stone = { Color3.fromRGB(104, 104, 94), Color3.fromRGB(92, 94, 84), Color3.fromRGB(116, 114, 102) },
+	Moss = { Color3.fromRGB(64, 86, 48), Color3.fromRGB(78, 98, 54) },
+	Grass = {
+		Color3.fromRGB(78, 116, 50),
+		Color3.fromRGB(92, 128, 56),
+		Color3.fromRGB(68, 104, 44),
+		Color3.fromRGB(104, 134, 62),
+	},
+	Leaves = { Color3.fromRGB(44, 74, 36), Color3.fromRGB(54, 86, 40), Color3.fromRGB(38, 64, 32) },
+	Wood = { Color3.fromRGB(86, 64, 44), Color3.fromRGB(74, 56, 40) },
+	Rock = { Color3.fromRGB(110, 110, 104), Color3.fromRGB(96, 98, 92), Color3.fromRGB(124, 122, 114) },
+	Rust = Color3.fromRGB(112, 70, 42),
+}
+
+local rng = Random.new(SEED)
+local mapFolder: Folder
+local groundParams = RaycastParams.new()
+groundParams.FilterType = Enum.RaycastFilterType.Include
+
+---------------------------------------------------------------------------
+-- Small helpers
+---------------------------------------------------------------------------
+local function pick<T>(list: { T }): T
+	return list[rng:NextInteger(1, #list)]
+end
+
+local function folder(name: string, parent: Instance): Folder
+	local f = Instance.new("Folder")
+	f.Name = name
+	f.Parent = parent
+	return f
+end
+
+-- Creates an anchored part. `props` can set any Part property.
+local function makePart(props: { [string]: any }, parent: Instance): BasePart
+	local part = Instance.new("Part")
+	part.Anchored = true
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+	-- Order matters: Shape changes Size, and position must be set last.
+	if props.Shape then
+		part.Shape = props.Shape
+	end
+	if props.Size then
+		part.Size = props.Size
+	end
+	for key, value in props do
+		if key ~= "Shape" and key ~= "Size" and key ~= "CFrame" and key ~= "Position" then
+			(part :: any)[key] = value
+		end
+	end
+	if props.CFrame then
+		part.CFrame = props.CFrame
+	elseif props.Position then
+		part.Position = props.Position
+	end
+	part.Parent = parent
+	return part
+end
+
+-- Height of the terrain at (x, z). Terrain must already exist.
+local function groundY(x: number, z: number): number
+	local result = workspace:Raycast(Vector3.new(x, 300, z), Vector3.new(0, -400, 0), groundParams)
+	return if result then result.Position.Y else 0
+end
+
+-- Calls build(x, z, yaw) for a point AND its mirror (-x, -z, yaw + 180),
+-- so both halves of the map get identical cover.
+local function mirrored(x: number, z: number, build: (number, number, number) -> ())
+	local yaw = rng:NextNumber(0, 360)
+	build(x, z, yaw)
+	build(-x, -z, yaw + 180)
+end
+
+---------------------------------------------------------------------------
+-- Props
+---------------------------------------------------------------------------
+
+-- A patch of tall grass. Blades are 5-6.5 studs tall, which hides a
+-- crouching player (~3.5 studs) but not a standing one (~5.5 studs).
+-- Grass has CanQuery = false: bullets pass through it (it's only visual cover).
+local function tallGrassPatch(x: number, z: number, radius: number, parent: Instance)
+	local patch = folder("TallGrass", parent)
+	local clumps = math.floor(radius * radius * 0.32) + 4
+	for _ = 1, clumps do
+		local angle = rng:NextNumber(0, math.pi * 2)
+		local dist = math.sqrt(rng:NextNumber()) * radius
+		local cx, cz = x + math.cos(angle) * dist, z + math.sin(angle) * dist
+		local y = groundY(cx, cz)
+		local yaw = rng:NextNumber(0, 180)
+		for blade = 1, 3 do
+			local height = rng:NextNumber(5, 6.5)
+			makePart({
+				Name = "Blade",
+				Size = Vector3.new(0.2, height, rng:NextNumber(2.5, 3.5)),
+				CFrame = CFrame.new(cx, y + height / 2 - 0.3, cz)
+					* CFrame.Angles(0, math.rad(yaw + blade * 60), math.rad(rng:NextNumber(-8, 8))),
+				Color = pick(COLORS.Grass),
+				Material = Enum.Material.Grass,
+				CanCollide = false,
+				CanQuery = false,
+				CanTouch = false,
+				CastShadow = false,
+			}, patch)
+		end
+	end
+
+	-- Invisible marker the server uses to know where tall grass is.
+	local marker = makePart({
+		Name = "GrassPatch",
+		Size = Vector3.new(1, 1, 1),
+		Position = Vector3.new(x, groundY(x, z), z),
+		Transparency = 1,
+		CanCollide = false,
+		CanQuery = false,
+		CanTouch = false,
+	}, parent)
+	marker:SetAttribute("Radius", radius)
+	marker:AddTag("GrassPatchMarker")
+end
+
+local function bush(x: number, z: number, parent: Instance)
+	local y = groundY(x, z)
+	local model = folder("Bush", parent)
+	for _ = 1, rng:NextInteger(2, 4) do
+		local size = rng:NextNumber(3.5, 6.5)
+		makePart({
+			Name = "Leaves",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(size, size, size),
+			Position = Vector3.new(x + rng:NextNumber(-2.5, 2.5), y + size * 0.35, z + rng:NextNumber(-2.5, 2.5)),
+			Color = pick(COLORS.Leaves),
+			Material = Enum.Material.Grass,
+			CanCollide = false,
+			CanQuery = false,
+			CanTouch = false,
+		}, model)
+	end
+end
+
+-- Rocks block bullets (CanQuery = true) and players.
+local function rock(x: number, z: number, scale: number, parent: Instance)
+	local y = groundY(x, z)
+	local model = folder("Rock", parent)
+	for i = 1, rng:NextInteger(2, 3) do
+		local s = scale * rng:NextNumber(0.6, 1)
+		makePart({
+			Name = "Stone",
+			Size = Vector3.new(s * 1.4, s, s * 1.2),
+			CFrame = CFrame.new(x + (i - 2) * s * 0.5, y + s * 0.3, z + rng:NextNumber(-1, 1) * s * 0.4)
+				* CFrame.Angles(math.rad(rng:NextNumber(-15, 15)), math.rad(rng:NextNumber(0, 360)), math.rad(rng:NextNumber(-15, 15))),
+			Color = pick(COLORS.Rock),
+			Material = Enum.Material.Slate,
+		}, model)
+	end
+end
+
+local function fallenLog(x: number, z: number, yaw: number, parent: Instance)
+	local y = groundY(x, z)
+	local length = rng:NextNumber(12, 20)
+	local d = rng:NextNumber(2.2, 3.2)
+	local cf = CFrame.new(x, y + d * 0.4, z) * CFrame.Angles(0, math.rad(yaw), 0)
+	local model = folder("FallenLog", parent)
+	-- A Cylinder's long axis is its X axis, so it already lies on its side.
+	makePart({
+		Name = "Log",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(length, d, d),
+		CFrame = cf,
+		Color = pick(COLORS.Wood),
+		Material = Enum.Material.Wood,
+	}, model)
+	makePart({
+		Name = "Moss",
+		Size = Vector3.new(length * 0.7, 0.3, d * 0.6),
+		CFrame = cf * CFrame.new(0, d * 0.45, 0),
+		Color = pick(COLORS.Moss),
+		Material = Enum.Material.Grass,
+		CanCollide = false,
+		CanQuery = false,
+	}, model)
+end
+
+local function tree(x: number, z: number, parent: Instance)
+	local y = groundY(x, z)
+	local height = rng:NextNumber(18, 28)
+	local width = rng:NextNumber(1.6, 2.6)
+	local model = folder("Tree", parent)
+	makePart({
+		Name = "Trunk",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(height, width, width),
+		-- rotate so the cylinder stands upright
+		CFrame = CFrame.new(x, y + height / 2 - 1, z) * CFrame.Angles(0, 0, math.rad(90)),
+		Color = pick(COLORS.Wood),
+		Material = Enum.Material.Wood,
+	}, model)
+	for _ = 1, rng:NextInteger(2, 3) do
+		local size = rng:NextNumber(10, 16)
+		makePart({
+			Name = "Canopy",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(size, size, size),
+			Position = Vector3.new(x + rng:NextNumber(-3, 3), y + height + rng:NextNumber(-3, 1), z + rng:NextNumber(-3, 3)),
+			Color = pick(COLORS.Leaves),
+			Material = Enum.Material.Grass,
+			CanCollide = false,
+			CanQuery = false,
+			CastShadow = true,
+		}, model)
+	end
+end
+
+-- Mossy wall piece. `cf` is the center of the bottom of the wall.
+local function wall(cf: CFrame, length: number, height: number, parent: Instance)
+	local w = makePart({
+		Name = "Wall",
+		Size = Vector3.new(length, height, 1.5),
+		CFrame = cf * CFrame.new(0, height / 2, 0),
+		Color = pick(COLORS.Stone),
+		Material = Enum.Material.Cobblestone,
+	}, parent)
+	-- moss on top
+	makePart({
+		Name = "Moss",
+		Size = Vector3.new(length, 0.4, 1.7),
+		CFrame = cf * CFrame.new(0, height + 0.1, 0),
+		Color = pick(COLORS.Moss),
+		Material = Enum.Material.Grass,
+		CanCollide = false,
+		CanQuery = false,
+	}, parent)
+	-- a couple of hanging vines
+	for _ = 1, rng:NextInteger(1, 2) do
+		local vineLength = rng:NextNumber(height * 0.4, height * 0.9)
+		local side = if rng:NextNumber() > 0.5 then 0.85 else -0.85
+		makePart({
+			Name = "Vine",
+			Size = Vector3.new(0.35, vineLength, 0.15),
+			CFrame = cf * CFrame.new(rng:NextNumber(-length / 2 + 0.5, length / 2 - 0.5), height - vineLength / 2, side),
+			Color = pick(COLORS.Leaves),
+			Material = Enum.Material.Grass,
+			CanCollide = false,
+			CanQuery = false,
+		}, parent)
+	end
+	return w
+end
+
+-- A small ruin for the middle zone: broken walls, a pillar, rubble.
+local function ruin(x: number, z: number, yaw: number, parent: Instance)
+	local y = groundY(x, z)
+	local base = CFrame.new(x, y, z) * CFrame.Angles(0, math.rad(yaw), 0)
+	local model = folder("Ruin", parent)
+	makePart({
+		Name = "Floor",
+		Size = Vector3.new(14, 1, 12),
+		CFrame = base * CFrame.new(0, 0.3, 0),
+		Color = pick(COLORS.Stone),
+		Material = Enum.Material.Slate,
+	}, model)
+	wall(base * CFrame.new(0, 0.8, -5.5), 14, rng:NextNumber(4, 6), model)
+	wall(base * CFrame.new(-6.5, 0.8, -1) * CFrame.Angles(0, math.rad(90), 0), 8, rng:NextNumber(3, 5), model)
+	wall(base * CFrame.new(4, 0.8, 5.5), 6, rng:NextNumber(2.5, 4), model)
+	makePart({
+		Name = "Pillar",
+		Size = Vector3.new(1.8, 7, 1.8),
+		CFrame = base * CFrame.new(6, 4.3, -4.5),
+		Color = pick(COLORS.Stone),
+		Material = Enum.Material.Cobblestone,
+	}, model)
+	makePart({
+		Name = "FallenPillar",
+		Size = Vector3.new(1.8, 1.8, 7),
+		CFrame = base * CFrame.new(3, 1.6, 1) * CFrame.Angles(0, math.rad(35), math.rad(5)),
+		Color = pick(COLORS.Stone),
+		Material = Enum.Material.Cobblestone,
+	}, model)
+	for _ = 1, 4 do
+		local s = rng:NextNumber(0.8, 1.6)
+		makePart({
+			Name = "Rubble",
+			Size = Vector3.new(s, s * 0.7, s),
+			CFrame = base * CFrame.new(rng:NextNumber(-7, 7), 1, rng:NextNumber(-6, 6)) * CFrame.Angles(0, rng:NextNumber(0, 3), 0),
+			Color = pick(COLORS.Stone),
+			Material = Enum.Material.Slate,
+		}, model)
+	end
+	bush(x + rng:NextNumber(-9, 9), z + rng:NextNumber(-9, 9), model)
+end
+
+---------------------------------------------------------------------------
+-- Team ruin house (spawn). `dir` = +1 means the doorway faces +X.
+---------------------------------------------------------------------------
+local function ruinHouse(teamKey: string, hx: number, dir: number, parent: Instance)
+	local model = folder(teamKey .. "House", parent)
+	-- Local frame: +X points out of the doorway, toward the middle of the map.
+	local base = CFrame.new(hx, HOUSE_FLOOR_Y, 0) * CFrame.Angles(0, if dir > 0 then 0 else math.rad(180), 0)
+
+	makePart({
+		Name = "Floor",
+		Size = Vector3.new(20, 1, 18),
+		CFrame = base * CFrame.new(0, -0.5, 0),
+		Color = pick(COLORS.Stone),
+		Material = Enum.Material.Slate,
+	}, model)
+
+	-- Back wall (dug into the hill), two heights so the top looks broken
+	wall(base * CFrame.new(-10, 0, -4.5) * CFrame.Angles(0, math.rad(90), 0), 9, 7, model)
+	wall(base * CFrame.new(-10, 0, 4.5) * CFrame.Angles(0, math.rad(90), 0), 9, 5.5, model)
+	-- Side walls with gaps
+	wall(base * CFrame.new(-5, 0, -9), 10, 6.5, model)
+	wall(base * CFrame.new(6.5, 0, -9), 7, 4, model)
+	wall(base * CFrame.new(-4, 0, 9), 12, 6, model)
+	wall(base * CFrame.new(8, 0, 9), 4, 3, model)
+	-- Front wall with a doorway in the middle (z from -3 to 3)
+	wall(base * CFrame.new(10, 0, -6) * CFrame.Angles(0, math.rad(90), 0), 6, 5, model)
+	wall(base * CFrame.new(10, 0, 6) * CFrame.Angles(0, math.rad(90), 0), 6, 3.5, model)
+
+	-- Partly collapsed roof: covers the back half, one slab sagging down
+	makePart({
+		Name = "Roof",
+		Size = Vector3.new(10, 1, 19),
+		CFrame = base * CFrame.new(-5, 7.2, 0) * CFrame.Angles(math.rad(3), 0, math.rad(-4)),
+		Color = pick(COLORS.Stone),
+		Material = Enum.Material.Slate,
+	}, model)
+	makePart({
+		Name = "RoofMoss",
+		Size = Vector3.new(9, 0.4, 17),
+		CFrame = base * CFrame.new(-5, 7.9, 0) * CFrame.Angles(math.rad(3), 0, math.rad(-4)),
+		Color = pick(COLORS.Moss),
+		Material = Enum.Material.Grass,
+		CanCollide = false,
+		CanQuery = false,
+	}, model)
+	makePart({
+		Name = "CollapsedSlab",
+		Size = Vector3.new(7, 0.8, 8),
+		CFrame = base * CFrame.new(6, 3.2, -5) * CFrame.Angles(0, 0, math.rad(32)),
+		Color = pick(COLORS.Stone),
+		Material = Enum.Material.Slate,
+	}, model)
+
+	-- Rusty supply crate with the "Open Shop" prompt
+	local crate = makePart({
+		Name = "SupplyCrate",
+		Size = Vector3.new(3, 2.6, 4),
+		CFrame = base * CFrame.new(-7.5, 1.3, 0),
+		Color = COLORS.Rust,
+		Material = Enum.Material.CorrodedMetal,
+	}, model)
+	crate:SetAttribute("Team", teamKey)
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "ShopPrompt"
+	prompt.ActionText = "Open Shop"
+	prompt.ObjectText = "Supply Crate"
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 8
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = crate
+
+	-- Invisible SpawnLocations (no decal, no ForceField glow: Duration = 0)
+	local teamColor = GameConfig.TEAMS[teamKey].TeamColor
+	for i, offset in { Vector3.new(-2, 0, -5), Vector3.new(2, 0, 0), Vector3.new(-2, 0, 5) } do
+		local spawn = Instance.new("SpawnLocation")
+		spawn.Name = teamKey .. "Spawn" .. i
+		spawn.Anchored = true
+		spawn.Size = Vector3.new(3, 0.2, 3)
+		spawn.CFrame = base * CFrame.new(offset + Vector3.new(0, 0.1, 0)) * CFrame.Angles(0, math.rad(90), 0)
+		spawn.Transparency = 1
+		spawn.CanCollide = false
+		spawn.CanQuery = false
+		spawn.Neutral = false
+		spawn.TeamColor = teamColor
+		spawn.AllowTeamChangeOnTouch = false
+		spawn.Duration = 0
+		spawn.Parent = model
+	end
+
+	-- Overgrown bushes and trees around the house, so it's hard to spot
+	for _, offset in { Vector3.new(12, 0, -12), Vector3.new(13, 0, 11), Vector3.new(-2, 0, -13), Vector3.new(0, 0, 13) } do
+		local p = base * CFrame.new(offset)
+		bush(p.X, p.Z, model)
+	end
+	for _, offset in { Vector3.new(4, 0, -17), Vector3.new(4, 0, 17), Vector3.new(16, 0, -20), Vector3.new(16, 0, 21) } do
+		local p = base * CFrame.new(offset)
+		tree(p.X, p.Z, model)
+	end
+
+	-- Cover leaving the house: a trail of tall grass, bushes and rocks so
+	-- nobody gets shot the moment they step out.
+	local cover = folder(teamKey .. "SpawnCover", parent)
+	local trail = {
+		{ "grass", 18, -7, 7 },
+		{ "grass", 18, 8, 6 },
+		{ "bush", 24, -1, 0 },
+		{ "grass", 33, 0, 8 },
+		{ "rock", 29, -15, 4 },
+		{ "rock", 40, 14, 4.5 },
+		{ "grass", 48, -12, 8 },
+		{ "grass", 50, 12, 7 },
+		{ "log", 56, -3, 0 },
+		{ "bush", 62, 6, 0 },
+		{ "grass", 66, 0, 9 },
+	}
+	for _, entry in trail do
+		local p = base * CFrame.new(entry[2] :: number, 0, entry[3] :: number)
+		local kind = entry[1]
+		if kind == "grass" then
+			tallGrassPatch(p.X, p.Z, entry[4] :: number, cover)
+		elseif kind == "bush" then
+			bush(p.X, p.Z, cover)
+		elseif kind == "rock" then
+			rock(p.X, p.Z, entry[4] :: number, cover)
+		elseif kind == "log" then
+			fallenLog(p.X, p.Z, 90 + rng:NextNumber(-20, 20), cover)
+		end
+	end
+
+	return crate
+end
+
+---------------------------------------------------------------------------
+-- Terrain: flat valley floor, two hills, small mounds in the middle
+---------------------------------------------------------------------------
+local function buildTerrain()
+	local terrain = workspace.Terrain
+	terrain:Clear()
+	terrain:SetMaterialColor(Enum.Material.Grass, Color3.fromRGB(84, 118, 54))
+	terrain:SetMaterialColor(Enum.Material.Ground, Color3.fromRGB(92, 78, 58))
+
+	-- Valley floor: top surface at Y = 0
+	terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(HALF_LENGTH * 2 + 140, 20, HALF_WIDTH * 2 + 120), Enum.Material.Grass)
+
+	-- Hills behind each spawn
+	for _, sx in { -1, 1 } do
+		terrain:FillBall(Vector3.new(sx * 275, -40, 0), 85, Enum.Material.Grass)
+		terrain:FillBall(Vector3.new(sx * 285, -45, -70), 80, Enum.Material.Grass)
+		terrain:FillBall(Vector3.new(sx * 285, -45, 70), 80, Enum.Material.Grass)
+
+		-- Dig a notch into the hillside for the ruin house, with a dirt floor
+		local hx = sx * HOUSE_X
+		terrain:FillBlock(CFrame.new(hx, HOUSE_FLOOR_Y + 6, 0), Vector3.new(24, 12, 22), Enum.Material.Air)
+		terrain:FillBlock(CFrame.new(hx, HOUSE_FLOOR_Y - 1, 0), Vector3.new(24, 2, 22), Enum.Material.Ground)
+	end
+
+	-- Low, mirrored mounds in the middle for extra cover
+	for _ = 1, 6 do
+		local x, z = rng:NextNumber(-140, -20), rng:NextNumber(-110, 110)
+		local r = rng:NextNumber(10, 15)
+		terrain:FillBall(Vector3.new(x, -r + rng:NextNumber(3, 6), z), r, Enum.Material.Grass)
+		terrain:FillBall(Vector3.new(-x, -r + rng:NextNumber(3, 6), -z), r, Enum.Material.Grass)
+	end
+end
+
+---------------------------------------------------------------------------
+-- Map edges: invisible walls + a thick tree line so it looks natural
+---------------------------------------------------------------------------
+local function buildBoundaries(parent: Instance)
+	local edges = folder("Boundaries", parent)
+	local h = 400
+	local walls = {
+		{ Vector3.new(HALF_LENGTH + 2, h / 2 - 50, 0), Vector3.new(4, h, HALF_WIDTH * 2 + 8) },
+		{ Vector3.new(-HALF_LENGTH - 2, h / 2 - 50, 0), Vector3.new(4, h, HALF_WIDTH * 2 + 8) },
+		{ Vector3.new(0, h / 2 - 50, HALF_WIDTH + 2), Vector3.new(HALF_LENGTH * 2 + 8, h, 4) },
+		{ Vector3.new(0, h / 2 - 50, -HALF_WIDTH - 2), Vector3.new(HALF_LENGTH * 2 + 8, h, 4) },
+	}
+	for i, w in walls do
+		makePart({
+			Name = "InvisibleWall" .. i,
+			Position = w[1],
+			Size = w[2],
+			Transparency = 1,
+			CanQuery = false, -- bullets and cameras ignore it
+		}, edges)
+	end
+
+	-- Tree line along the long edges (it also hides the walls)
+	local treeLine = folder("TreeLine", parent)
+	for x = -HALF_LENGTH, HALF_LENGTH, 16 do
+		tree(x + rng:NextNumber(-4, 4), HALF_WIDTH + rng:NextNumber(-2, 10), treeLine)
+		tree(x + rng:NextNumber(-4, 4), -HALF_WIDTH - rng:NextNumber(-2, 10), treeLine)
+	end
+	for z = -HALF_WIDTH + 30, HALF_WIDTH - 30, 18 do
+		tree(HALF_LENGTH + rng:NextNumber(-2, 8), z, treeLine)
+		tree(-HALF_LENGTH - rng:NextNumber(-2, 8), z, treeLine)
+	end
+end
+
+---------------------------------------------------------------------------
+-- Lobby: a floating stone platform where players wait between rounds
+---------------------------------------------------------------------------
+local function buildLobby(parent: Instance)
+	local lobby = folder("Lobby", parent)
+	makePart({
+		Name = "Platform",
+		Size = Vector3.new(60, 2, 60),
+		Position = LOBBY_POSITION,
+		Color = COLORS.Stone[1],
+		Material = Enum.Material.Slate,
+	}, lobby)
+	for i, w in
+		{
+			{ Vector3.new(0, 6, 31), Vector3.new(64, 12, 2) },
+			{ Vector3.new(0, 6, -31), Vector3.new(64, 12, 2) },
+			{ Vector3.new(31, 6, 0), Vector3.new(2, 12, 64) },
+			{ Vector3.new(-31, 6, 0), Vector3.new(2, 12, 64) },
+		}
+	do
+		makePart({
+			Name = "LobbyWall" .. i,
+			Size = w[2],
+			Position = LOBBY_POSITION + w[1],
+			Color = COLORS.Stone[2],
+			Material = Enum.Material.Cobblestone,
+			Transparency = 0.6,
+		}, lobby)
+	end
+	local spawn = Instance.new("SpawnLocation")
+	spawn.Name = "LobbySpawn"
+	spawn.Anchored = true
+	spawn.Size = Vector3.new(8, 1, 8)
+	spawn.Position = LOBBY_POSITION + Vector3.new(0, 1.5, 0)
+	spawn.Color = COLORS.Moss[1]
+	spawn.Material = Enum.Material.Grass
+	spawn.Neutral = true
+	spawn.AllowTeamChangeOnTouch = false
+	spawn.Duration = 0
+	spawn.Parent = lobby
+end
+
+---------------------------------------------------------------------------
+-- Lighting: soft sun + light fog (Atmosphere) so long shots are hard but fair
+---------------------------------------------------------------------------
+local function setupLighting()
+	Lighting.ClockTime = 15
+	Lighting.Brightness = 2
+	Lighting.Ambient = Color3.fromRGB(70, 80, 70)
+	Lighting.OutdoorAmbient = Color3.fromRGB(120, 135, 120)
+	Lighting.EnvironmentDiffuseScale = 0.5
+	Lighting.EnvironmentSpecularScale = 0.3
+	Lighting.GlobalShadows = true
+
+	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere")
+	atmosphere.Density = 0.34 -- raise for thicker fog, lower for clearer view
+	atmosphere.Offset = 0.1
+	atmosphere.Color = Color3.fromRGB(196, 214, 196)
+	atmosphere.Decay = Color3.fromRGB(104, 126, 104)
+	atmosphere.Glare = 0
+	atmosphere.Haze = 1.6
+	atmosphere.Parent = Lighting
+
+	local cc = Lighting:FindFirstChildOfClass("ColorCorrectionEffect") or Instance.new("ColorCorrectionEffect")
+	cc.Saturation = 0.05
+	cc.Contrast = 0.03
+	cc.TintColor = Color3.fromRGB(246, 255, 244)
+	cc.Parent = Lighting
+end
+
+---------------------------------------------------------------------------
+-- Middle zone: grass, bushes, rocks, logs, trees and stone ruins
+---------------------------------------------------------------------------
+local function buildMiddle(parent: Instance)
+	local middle = folder("MiddleZone", parent)
+
+	-- Ruins: one in the center, the rest mirrored
+	ruin(0, 0, 15, middle)
+	mirrored(-70, 45, function(x, z, yaw)
+		ruin(x, z, yaw, middle)
+	end)
+	mirrored(-38, -88, function(x, z, yaw)
+		ruin(x, z, yaw, middle)
+	end)
+
+	-- Everything below is generated for the Green half (x < 0) and mirrored.
+	local function randomHalfPoint(minX: number, maxX: number): (number, number)
+		return rng:NextNumber(minX, maxX), rng:NextNumber(-HALF_WIDTH + 15, HALF_WIDTH - 15)
+	end
+
+	for _ = 1, 26 do
+		local x, z = randomHalfPoint(-150, -5)
+		local r = rng:NextNumber(5, 9)
+		mirrored(x, z, function(mx, mz)
+			tallGrassPatch(mx, mz, r, middle)
+		end)
+	end
+	for _ = 1, 22 do
+		local x, z = randomHalfPoint(-150, -5)
+		mirrored(x, z, function(mx, mz)
+			bush(mx, mz, middle)
+		end)
+	end
+	for _ = 1, 14 do
+		local x, z = randomHalfPoint(-150, -5)
+		local s = rng:NextNumber(3, 6)
+		mirrored(x, z, function(mx, mz)
+			rock(mx, mz, s, middle)
+		end)
+	end
+	for _ = 1, 6 do
+		local x, z = randomHalfPoint(-150, -10)
+		mirrored(x, z, function(mx, mz, yaw)
+			fallenLog(mx, mz, yaw, middle)
+		end)
+	end
+	for _ = 1, 12 do
+		local x, z = randomHalfPoint(-160, -15)
+		mirrored(x, z, function(mx, mz)
+			tree(mx, mz, middle)
+		end)
+	end
+
+	-- Trees on the hills behind each house
+	for _ = 1, 10 do
+		local x, z = rng:NextNumber(-250, -222), rng:NextNumber(-120, 120)
+		mirrored(x, z, function(mx, mz)
+			tree(mx, mz, middle)
+		end)
+	end
+end
+
+---------------------------------------------------------------------------
+-- Reads house centers, crates and grass patches from the Map folder.
+---------------------------------------------------------------------------
+local function readInfo()
+	local info = MapBuilder.Info
+	table.clear(info.Houses)
+	table.clear(info.GrassPatches)
+
+	for _, marker in mapFolder:GetDescendants() do
+		if marker:IsA("BasePart") then
+			if marker.Name == "GrassPatch" then
+				table.insert(info.GrassPatches, {
+					Position = marker.Position,
+					Radius = marker:GetAttribute("Radius") or 6,
+				})
+			elseif marker.Name == "HouseCenter" then
+				local teamKey = marker:GetAttribute("Team")
+				info.Houses[teamKey] = info.Houses[teamKey] or {}
+				info.Houses[teamKey].Center = marker.Position
+			elseif marker.Name == "SupplyCrate" then
+				local teamKey = marker:GetAttribute("Team")
+				info.Houses[teamKey] = info.Houses[teamKey] or {}
+				info.Houses[teamKey].Crate = marker
+			end
+		end
+	end
+end
+
+---------------------------------------------------------------------------
+-- Public: build everything (call once when the server starts)
+---------------------------------------------------------------------------
+-- Things from a default Studio template that would get in the way.
+-- This only happens while the game runs; your saved place is not changed.
+local function cleanUpTemplate()
+	local baseplate = workspace:FindFirstChild("Baseplate")
+	if baseplate and baseplate:IsA("BasePart") then
+		baseplate:Destroy()
+		print("[MapBuilder] Removed the template Baseplate for this session (delete it in Studio to silence this).")
+	end
+	for _, d in workspace:GetDescendants() do
+		if d:IsA("SpawnLocation") and not d:IsDescendantOf(mapFolder) then
+			d.Enabled = false -- only our lobby and ruin-house spawns are used
+		end
+	end
+end
+
+function MapBuilder.Build()
+	setupLighting()
+	groundParams.FilterDescendantsInstances = { workspace.Terrain }
+
+	local existing = workspace:FindFirstChild("Map")
+	if existing and existing:IsA("Folder") then
+		-- A saved map is already in the place: keep it.
+		mapFolder = existing
+		if BUILD_TERRAIN_IF_MAP_EXISTS and workspace.Terrain:CountCells() == 0 then
+			buildTerrain()
+		end
+		readInfo()
+		cleanUpTemplate()
+		return
+	end
+
+	-- Teams must exist before SpawnLocations use their TeamColor
+	assert(#Teams:GetTeams() > 0, "Create teams (TeamManager.Init) before MapBuilder.Build")
+
+	buildTerrain()
+
+	mapFolder = folder("Map", workspace)
+	mapFolder:SetAttribute("Built", true)
+
+	-- Spawn houses: Green on the -X side, doorway facing +X. Brown is mirrored.
+	local houses = folder("Houses", mapFolder)
+	local markers = folder("Markers", mapFolder)
+	for _, def in { { "Green", -HOUSE_X, 1 }, { "Brown", HOUSE_X, -1 } } do
+		local teamKey, hx, dir = def[1] :: string, def[2] :: number, def[3] :: number
+		ruinHouse(teamKey, hx, dir, houses)
+		local center = makePart({
+			Name = "HouseCenter",
+			Size = Vector3.new(1, 1, 1),
+			Position = Vector3.new(hx, HOUSE_FLOOR_Y + 3, 0),
+			Transparency = 1,
+			CanCollide = false,
+			CanQuery = false,
+			CanTouch = false,
+		}, markers)
+		center:SetAttribute("Team", teamKey)
+	end
+
+	buildMiddle(mapFolder)
+	buildBoundaries(mapFolder)
+	buildLobby(mapFolder)
+	readInfo()
+	cleanUpTemplate()
+
+	print(("[MapBuilder] Map built: %d grass patches"):format(#MapBuilder.Info.GrassPatches))
+end
+
+-- Is this position inside any tall grass patch?
+function MapBuilder.IsInTallGrass(position: Vector3): boolean
+	for _, patch in MapBuilder.Info.GrassPatches do
+		local offset = position - patch.Position
+		if Vector2.new(offset.X, offset.Z).Magnitude <= patch.Radius and math.abs(offset.Y) < 8 then
+			return true
+		end
+	end
+	return false
+end
+
+-- Finds the ground height under a point (ignores players and props).
+function MapBuilder.GroundY(x: number, z: number): number
+	return groundY(x, z)
+end
+
+return MapBuilder
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="18">
+          <Properties>
+            <string name="Name">MovementService</string>
+            <string name="Source"><![CDATA[--[[
+	MovementService  (ModuleScript in ServerScriptService/Services)
+	Server half of the movement system (the client half is MovementController).
+
+	The client only ASKS for a stance ("Crouch", "Walk", "Sprint").
+	The server sets the real WalkSpeed, the crouch pose and the sounds, so:
+	  * crouch: CROUCH_SPEED, lower body, NO footsteps, no jumping
+	  * walk:   WALK_SPEED, quiet footsteps heard close by
+	  * sprint: SPRINT_SPEED, loud rustling heard far away
+
+	Sounds are created on the server inside the HumanoidRootPart, so every
+	player hears them coming from the right place.
+
+	Players can be "frozen" (camo selection): speed 0, no jumping.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage.GameConfig)
+local Remotes = require(ReplicatedStorage.Shared.Remotes)
+
+local MovementService = {}
+
+local VALID_STANCES = { Crouch = true, Walk = true, Sprint = true }
+local SOUND_TICK = 0.1
+
+type PlayerState = {
+	Stance: string,
+	Frozen: boolean,
+}
+
+local states: { [Player]: PlayerState } = {}
+-- Original joint positions so we can undo the crouch pose (weak keys)
+local originalC0: { [Motor6D]: CFrame } = setmetatable({}, { __mode = "k" }) :: any
+local originalHipHeight: { [Humanoid]: number } = setmetatable({}, { __mode = "k" }) :: any
+
+local function getState(player: Player): PlayerState
+	local state = states[player]
+	if not state then
+		state = { Stance = "Walk", Frozen = false }
+		states[player] = state
+	end
+	return state
+end
+
+local function getParts(player: Player): (Humanoid?, BasePart?)
+	local character = player.Character
+	if not character then
+		return nil, nil
+	end
+	return character:FindFirstChildOfClass("Humanoid"), character:FindFirstChild("HumanoidRootPart") :: BasePart?
+end
+
+-- Bends the legs into a kneel (R15 only). Uses Motor6D.C0, which replicates
+-- to every player, so everyone sees you crouch and your hitbox really drops.
+local function setCrouchPose(character: Model, crouched: boolean)
+	if GameConfig.CROUCH_ANIMATION_ID ~= "" then
+		return -- the client plays the uploaded crouch animation instead
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid or humanoid.RigType ~= Enum.HumanoidRigType.R15 then
+		return
+	end
+
+	-- Joint name -> rotation while crouched (degrees around the X axis)
+	local POSE = {
+		{ "LeftUpperLeg", "LeftHip", 90 },
+		{ "RightUpperLeg", "RightHip", 90 },
+		{ "LeftLowerLeg", "LeftKnee", -90 },
+		{ "RightLowerLeg", "RightKnee", -90 },
+		{ "UpperTorso", "Waist", -20 },
+	}
+
+	local thighLength = 0
+	for _, entry in POSE do
+		local part = character:FindFirstChild(entry[1])
+		local motor = part and part:FindFirstChild(entry[2])
+		if motor and motor:IsA("Motor6D") then
+			if not originalC0[motor] then
+				originalC0[motor] = motor.C0
+			end
+			local base = originalC0[motor]
+			motor.C0 = if crouched then base * CFrame.Angles(math.rad(entry[3] :: number), 0, 0) else base
+			if entry[2] == "LeftHip" then
+				-- hip joint -> knee joint distance = how much lower we get
+				local knee = character:FindFirstChild("LeftLowerLeg")
+				local kneeMotor = knee and knee:FindFirstChild("LeftKnee")
+				if kneeMotor and kneeMotor:IsA("Motor6D") then
+					thighLength = math.abs(motor.C1.Position.Y) + math.abs((originalC0[kneeMotor] or kneeMotor.C0).Position.Y)
+				end
+			end
+		end
+	end
+
+	if not originalHipHeight[humanoid] then
+		originalHipHeight[humanoid] = humanoid.HipHeight
+	end
+	humanoid.HipHeight = if crouched then originalHipHeight[humanoid] - thighLength else originalHipHeight[humanoid]
+end
+
+-- Applies speed / jump / pose for the player's current stance.
+local function applyStance(player: Player)
+	local state = getState(player)
+	local humanoid = getParts(player)
+	local character = player.Character
+	if not humanoid or not character then
+		return
+	end
+
+	local stance = state.Stance
+	if state.Frozen then
+		humanoid.WalkSpeed = 0
+		humanoid.JumpHeight = 0
+	elseif stance == "Crouch" then
+		humanoid.WalkSpeed = GameConfig.CROUCH_SPEED
+		humanoid.JumpHeight = 0
+	elseif stance == "Sprint" then
+		humanoid.WalkSpeed = GameConfig.SPRINT_SPEED
+		humanoid.JumpHeight = GameConfig.JUMP_HEIGHT
+	else
+		humanoid.WalkSpeed = GameConfig.WALK_SPEED
+		humanoid.JumpHeight = GameConfig.JUMP_HEIGHT
+	end
+
+	setCrouchPose(character, stance == "Crouch" and not state.Frozen)
+	character:SetAttribute("Stance", stance)
+end
+
+local function makeLoopSound(name: string, parent: Instance, volume: number, maxDistance: number, speed: number): Sound
+	local sound = Instance.new("Sound")
+	sound.Name = name
+	sound.SoundId = if name == "Footsteps" then GameConfig.SOUNDS.Footstep else GameConfig.SOUNDS.Rustle
+	sound.Looped = true
+	sound.Volume = volume
+	sound.PlaybackSpeed = speed
+	sound.RollOffMode = Enum.RollOffMode.InverseTapered
+	sound.RollOffMinDistance = 5
+	sound.RollOffMaxDistance = maxDistance
+	sound.Parent = parent
+	return sound
+end
+
+local function onCharacterAdded(player: Player, character: Model)
+	local humanoid = character:WaitForChild("Humanoid", 10) :: Humanoid?
+	local root = character:WaitForChild("HumanoidRootPart", 10) :: BasePart?
+	if not humanoid or not root then
+		return
+	end
+	humanoid.UseJumpPower = false
+	getState(player).Stance = "Walk"
+
+	makeLoopSound("Footsteps", root, GameConfig.WALK_FOOTSTEP_VOLUME, GameConfig.WALK_FOOTSTEP_DISTANCE, 1)
+	makeLoopSound("Rustle", root, GameConfig.SPRINT_RUSTLE_VOLUME, GameConfig.SPRINT_RUSTLE_DISTANCE, 0.75)
+	applyStance(player)
+end
+
+-- Plays/stops footstep sounds depending on stance and movement.
+local function updateSounds()
+	for player, state in states do
+		local humanoid, root = getParts(player)
+		if humanoid and root then
+			local velocity = root.AssemblyLinearVelocity
+			local moving = Vector3.new(velocity.X, 0, velocity.Z).Magnitude > 1
+				and humanoid.FloorMaterial ~= Enum.Material.Air
+				and humanoid.Health > 0
+			local footsteps = root:FindFirstChild("Footsteps") :: Sound?
+			local rustle = root:FindFirstChild("Rustle") :: Sound?
+			local wantFootsteps = moving and state.Stance == "Walk"
+			local wantRustle = moving and state.Stance == "Sprint"
+			if footsteps and footsteps.Playing ~= wantFootsteps then
+				footsteps.Playing = wantFootsteps
+			end
+			if rustle and rustle.Playing ~= wantRustle then
+				rustle.Playing = wantRustle
+			end
+		end
+	end
+end
+
+function MovementService.Init()
+	Remotes.Get("SetStance").OnServerEvent:Connect(function(player, stance)
+		-- Validate: must be one of the three known stances
+		if typeof(stance) ~= "string" or not VALID_STANCES[stance] then
+			return
+		end
+		local state = getState(player)
+		if state.Stance ~= stance then
+			state.Stance = stance
+			applyStance(player)
+		end
+	end)
+
+	local function setup(player: Player)
+		getState(player)
+		player.CharacterAdded:Connect(function(character)
+			onCharacterAdded(player, character)
+		end)
+		if player.Character then
+			task.spawn(onCharacterAdded, player, player.Character)
+		end
+	end
+	Players.PlayerAdded:Connect(setup)
+	for _, player in Players:GetPlayers() do
+		setup(player)
+	end
+	Players.PlayerRemoving:Connect(function(player)
+		states[player] = nil
+	end)
+
+	task.spawn(function()
+		while true do
+			updateSounds()
+			task.wait(SOUND_TICK)
+		end
+	end)
+end
+
+-- Freeze (camo selection) or unfreeze a player.
+function MovementService.SetFrozen(player: Player, frozen: boolean)
+	getState(player).Frozen = frozen
+	applyStance(player)
+end
+
+-- Is this player sprinting AND actually moving?
+function MovementService.IsSprinting(player: Player): boolean
+	local state = states[player]
+	if not state or state.Stance ~= "Sprint" or state.Frozen then
+		return false
+	end
+	local _, root = getParts(player)
+	if not root then
+		return false
+	end
+	local v = root.AssemblyLinearVelocity
+	return Vector3.new(v.X, 0, v.Z).Magnitude > GameConfig.WALK_SPEED
+end
+
+function MovementService.GetStance(player: Player): string
+	return getState(player).Stance
+end
+
+return MovementService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="19">
+          <Properties>
+            <string name="Name">RoundManager</string>
+            <string name="Source"><![CDATA[--[[
+	RoundManager  (ModuleScript in ServerScriptService/Services)
+
+	The game loop. Runs forever on the server:
+
+	  Waiting      until MIN_PLAYERS_TO_START players pressed "Play"
+	  CamoSelect   teams balanced, players spawn (frozen) in their ruin
+	               house and pick a camo (CAMO_SELECT_TIME)
+	  Round        one life each, ROUND_TIME seconds. Ends early when a
+	               team has nobody alive.
+	  Results      banner + coins (RESULTS_TIME)
+	  Intermission everyone back to the lobby with normal avatars
+	               (INTERMISSION_TIME), then repeat
+
+	Clients never decide anything here. They only READ the attributes of
+	ReplicatedStorage.GameStatus (State, EndsAt, alive counts, banner).
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage.GameConfig)
+local Remotes = require(ReplicatedStorage.Shared.Remotes)
+local BirdSystem = require(script.Parent.BirdSystem)
+local CamoManager = require(script.Parent.CamoManager)
+local DamageService = require(script.Parent.DamageService)
+local DataService = require(script.Parent.DataService)
+local ItemService = require(script.Parent.ItemService)
+local MovementService = require(script.Parent.MovementService)
+local RoundState = require(script.Parent.RoundState)
+local SafeZoneService = require(script.Parent.SafeZoneService)
+local ShopService = require(script.Parent.ShopService)
+local SniperService = require(script.Parent.SniperService)
+local TeamManager = require(script.Parent.TeamManager)
+
+local RoundManager = {}
+
+local status = Remotes.GetStatus()
+
+---------------------------------------------------------------------------
+-- Helpers
+---------------------------------------------------------------------------
+local function serverNow(): number
+	return workspace:GetServerTimeNow()
+end
+
+local function setStatus(state: string, duration: number?, text: string?)
+	status:SetAttribute("State", state)
+	status:SetAttribute("EndsAt", if duration then serverNow() + duration else 0)
+	status:SetAttribute("StatusText", text or "")
+end
+
+local function notify(player: Player, text: string)
+	Remotes.Get("Notify"):FireClient(player, text)
+end
+
+-- Players who pressed Play on the main menu
+local function readyPlayers(): { Player }
+	local list = {}
+	for _, player in Players:GetPlayers() do
+		if player:GetAttribute("Ready") then
+			table.insert(list, player)
+		end
+	end
+	return list
+end
+
+local function participantList(): { Player }
+	local list = {}
+	for player in RoundState.Participants do
+		table.insert(list, player)
+	end
+	return list
+end
+
+local function countAlive(): (number, number)
+	local green, brown = 0, 0
+	for player in RoundState.Alive do
+		local key = RoundState.Participants[player]
+		if key == "Green" then
+			green += 1
+		elseif key == "Brown" then
+			brown += 1
+		end
+	end
+	return green, brown
+end
+
+local function updateAliveCounts()
+	local green, brown = countAlive()
+	status:SetAttribute("GreenAlive", green)
+	status:SetAttribute("BrownAlive", brown)
+end
+
+-- Respawns a player in the lobby with no team (restores their normal avatar).
+local function spawnInLobby(player: Player)
+	if not player.Parent then
+		return
+	end
+	TeamManager.ClearTeam(player)
+	player:SetAttribute("Spectating", false)
+	MovementService.SetFrozen(player, false)
+	player:LoadCharacterAsync()
+end
+
+-- Waits until every player in `list` has a character (max `timeout` s).
+local function waitForCharacters(list: { Player }, timeout: number)
+	local start = os.clock()
+	while os.clock() - start < timeout do
+		local allReady = true
+		for _, player in list do
+			if player.Parent and not player.Character then
+				allReady = false
+				break
+			end
+		end
+		if allReady then
+			return
+		end
+		task.wait(0.1)
+	end
+end
+
+---------------------------------------------------------------------------
+-- Deaths
+---------------------------------------------------------------------------
+local function onParticipantDied(player: Player)
+	if not RoundState.Alive[player] then
+		return
+	end
+	RoundState.Alive[player] = nil
+	player:SetAttribute("Spectating", true) -- client starts spectating teammates
+
+	local hit = DamageService.GetLastHit(player)
+	local killer = hit and hit.Attacker
+	if killer and killer.Parent and killer ~= player then
+		DataService.AddKill(killer)
+		local coins = GameConfig.COINS_PER_KILL
+		local text = ("+%d Coins (elimination)"):format(GameConfig.COINS_PER_KILL)
+		if hit.Headshot then
+			coins += GameConfig.COINS_HEADSHOT_BONUS
+			text = ("+%d Coins (elimination + headshot)"):format(coins)
+		end
+		DataService.AddCoins(killer, coins)
+		notify(killer, text)
+		-- Just "X eliminated Y" - never where it happened
+		Remotes.Get("KillFeed"):FireAllClients(killer.Name, player.Name, hit.Headshot)
+	else
+		Remotes.Get("KillFeed"):FireAllClients(nil, player.Name, false)
+	end
+	updateAliveCounts()
+end
+
+-- Called for EVERY character that spawns, in the lobby or in a round.
+local function onCharacterAdded(player: Player, character: Model)
+	local humanoid = character:WaitForChild("Humanoid", 10) :: Humanoid?
+	if not humanoid then
+		return
+	end
+	humanoid.Died:Connect(function()
+		if RoundState.Participants[player] and (RoundState.Phase == "Round" or RoundState.Phase == "CamoSelect") then
+			onParticipantDied(player)
+		else
+			-- Died in the lobby (fell off?) - respawn there after a moment
+			task.delay(3, function()
+				if player.Parent and player.Character == character and not RoundState.Participants[player] then
+					spawnInLobby(player)
+				end
+			end)
+		end
+	end)
+end
+
+---------------------------------------------------------------------------
+-- Phases
+---------------------------------------------------------------------------
+local function waitingPhase()
+	RoundState.Phase = "Waiting"
+	while true do
+		local count = #readyPlayers()
+		if count >= GameConfig.MIN_PLAYERS_TO_START then
+			return
+		end
+		setStatus("Waiting", nil, ("Waiting for players (%d/%d)"):format(count, GameConfig.MIN_PLAYERS_TO_START))
+		task.wait(1)
+	end
+end
+
+local function camoSelectPhase(): boolean
+	local players = readyPlayers()
+	TeamManager.Balance(players)
+
+	table.clear(RoundState.Participants)
+	table.clear(RoundState.Alive)
+	for _, player in players do
+		RoundState.Participants[player] = TeamManager.GetTeamKey(player) :: string
+	end
+
+	RoundState.Phase = "CamoSelect"
+	setStatus("CamoSelect", GameConfig.CAMO_SELECT_TIME, "Choose your camouflage")
+
+	-- Spawn everyone (frozen) inside their team's ruin house
+	for _, player in players do
+		MovementService.SetFrozen(player, true)
+		player:SetAttribute("Spectating", false)
+		task.spawn(function()
+			player:LoadCharacterAsync()
+		end)
+	end
+	waitForCharacters(players, 5)
+
+	local endsAt = serverNow() + GameConfig.CAMO_SELECT_TIME
+	CamoManager.BeginSelection(players, endsAt)
+	while serverNow() < endsAt and not CamoManager.AllChosen(participantList()) do
+		task.wait(0.25)
+	end
+	CamoManager.FinalizeSelection(participantList())
+
+	-- Abort if a whole team left during selection
+	local green, brown = 0, 0
+	for player, key in RoundState.Participants do
+		if player.Parent and player.Character then
+			if key == "Green" then
+				green += 1
+			else
+				brown += 1
+			end
+		end
+	end
+	return green > 0 and brown > 0
+end
+
+local function roundPhase()
+	RoundState.Phase = "Round"
+	RoundState.RoundStartedAt = os.clock()
+	status:SetAttribute("RoundStartedAt", serverNow())
+	setStatus("Round", GameConfig.ROUND_TIME, "")
+	DamageService.Reset()
+	ShopService.ResetRound()
+
+	for player in RoundState.Participants do
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if humanoid and humanoid.Health > 0 then
+			RoundState.Alive[player] = true
+			MovementService.SetFrozen(player, false)
+			SniperService.GiveSniper(player)
+		end
+	end
+	updateAliveCounts()
+
+	BirdSystem.Start()
+	SafeZoneService.Start(DamageService.ApplyZoneDamage)
+
+	local endTime = os.clock() + GameConfig.ROUND_TIME
+	while os.clock() < endTime do
+		local green, brown = countAlive()
+		if green == 0 or brown == 0 then
+			break
+		end
+		task.wait(0.25)
+	end
+end
+
+local function resultsPhase()
+	RoundState.Phase = "Results"
+	BirdSystem.Stop()
+	SafeZoneService.Stop()
+	updateAliveCounts()
+
+	-- Decide the winner
+	local green, brown = countAlive()
+	local winnerKey: string? = nil
+	local reason
+	if green > 0 and brown == 0 then
+		winnerKey, reason = "Green", "All enemies eliminated"
+	elseif brown > 0 and green == 0 then
+		winnerKey, reason = "Brown", "All enemies eliminated"
+	elseif green > brown then
+		winnerKey, reason = "Green", "More players alive"
+	elseif brown > green then
+		winnerKey, reason = "Brown", "More players alive"
+	end
+
+	local banner
+	if winnerKey then
+		banner = ("%s wins! (%s)"):format(GameConfig.TEAMS[winnerKey].Name, reason)
+	else
+		banner = "Draw! Both teams have the same number of players alive."
+	end
+	status:SetAttribute("ResultText", banner)
+	setStatus("Results", GameConfig.RESULTS_TIME, banner)
+
+	-- Rewards (server only)
+	for player, key in RoundState.Participants do
+		if player.Parent then
+			local earned = 0
+			if RoundState.Alive[player] then
+				earned += GameConfig.COINS_FOR_SURVIVING
+			end
+			if winnerKey and key == winnerKey then
+				earned += GameConfig.COINS_PER_ROUND_WIN
+				DataService.AddWin(player)
+			end
+			if earned > 0 then
+				DataService.AddCoins(player, earned)
+				notify(player, ("+%d Coins this round"):format(earned))
+			end
+			SniperService.RemoveSniper(player)
+			ItemService.RemoveItems(player)
+		end
+	end
+
+	task.wait(GameConfig.RESULTS_TIME)
+	status:SetAttribute("ResultText", "")
+end
+
+local function intermissionPhase()
+	RoundState.Phase = "Intermission"
+	table.clear(RoundState.Participants)
+	table.clear(RoundState.Alive)
+	RoundState.RoundStartedAt = 0
+	status:SetAttribute("RoundStartedAt", 0)
+	updateAliveCounts()
+	setStatus("Intermission", GameConfig.INTERMISSION_TIME, "Next round soon")
+
+	-- Everyone back to the lobby with their normal avatar
+	for _, player in Players:GetPlayers() do
+		task.spawn(spawnInLobby, player)
+	end
+	task.wait(GameConfig.INTERMISSION_TIME)
+end
+
+---------------------------------------------------------------------------
+-- Public
+---------------------------------------------------------------------------
+function RoundManager.Init()
+	-- Main menu "Play" button. The only thing a client can do here is
+	-- say "I'm ready" - there are no arguments to trust.
+	Remotes.Get("PlayerReady").OnServerEvent:Connect(function(player)
+		player:SetAttribute("Ready", true)
+	end)
+
+	local function setup(player: Player)
+		player.CharacterAdded:Connect(function(character)
+			onCharacterAdded(player, character)
+		end)
+		-- New players start in the lobby
+		task.spawn(spawnInLobby, player)
+	end
+	Players.PlayerAdded:Connect(setup)
+	for _, player in Players:GetPlayers() do
+		setup(player)
+	end
+
+	Players.PlayerRemoving:Connect(function(player)
+		if RoundState.Participants[player] then
+			RoundState.Participants[player] = nil
+			RoundState.Alive[player] = nil
+			updateAliveCounts()
+		end
+	end)
+
+	status:SetAttribute("GreenAlive", 0)
+	status:SetAttribute("BrownAlive", 0)
+	status:SetAttribute("ResultText", "")
+	status:SetAttribute("RoundStartedAt", 0)
+end
+
+-- The forever loop. Call once, it never returns.
+function RoundManager.Run()
+	while true do
+		waitingPhase()
+		local ok = camoSelectPhase()
+		if ok then
+			roundPhase()
+			resultsPhase()
+		else
+			setStatus("Results", 3, "Round cancelled - not enough players")
+			for player in RoundState.Participants do
+				MovementService.SetFrozen(player, false)
+			end
+			task.wait(3)
+		end
+		intermissionPhase()
+	end
+end
+
+return RoundManager
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="20">
+          <Properties>
+            <string name="Name">RoundState</string>
+            <string name="Source"><![CDATA[--[[
+	RoundState  (ModuleScript in ServerScriptService/Services)
+
+	The server's single source of truth about the current round.
+	Only RoundManager WRITES to it. Other services just READ it, e.g.
+	DamageService asks "is the round running and is this player alive?".
+
+	Keeping this in its own tiny module avoids modules requiring each
+	other in a circle.
+]]
+
+local RoundState = {
+	-- "Waiting" | "CamoSelect" | "Round" | "Results" | "Intermission"
+	Phase = "Waiting",
+
+	-- os.clock() when the fighting part of the round began (0 if not started)
+	RoundStartedAt = 0,
+
+	-- Every player taking part this round -> their team key ("Green"/"Brown")
+	Participants = {} :: { [Player]: string },
+
+	-- Participants that are still alive -> true
+	Alive = {} :: { [Player]: boolean },
+}
+
+function RoundState.IsRoundActive(): boolean
+	return RoundState.Phase == "Round"
+end
+
+function RoundState.IsAlive(player: Player): boolean
+	return RoundState.Alive[player] == true
+end
+
+-- Seconds since the fighting started (huge number if no round is running).
+function RoundState.TimeIntoRound(): number
+	if RoundState.Phase ~= "Round" then
+		return math.huge
+	end
+	return os.clock() - RoundState.RoundStartedAt
+end
+
+return RoundState
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="21">
+          <Properties>
+            <string name="Name">SafeZoneService</string>
+            <string name="Source"><![CDATA[--[[
+	SafeZoneService  (ModuleScript in ServerScriptService/Services)
+
+	Each ruin house has an invisible sphere (SPAWN_SAFE_ZONE_RADIUS) around it.
+	  * Your OWN zone: you can't be hurt there for SPAWN_PROTECTION_TIME
+	    after the round starts (checked by DamageService), and it's where
+	    the shop works.
+	  * The ENEMY zone: you take damage over time and see a warning.
+
+	The warning is shown by setting the player attribute "InEnemyZone";
+	the client HUD just displays it.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage.GameConfig)
+local MapBuilder = require(script.Parent.MapBuilder)
+local RoundState = require(script.Parent.RoundState)
+local TeamManager = require(script.Parent.TeamManager)
+
+local SafeZoneService = {}
+
+local TICK = 0.5
+local running = false
+
+local function rootPosition(player: Player): Vector3?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	return if root then (root :: BasePart).Position else nil
+end
+
+-- Is `position` inside the safe zone of the given team's ruin house?
+function SafeZoneService.IsInsideZone(position: Vector3, teamKey: string): boolean
+	local house = MapBuilder.Info.Houses[teamKey]
+	if not house or not house.Center then
+		return false
+	end
+	return (position - house.Center).Magnitude <= GameConfig.SPAWN_SAFE_ZONE_RADIUS
+end
+
+function SafeZoneService.IsInOwnSafeZone(player: Player): boolean
+	local key = TeamManager.GetTeamKey(player)
+	local pos = rootPosition(player)
+	return key ~= nil and pos ~= nil and SafeZoneService.IsInsideZone(pos, key)
+end
+
+function SafeZoneService.IsInEnemySafeZone(player: Player): boolean
+	local key = TeamManager.GetTeamKey(player)
+	local pos = rootPosition(player)
+	return key ~= nil and pos ~= nil and SafeZoneService.IsInsideZone(pos, TeamManager.GetEnemyKey(key))
+end
+
+-- Starts the damage-over-time loop. `damageFn(player, amount)` is passed
+-- in by RoundManager (it's DamageService.ApplyZoneDamage).
+function SafeZoneService.Start(damageFn: (Player, number) -> ())
+	if running then
+		return
+	end
+	running = true
+	task.spawn(function()
+		while running do
+			for player in RoundState.Alive do
+				local inside = SafeZoneService.IsInEnemySafeZone(player)
+				if player:GetAttribute("InEnemyZone") ~= inside then
+					player:SetAttribute("InEnemyZone", inside)
+				end
+				if inside then
+					damageFn(player, GameConfig.ENEMY_SAFE_ZONE_DPS * TICK)
+				end
+			end
+			task.wait(TICK)
+		end
+	end)
+end
+
+function SafeZoneService.Stop()
+	running = false
+	for _, player in Players:GetPlayers() do
+		player:SetAttribute("InEnemyZone", false)
+	end
+end
+
+return SafeZoneService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="22">
+          <Properties>
+            <string name="Name">ShopService</string>
+            <string name="Source"><![CDATA[--[[
+	ShopService  (ModuleScript in ServerScriptService/Services)
+
+	The rusty supply crate in each ruin house opens the shop.
+
+	Rules (all checked on the SERVER, every time):
+	  * only during the first SHOP_OPEN_TIME seconds of a round
+	  * only at YOUR team's crate, while inside your own ruin house
+	    (your own safe zone)
+	  * you must be alive and have enough Coins
+	  * one of each one-round item per round
+
+	The client only sends an item id ("Bandage", "Camo_Bamboo", ...).
+	Prices come from the server's copy of ShopCatalog.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage.GameConfig)
+local Remotes = require(ReplicatedStorage.Shared.Remotes)
+local ShopCatalog = require(ReplicatedStorage.Shared.ShopCatalog)
+local DataService = require(script.Parent.DataService)
+local ItemService = require(script.Parent.ItemService)
+local MapBuilder = require(script.Parent.MapBuilder)
+local RoundState = require(script.Parent.RoundState)
+local SafeZoneService = require(script.Parent.SafeZoneService)
+local SniperService = require(script.Parent.SniperService)
+local TeamManager = require(script.Parent.TeamManager)
+
+local ShopService = {}
+
+local boughtThisRound: { [Player]: { [string]: boolean } } = {}
+local lastRequest: { [Player]: number } = {}
+
+function ShopService.IsOpen(): boolean
+	return RoundState.IsRoundActive() and RoundState.TimeIntoRound() <= GameConfig.SHOP_OPEN_TIME
+end
+
+-- Returns (true) or (false, reason)
+local function canUseShop(player: Player): (boolean, string?)
+	if not ShopService.IsOpen() then
+		return false, "The shop is only open for the first " .. GameConfig.SHOP_OPEN_TIME .. " seconds of a round."
+	end
+	if not RoundState.IsAlive(player) then
+		return false, "You must be alive to use the shop."
+	end
+	if not SafeZoneService.IsInOwnSafeZone(player) then
+		return false, "You can only shop inside your own team's ruin house."
+	end
+	return true
+end
+
+-- Everything the shop UI needs to draw itself for this player.
+local function buildState(player: Player)
+	local profile = DataService.GetProfile(player)
+	local roundStartServerTime = Remotes.GetStatus():GetAttribute("RoundStartedAt") or 0
+	return {
+		Coins = if profile then profile.Coins else 0,
+		OwnedCamos = if profile then profile.OwnedCamos else {},
+		OwnedSkins = if profile then profile.OwnedSkins else {},
+		EquippedSkin = if profile then profile.EquippedSkin else "",
+		Bought = boughtThisRound[player] or {},
+		ClosesAt = roundStartServerTime + GameConfig.SHOP_OPEN_TIME,
+	}
+end
+
+local function onPromptTriggered(player: Player, crateTeam: string)
+	if TeamManager.GetTeamKey(player) ~= crateTeam then
+		Remotes.Get("Notify"):FireClient(player, "This isn't your team's supply crate.")
+		return
+	end
+	local ok, reason = canUseShop(player)
+	if not ok then
+		Remotes.Get("Notify"):FireClient(player, reason)
+		return
+	end
+	Remotes.Get("OpenShop"):FireClient(player, buildState(player))
+end
+
+local function onBuy(player: Player, itemId: any)
+	local result = Remotes.Get("ShopResult")
+
+	-- Validate the argument and rate-limit
+	if typeof(itemId) ~= "string" or #itemId > 50 then
+		return
+	end
+	local now = os.clock()
+	if lastRequest[player] and now - lastRequest[player] < 0.25 then
+		return
+	end
+	lastRequest[player] = now
+
+	local entry = ShopCatalog.ById[itemId]
+	if not entry then
+		return
+	end
+	local ok, reason = canUseShop(player)
+	if not ok then
+		result:FireClient(player, false, reason, buildState(player))
+		return
+	end
+
+	local item = entry.Item
+	local message
+
+	if entry.Kind == "RoundItem" then
+		local bought = boughtThisRound[player] or {}
+		boughtThisRound[player] = bought
+		if bought[itemId] then
+			result:FireClient(player, false, "You already bought that this round.", buildState(player))
+			return
+		end
+		if not DataService.SpendCoins(player, item.Price) then
+			result:FireClient(player, false, "Not enough Coins.", buildState(player))
+			return
+		end
+		bought[itemId] = true
+		ItemService.GiveItem(player, itemId)
+		message = "Bought " .. item.Name .. "!"
+	elseif entry.Kind == "Camo" then
+		if DataService.OwnsCamo(player, item.CamoName) then
+			result:FireClient(player, false, "You already own that camo.", buildState(player))
+			return
+		end
+		if not DataService.SpendCoins(player, item.Price) then
+			result:FireClient(player, false, "Not enough Coins.", buildState(player))
+			return
+		end
+		DataService.GrantCamo(player, item.CamoName)
+		message = "Unlocked " .. item.Name .. "! Pick it in the next camo selection."
+	elseif entry.Kind == "Skin" then
+		if DataService.OwnsSkin(player, itemId) then
+			-- Owned already: clicking it equips it (or unequips if equipped)
+			local newSkin = if DataService.GetEquippedSkin(player) == itemId then "" else itemId
+			DataService.SetEquippedSkin(player, newSkin)
+			message = if newSkin == "" then "Skin removed." else "Equipped " .. item.Name .. "."
+		else
+			if not DataService.SpendCoins(player, item.Price) then
+				result:FireClient(player, false, "Not enough Coins.", buildState(player))
+				return
+			end
+			DataService.GrantSkin(player, itemId)
+			DataService.SetEquippedSkin(player, itemId)
+			message = "Unlocked and equipped " .. item.Name .. "!"
+		end
+		SniperService.RefreshSkin(player)
+	end
+
+	result:FireClient(player, true, message, buildState(player))
+end
+
+function ShopService.Init()
+	for teamKey, house in MapBuilder.Info.Houses do
+		local crate = house.Crate
+		local prompt = crate and crate:FindFirstChildOfClass("ProximityPrompt")
+		if prompt then
+			prompt.Triggered:Connect(function(player)
+				onPromptTriggered(player, teamKey)
+			end)
+		end
+	end
+	Remotes.Get("ShopBuy").OnServerEvent:Connect(onBuy)
+	Players.PlayerRemoving:Connect(function(player)
+		boughtThisRound[player] = nil
+		lastRequest[player] = nil
+	end)
+end
+
+function ShopService.ResetRound()
+	table.clear(boughtThisRound)
+end
+
+return ShopService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="23">
+          <Properties>
+            <string name="Name">SniperService</string>
+            <string name="Source"><![CDATA[--[[
+	SniperService  (ModuleScript in ServerScriptService/Services)
+
+	Gives every player a sniper at round start and handles every shot.
+
+	WEAPON MODEL
+	  Put the official Roblox "Weapons Kit" sniper rifle in
+	  ServerStorage/Weapons and name it "SniperRifle" (see README).
+	  We clone it, but REMOVE its scripts: the kit has its own damage
+	  system, and this game must use the GameConfig damage values and
+	  server checks below. We keep its model, grip and fire sound.
+	  If no template is found, a simple built-in rifle is used, so the
+	  game still works while you set things up.
+
+	SHOOTING (server-authoritative)
+	  The client sends: aim direction, the part it thinks it hit, and the
+	  hit position. The server then:
+	    1. checks round state, that the shooter is alive and holding the
+	       sniper, and the fire-rate cooldown
+	    2. raycasts from the shooter's HEAD (server position) to the hit
+	       position - walls and rocks block the shot
+	    3. accepts the client's target only if nothing blocked the path
+	       and the target part is close to the claimed point
+	       (SNIPER_HIT_TOLERANCE, allows for network lag)
+	    4. picks damage from the BODY PART: head / body / limb
+	  Then it shows a tracer + gunshot sound to everyone.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
+
+local GameConfig = require(ReplicatedStorage.GameConfig)
+local Remotes = require(ReplicatedStorage.Shared.Remotes)
+local ShopCatalog = require(ReplicatedStorage.Shared.ShopCatalog)
+local DamageService = require(script.Parent.DamageService)
+local DataService = require(script.Parent.DataService)
+local RoundState = require(script.Parent.RoundState)
+
+local SniperService = {}
+
+local HEAD_PARTS = { Head = true }
+local BODY_PARTS = { UpperTorso = true, LowerTorso = true, Torso = true, HumanoidRootPart = true }
+
+local lastShotAt: { [Player]: number } = {}
+local gunshotSoundId = GameConfig.SOUNDS.Gunshot
+
+---------------------------------------------------------------------------
+-- Building the rifle Tool
+---------------------------------------------------------------------------
+local function weldTo(handle: BasePart, part: BasePart)
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = handle
+	weld.Part1 = part
+	weld.Parent = part
+end
+
+-- Simple rifle made of parts (used only when the Weapons Kit is missing)
+local function buildFallbackRifle(): Tool
+	local tool = Instance.new("Tool")
+	tool.RequiresHandle = true
+	tool.Grip = CFrame.new(0, -0.1, 0.8)
+
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = Vector3.new(0.3, 0.45, 3.2)
+	handle.Color = Color3.fromRGB(60, 58, 52)
+	handle.Material = Enum.Material.Metal
+	handle.Parent = tool
+
+	local function piece(name: string, size: Vector3, offset: CFrame, color: Color3, shape: Enum.PartType?)
+		local p = Instance.new("Part")
+		p.Name = name
+		if shape then
+			p.Shape = shape
+		end
+		p.Size = size
+		p.CFrame = handle.CFrame * offset
+		p.Color = color
+		p.Material = Enum.Material.Metal
+		p.Parent = tool
+		weldTo(handle, p)
+		return p
+	end
+	piece("Barrel", Vector3.new(2.4, 0.16, 0.16), CFrame.new(0, 0.1, -2.6) * CFrame.Angles(0, math.rad(90), 0), Color3.fromRGB(40, 40, 38), Enum.PartType.Cylinder)
+	piece("Scope", Vector3.new(1.4, 0.28, 0.28), CFrame.new(0, 0.42, -0.2) * CFrame.Angles(0, math.rad(90), 0), Color3.fromRGB(35, 35, 33), Enum.PartType.Cylinder)
+	piece("Stock", Vector3.new(0.28, 0.6, 1.2), CFrame.new(0, -0.15, 2.0), Color3.fromRGB(76, 60, 44))
+
+	local muzzle = Instance.new("Attachment")
+	muzzle.Name = "Muzzle"
+	muzzle.Position = Vector3.new(0, 0.1, -3.9)
+	muzzle.Parent = handle
+	return tool
+end
+
+-- Clones the Weapons Kit sniper (minus its scripts) or builds the fallback.
+local function createRifle(): Tool
+	local weapons = ServerStorage:FindFirstChild("Weapons")
+	local template = weapons and weapons:FindFirstChild(GameConfig.SNIPER_TEMPLATE_NAME)
+	local tool: Tool
+	if template and template:IsA("Tool") then
+		tool = template:Clone()
+		for _, d in tool:GetDescendants() do
+			if d:IsA("LuaSourceContainer") then
+				d:Destroy() -- remove the kit's own (client-trusting) logic
+			end
+		end
+	else
+		tool = buildFallbackRifle()
+	end
+
+	tool.Name = "Sniper"
+	tool.CanBeDropped = false
+	tool.ManualActivationOnly = false -- clicking must fire Tool.Activated
+	tool.ToolTip = "Sniper rifle - Right click / Q to scope"
+	tool:SetAttribute("IsSniper", true)
+
+	for _, d in tool:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.CanCollide = false
+			d.CanQuery = false -- bullets pass through guns
+			d.CanTouch = false
+			d.Massless = true
+		end
+	end
+	return tool
+end
+
+-- Muted skin color over the whole rifle (cosmetic only).
+local function applySkin(tool: Tool, skinId: string)
+	local entry = ShopCatalog.ById[skinId]
+	if not entry or entry.Kind ~= "Skin" then
+		return
+	end
+	for _, d in tool:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Color = entry.Item.Color
+			if d:IsA("MeshPart") then
+				d.TextureID = ""
+			end
+		end
+	end
+end
+
+-- Finds a fire sound inside the template so the real kit sound is used.
+local function findTemplateFireSound()
+	local weapons = ServerStorage:FindFirstChild("Weapons")
+	local template = weapons and weapons:FindFirstChild(GameConfig.SNIPER_TEMPLATE_NAME)
+	if not template then
+		warn("[SniperService] No ServerStorage/Weapons/" .. GameConfig.SNIPER_TEMPLATE_NAME .. " found - using the built-in rifle. See README to add the Weapons Kit sniper.")
+		return
+	end
+	for _, d in template:GetDescendants() do
+		if d:IsA("Sound") and d.SoundId ~= "" then
+			local name = d.Name:lower()
+			if name:find("fire") or name:find("shot") or name:find("shoot") then
+				gunshotSoundId = d.SoundId
+				return
+			end
+		end
+	end
+end
+
+local function getMuzzlePosition(tool: Tool, fallback: Vector3): Vector3
+	for _, d in tool:GetDescendants() do
+		if d:IsA("Attachment") then
+			local name = d.Name:lower()
+			if name:find("muzzle") or name:find("tip") or name:find("nozzle") then
+				return d.WorldPosition
+			end
+		end
+	end
+	local handle = tool:FindFirstChild("Handle")
+	return if handle and handle:IsA("BasePart") then handle.Position else fallback
+end
+
+---------------------------------------------------------------------------
+-- Shooting
+---------------------------------------------------------------------------
+local function isFiniteVector(v: Vector3): boolean
+	return v.X == v.X and v.Y == v.Y and v.Z == v.Z and math.abs(v.X) < 1e6 and math.abs(v.Y) < 1e6 and math.abs(v.Z) < 1e6
+end
+
+-- Walks up from a hit part to the character model that owns it.
+local function characterOf(instance: Instance): Model?
+	local model = instance:FindFirstAncestorWhichIsA("Model")
+	while model do
+		if model:FindFirstChildOfClass("Humanoid") then
+			return model
+		end
+		model = model:FindFirstAncestorWhichIsA("Model")
+	end
+	return nil
+end
+
+local function damageForPart(part: BasePart): (number, boolean)
+	if HEAD_PARTS[part.Name] then
+		return GameConfig.HEADSHOT_DAMAGE, true
+	elseif BODY_PARTS[part.Name] then
+		return GameConfig.BODY_DAMAGE, false
+	end
+	return GameConfig.LIMB_DAMAGE, false
+end
+
+local function onFire(player: Player, direction: any, claimedPart: any, claimedPosition: any)
+	-- 1) Validate the arguments' TYPES (exploiters can send anything)
+	if typeof(direction) ~= "Vector3" or not isFiniteVector(direction) or direction.Magnitude < 0.1 then
+		return
+	end
+	if claimedPosition ~= nil and (typeof(claimedPosition) ~= "Vector3" or not isFiniteVector(claimedPosition)) then
+		return
+	end
+	if claimedPart ~= nil and (typeof(claimedPart) ~= "Instance" or not claimedPart:IsA("BasePart")) then
+		claimedPart = nil
+	end
+
+	-- 2) Validate game state
+	if not RoundState.IsRoundActive() or not RoundState.IsAlive(player) then
+		return
+	end
+	local character = player.Character
+	local head = character and character:FindFirstChild("Head") :: BasePart?
+	local tool = character and character:FindFirstChildOfClass("Tool")
+	if not head or not tool or not tool:GetAttribute("IsSniper") then
+		return
+	end
+	local now = os.clock()
+	if lastShotAt[player] and now - lastShotAt[player] < GameConfig.SNIPER_FIRE_COOLDOWN - 0.1 then
+		return -- firing faster than the bolt allows
+	end
+	lastShotAt[player] = now
+
+	-- 3) Server raycast from the head to where the client aimed
+	local origin = head.Position
+	local target: Vector3 = claimedPosition or (origin + direction.Unit * GameConfig.SNIPER_MAX_RANGE)
+	local toTarget = target - origin
+	if toTarget.Magnitude < 0.1 then
+		return
+	end
+	if toTarget.Magnitude > GameConfig.SNIPER_MAX_RANGE then
+		toTarget = toTarget.Unit * GameConfig.SNIPER_MAX_RANGE
+		claimedPart = nil
+	end
+
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { character }
+	local result = workspace:Raycast(origin, toTarget.Unit * (toTarget.Magnitude + 3), params)
+
+	local hitPart: BasePart? = nil
+	local endPoint = origin + toTarget
+	if result then
+		endPoint = result.Position
+		if characterOf(result.Instance) then
+			hitPart = result.Instance :: BasePart
+		end
+	end
+
+	-- 4) Lag compensation: the client saw a hit, the server ray missed the
+	--    (moved) target. Accept it only if the path was clear and the part
+	--    is still near the claimed point.
+	if not hitPart and claimedPart and claimedPosition and claimedPart:IsDescendantOf(workspace) then
+		local claimedCharacter = characterOf(claimedPart)
+		local pathClear = result == nil or (result.Position - origin).Magnitude >= toTarget.Magnitude - 1
+		local closeEnough = (claimedPart.Position - claimedPosition).Magnitude
+			<= GameConfig.SNIPER_HIT_TOLERANCE + claimedPart.Size.Magnitude / 2
+		if claimedCharacter and pathClear and closeEnough then
+			hitPart = claimedPart
+			endPoint = claimedPosition
+		end
+	end
+
+	-- 5) Everyone sees the tracer and hears the shot (reveals the shooter!)
+	Remotes.Get("ShotFired"):FireAllClients(getMuzzlePosition(tool, origin), endPoint, gunshotSoundId)
+
+	-- 6) Damage, decided by the server from the body part
+	if hitPart then
+		local victimCharacter = characterOf(hitPart)
+		local victim = victimCharacter and Players:GetPlayerFromCharacter(victimCharacter)
+		if victim then
+			local damage, headshot = damageForPart(hitPart)
+			local applied, killed = DamageService.ApplyDamage(victim, damage, player, headshot)
+			if applied then
+				Remotes.Get("HitMarker"):FireClient(player, headshot, killed)
+			end
+		end
+	end
+end
+
+---------------------------------------------------------------------------
+-- Public API
+---------------------------------------------------------------------------
+function SniperService.Init()
+	findTemplateFireSound()
+	Remotes.Get("FireSniper").OnServerEvent:Connect(onFire)
+	Players.PlayerRemoving:Connect(function(player)
+		lastShotAt[player] = nil
+	end)
+end
+
+function SniperService.GiveSniper(player: Player)
+	local backpack = player:FindFirstChildOfClass("Backpack")
+	if not backpack then
+		return
+	end
+	local tool = createRifle()
+	applySkin(tool, DataService.GetEquippedSkin(player))
+	tool.Parent = backpack
+
+	-- Equip it right away
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid:EquipTool(tool)
+	end
+end
+
+-- Re-color the rifle the player is holding (after buying/equipping a skin).
+function SniperService.RefreshSkin(player: Player)
+	local skinId = DataService.GetEquippedSkin(player)
+	for _, container in { player.Character, player:FindFirstChildOfClass("Backpack") } do
+		if container then
+			for _, tool in container:GetChildren() do
+				if tool:IsA("Tool") and tool:GetAttribute("IsSniper") then
+					applySkin(tool, skinId)
+				end
+			end
+		end
+	end
+end
+
+function SniperService.RemoveSniper(player: Player)
+	for _, container in { player.Character, player:FindFirstChildOfClass("Backpack") } do
+		if container then
+			for _, tool in container:GetChildren() do
+				if tool:IsA("Tool") and tool:GetAttribute("IsSniper") then
+					tool:Destroy()
+				end
+			end
+		end
+	end
+end
+
+return SniperService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="24">
+          <Properties>
+            <string name="Name">TeamManager</string>
+            <string name="Source"><![CDATA[--[[
+	TeamManager  (ModuleScript in ServerScriptService/Services)
+
+	Creates Team Green and Team Brown, balances players between them at
+	the start of each round, and answers "which team is this player on?".
+	Team keys used everywhere in code: "Green" and "Brown".
+]]
+
+local Teams = game:GetService("Teams")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local GameConfig = require(ReplicatedStorage.GameConfig)
+
+local TeamManager = {}
+
+local teamObjects: { [string]: Team } = {}
+TeamManager.TEAM_KEYS = { "Green", "Brown" }
+
+function TeamManager.Init()
+	for _, key in TeamManager.TEAM_KEYS do
+		local def = GameConfig.TEAMS[key]
+		local team = Teams:FindFirstChild(def.Name) :: Team?
+		if not team then
+			team = Instance.new("Team")
+			assert(team)
+			team.Name = def.Name
+			team.TeamColor = def.TeamColor
+			team.AutoAssignable = false -- we assign teams ourselves
+			team.Parent = Teams
+		end
+		assert(team):SetAttribute("TeamKey", key)
+		teamObjects[key] = team :: Team
+	end
+end
+
+function TeamManager.GetTeam(key: string): Team
+	return teamObjects[key]
+end
+
+-- Returns "Green", "Brown" or nil (in the lobby).
+function TeamManager.GetTeamKey(player: Player): string?
+	if player.Neutral or not player.Team then
+		return nil
+	end
+	return player.Team:GetAttribute("TeamKey") :: any
+end
+
+function TeamManager.GetEnemyKey(key: string): string
+	return if key == "Green" then "Brown" else "Green"
+end
+
+function TeamManager.AreEnemies(a: Player, b: Player): boolean
+	local ka, kb = TeamManager.GetTeamKey(a), TeamManager.GetTeamKey(b)
+	return ka ~= nil and kb ~= nil and ka ~= kb
+end
+
+-- Splits `players` into two even teams (shuffled, so teams change each round).
+function TeamManager.Balance(players: { Player })
+	local shuffled = table.clone(players)
+	local rng = Random.new()
+	for i = #shuffled, 2, -1 do
+		local j = rng:NextInteger(1, i)
+		shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+	end
+	-- Randomly decide which team gets the odd player out
+	local first = if rng:NextNumber() < 0.5 then "Green" else "Brown"
+	local second = TeamManager.GetEnemyKey(first)
+	for i, player in shuffled do
+		local key = if i % 2 == 1 then first else second
+		player.Team = teamObjects[key]
+		player.Neutral = false
+	end
+end
+
+-- Puts a player back in the lobby (no team).
+function TeamManager.ClearTeam(player: Player)
+	(player :: any).Team = nil
+	player.Neutral = true
+end
+
+return TeamManager
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="ServerStorage" referent="25">
+    <Properties>
+      <string name="Name">ServerStorage</string>
+    </Properties>
+    <Item class="Folder" referent="26">
+      <Properties>
+        <string name="Name">Weapons</string>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="SoundService" referent="27">
+    <Properties>
+      <string name="Name">SoundService</string>
+      <bool name="RespectFilteringEnabled">true</bool>
+    </Properties>
+  </Item>
+  <Item class="StarterPlayer" referent="28">
+    <Properties>
+      <string name="Name">StarterPlayer</string>
+      <bool name="EnableMouseLockOption">false</bool>
+    </Properties>
+    <Item class="StarterPlayerScripts" referent="29">
+      <Properties>
+        <string name="Name">StarterPlayerScripts</string>
+      </Properties>
+      <Item class="Folder" referent="30">
+        <Properties>
+          <string name="Name">AvoidTheSnipers_Client</string>
+        </Properties>
+        <Item class="LocalScript" referent="31">
+          <Properties>
+            <string name="Name">ClientMain</string>
+            <string name="Source"><![CDATA[--[[
+	ClientMain  (LocalScript in StarterPlayer/StarterPlayerScripts)
+
+	Starts every client controller once. All UI is created by code from
+	here (instead of StarterGui) so it never resets or duplicates when
+	your character respawns. StarterGui stays empty on purpose.
+]]
+
+local Controllers = script.Parent:WaitForChild("Controllers")
+
+local order = {
+	"MainMenu",
+	"HudController",
+	"CamoMenu",
+	"ShopUI",
+	"SniperClient",
+	"ItemClient",
+	"BirdEffects",
+	"MovementController",
+	"SpectateController",
+	"NameTagController",
+}
+
+for _, name in order do
+	local ok, err = pcall(function()
+		require(Controllers:WaitForChild(name)).Init()
+	end)
+	if not ok then
+		warn("[ClientMain] " .. name .. " failed to start: " .. tostring(err))
+	end
+end
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="Folder" referent="32">
+          <Properties>
+            <string name="Name">Controllers</string>
+          </Properties>
+          <Item class="ModuleScript" referent="33">
+            <Properties>
+              <string name="Name">BirdEffects</string>
+              <string name="Source"><![CDATA[--[[
+	BirdEffects  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Draws the bird flocks the SERVER announces (BirdSystem decides where
+	and when). Each bird is 3 tiny parts (body + 2 wings), created only on
+	this client, flies up and away over BIRD_FLIGHT_TIME, then is deleted.
+	Very lightweight: one RenderStepped connection per flock.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+
+local BirdEffects = {}
+
+local BIRD_COLOR = Color3.fromRGB(34, 30, 28)
+
+local function makePart(name: string, size: Vector3, parent: Instance): BasePart
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size
+	p.Color = BIRD_COLOR
+	p.Material = Enum.Material.SmoothPlastic
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.CastShadow = false
+	p.Parent = parent
+	return p
+end
+
+type Bird = {
+	Body: BasePart,
+	LeftWing: BasePart,
+	RightWing: BasePart,
+	Start: Vector3,
+	Finish: Vector3,
+	Delay: number,
+	FlapSpeed: number,
+}
+
+local function spawnFlock(position: Vector3, count: number, kind: string)
+	if typeof(position) ~= "Vector3" or typeof(count) ~= "number" then
+		return
+	end
+	count = math.clamp(math.floor(count), 1, 12)
+
+	local folder = Instance.new("Folder")
+	folder.Name = "Flock"
+	folder.Parent = workspace
+
+	local rng = Random.new()
+	-- The whole flock heads roughly the same way
+	local heading = rng:NextNumber(0, math.pi * 2)
+	local birds: { Bird } = {}
+	for _ = 1, count do
+		local start = position + Vector3.new(rng:NextNumber(-3, 3), rng:NextNumber(0.5, 2), rng:NextNumber(-3, 3))
+		local angle = heading + rng:NextNumber(-0.5, 0.5)
+		local distance = rng:NextNumber(35, 55)
+		table.insert(birds, {
+			Body = makePart("Body", Vector3.new(0.35, 0.3, 0.8), folder),
+			LeftWing = makePart("Wing", Vector3.new(0.9, 0.06, 0.45), folder),
+			RightWing = makePart("Wing", Vector3.new(0.9, 0.06, 0.45), folder),
+			Start = start,
+			Finish = start + Vector3.new(math.cos(angle) * distance, rng:NextNumber(28, 42), math.sin(angle) * distance),
+			Delay = rng:NextNumber(0, 0.35),
+			FlapSpeed = rng:NextNumber(22, 30),
+		})
+	end
+
+	-- Sounds: flapping for small flocks, loud crows for danger flocks
+	if kind == "Danger" then
+		SoundUtil.PlayAt(position, GameConfig.SOUNDS.CrowCall, { Volume = 1.6, MinDistance = 30, MaxDistance = 350, PlaybackSpeed = 0.6 })
+		SoundUtil.PlayAt(position, GameConfig.SOUNDS.BirdFlap, { Volume = 1.2, MinDistance = 20, MaxDistance = 250 })
+	elseif kind == "Warning" then
+		SoundUtil.PlayAt(position, GameConfig.SOUNDS.BirdFlap, { Volume = 1, MinDistance = 15, MaxDistance = 180 })
+	else
+		SoundUtil.PlayAt(position, GameConfig.SOUNDS.BirdFlap, { Volume = 0.6, MinDistance = 10, MaxDistance = 90 })
+	end
+
+	local duration = GameConfig.BIRD_FLIGHT_TIME
+	local elapsed = 0
+	local connection: RBXScriptConnection
+	connection = RunService.RenderStepped:Connect(function(dt)
+		elapsed += dt
+		for _, bird in birds do
+			local t = math.clamp((elapsed - bird.Delay) / duration, 0, 1)
+			-- ease out: fast take-off, slowing as they leave
+			local eased = 1 - (1 - t) ^ 2
+			local pos = bird.Start:Lerp(bird.Finish, eased)
+			local look = CFrame.lookAt(pos, pos + (bird.Finish - bird.Start).Unit)
+			local flap = math.sin(elapsed * bird.FlapSpeed) * 0.9
+			bird.Body.CFrame = look
+			bird.LeftWing.CFrame = look * CFrame.Angles(0, 0, flap) * CFrame.new(-0.55, 0, 0)
+			bird.RightWing.CFrame = look * CFrame.Angles(0, 0, -flap) * CFrame.new(0.55, 0, 0)
+		end
+		if elapsed >= duration + 0.4 then
+			connection:Disconnect()
+			folder:Destroy()
+		end
+	end)
+end
+
+function BirdEffects.Init()
+	Remotes.Get("BirdFlock").OnClientEvent:Connect(spawnFlock)
+end
+
+-- Exposed so you can test visuals from the command bar
+BirdEffects.SpawnFlock = spawnFlock
+
+return BirdEffects
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="34">
+            <Properties>
+              <string name="Name">CamoMenu</string>
+              <string name="Source"><![CDATA[--[[
+	CamoMenu  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Full-screen camo picker shown during camo selection. Each button has
+	a 3-color swatch preview. Clicking sends ONLY the camo name; the
+	server checks it and paints your character (you see it instantly).
+	The server also decides which camos you're allowed to see here.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local CamoData = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("CamoData"))
+local Remotes = require(ReplicatedStorage.Shared:WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+local UIUtil = require(script.Parent.UIUtil)
+
+local CamoMenu = {}
+local C = UIUtil.Colors
+
+local gui = UIUtil.screen("CamoMenu", 10)
+gui.Enabled = false
+
+local backdrop = UIUtil.new("Frame", {
+	Size = UDim2.fromScale(1, 1),
+	BackgroundColor3 = Color3.new(0, 0, 0),
+	BackgroundTransparency = 0.35,
+}, gui)
+
+UIUtil.label("CHOOSE YOUR CAMOUFLAGE", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0.1, 0),
+	Size = UDim2.new(0.8, 0, 0, 44),
+}, backdrop)
+local timerLabel = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0.1, 50),
+	Size = UDim2.new(0.6, 0, 0, 26),
+	TextColor3 = C.TextDim,
+	Font = UIUtil.FontRegular,
+}, backdrop)
+
+local grid = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0.1, 100),
+	Size = UDim2.new(0.9, 0, 0.65, 0),
+	BackgroundTransparency = 1,
+}, backdrop)
+UIUtil.new("UIGridLayout", {
+	CellSize = UDim2.new(0, 150, 0, 150),
+	CellPadding = UDim2.new(0, 12, 0, 12),
+	HorizontalAlignment = Enum.HorizontalAlignment.Center,
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}, grid)
+
+local buttons: { [string]: TextButton } = {}
+local selected: string? = nil
+local endsAt = 0
+
+local function highlight()
+	for name, button in buttons do
+		local stroke = button:FindFirstChildOfClass("UIStroke")
+		if stroke then
+			stroke.Enabled = name == selected
+		end
+	end
+end
+
+local function build(available: { string })
+	for _, button in buttons do
+		button:Destroy()
+	end
+	table.clear(buttons)
+
+	for index, camo in CamoData.List do
+		if not table.find(available, camo.Name) then
+			continue -- not owned: don't show it
+		end
+		local button = UIUtil.button("", {
+			LayoutOrder = index,
+			BackgroundColor3 = C.Panel,
+		}, grid)
+		UIUtil.new("UIStroke", { Color = C.Gold, Thickness = 3, Enabled = false }, button)
+
+		-- 3-color swatch preview
+		for i, color in camo.Colors do
+			local swatch = UIUtil.new("Frame", {
+				Position = UDim2.new((i - 1) / 3, 6, 0, 8),
+				Size = UDim2.new(1 / 3, -8, 0.6, 0),
+				BackgroundColor3 = color,
+				BorderSizePixel = 0,
+			}, button)
+			UIUtil.corner(swatch, 6)
+		end
+		UIUtil.label(camo.Name, {
+			Position = UDim2.new(0, 6, 0.7, 0),
+			Size = UDim2.new(1, -12, 0.25, 0),
+		}, button)
+
+		button.MouseButton1Click:Connect(function()
+			selected = camo.Name
+			highlight()
+			SoundUtil.Play2D(GameConfig.SOUNDS.UIClick, 0.4)
+			Remotes.Get("SelectCamo"):FireServer(camo.Name)
+		end)
+		buttons[camo.Name] = button
+	end
+end
+
+function CamoMenu.Init()
+	Remotes.Get("CamoMenu").OnClientEvent:Connect(function(open: boolean, available: { string }?, closesAt: number?)
+		if open then
+			selected = nil
+			endsAt = closesAt or 0
+			build(available or {})
+			highlight()
+			gui.Enabled = true
+			task.spawn(function()
+				while gui.Enabled do
+					local left = endsAt - workspace:GetServerTimeNow()
+					timerLabel.Text = ("%d seconds left - %s is chosen if you don't pick"):format(
+						math.max(0, math.ceil(left)),
+						CamoData.DEFAULT_CAMO
+					)
+					task.wait(0.2)
+				end
+			end)
+		else
+			gui.Enabled = false
+		end
+	end)
+end
+
+return CamoMenu
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="35">
+            <Properties>
+              <string name="Name">HudController</string>
+              <string name="Source"><![CDATA[--[[
+	HudController  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Top-of-screen UI. It only DISPLAYS what the server put in
+	ReplicatedStorage.GameStatus and in player attributes:
+	  * round timer + state text
+	  * players alive per team
+	  * results banner
+	  * kill feed ("X eliminated Y" - never locations)
+	  * small notifications (coins, shop messages)
+	  * hit marker, enemy-spawn warning, subtle bird icon
+	  * round start / end sounds
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+local UIUtil = require(script.Parent.UIUtil)
+
+local HudController = {}
+
+local player = Players.LocalPlayer
+local status = Remotes.GetStatus()
+local C = UIUtil.Colors
+
+local gui = UIUtil.screen("HUD", 1)
+
+---------------------------------------------------------------------------
+-- Top bar: [GREEN n]  [ 2:31 / state ]  [n BROWN]
+---------------------------------------------------------------------------
+local bar = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 8),
+	Size = UDim2.new(0, 420, 0, 58),
+	BackgroundColor3 = C.Panel,
+	BackgroundTransparency = 0.25,
+}, gui)
+UIUtil.corner(bar, 10)
+
+local greenBox = UIUtil.label("GREEN 0", {
+	Position = UDim2.new(0, 10, 0, 8),
+	Size = UDim2.new(0, 110, 0, 42),
+	TextColor3 = C.Green,
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, bar)
+local brownBox = UIUtil.label("0 BROWN", {
+	Position = UDim2.new(1, -120, 0, 8),
+	Size = UDim2.new(0, 110, 0, 42),
+	TextColor3 = C.Brown,
+	TextXAlignment = Enum.TextXAlignment.Right,
+}, bar)
+local timerLabel = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 4),
+	Size = UDim2.new(0, 160, 0, 30),
+}, bar)
+local stateLabel = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 34),
+	Size = UDim2.new(0, 180, 0, 18),
+	TextColor3 = C.TextDim,
+	Font = UIUtil.FontRegular,
+}, bar)
+local teamLabel = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 70),
+	Size = UDim2.new(0, 260, 0, 20),
+	Font = UIUtil.FontRegular,
+}, gui)
+
+---------------------------------------------------------------------------
+-- Results banner
+---------------------------------------------------------------------------
+local banner = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0.2, 0),
+	Size = UDim2.new(0.7, 0, 0, 60),
+	BackgroundColor3 = C.Panel,
+	BackgroundTransparency = 0.2,
+	TextColor3 = C.Gold,
+	Visible = false,
+}, gui)
+UIUtil.corner(banner, 12)
+UIUtil.new("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) }, banner)
+
+---------------------------------------------------------------------------
+-- Kill feed (top right) and notifications (bottom center)
+---------------------------------------------------------------------------
+local feed = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -10, 0, 80),
+	Size = UDim2.new(0, 300, 0, 200),
+	BackgroundTransparency = 1,
+}, gui)
+UIUtil.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4) }, feed)
+
+local notes = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.5, 0, 1, -110),
+	Size = UDim2.new(0, 420, 0, 120),
+	BackgroundTransparency = 1,
+}, gui)
+UIUtil.new("UIListLayout", {
+	SortOrder = Enum.SortOrder.LayoutOrder,
+	VerticalAlignment = Enum.VerticalAlignment.Bottom,
+	Padding = UDim.new(0, 4),
+}, notes)
+
+local order = 0
+local function pushLine(parent: Instance, text: string, color: Color3, lifetime: number)
+	order += 1
+	local line = UIUtil.label(text, {
+		Size = UDim2.new(1, 0, 0, 24),
+		BackgroundColor3 = C.Panel,
+		BackgroundTransparency = 0.35,
+		TextColor3 = color,
+		Font = UIUtil.FontRegular,
+		LayoutOrder = order,
+	}, parent)
+	UIUtil.corner(line, 6)
+	Debris:AddItem(line, lifetime)
+end
+
+---------------------------------------------------------------------------
+-- Center: hit marker, enemy-zone warning. Bottom-left: bird icon.
+---------------------------------------------------------------------------
+local hitMarker = UIUtil.label("X", {
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.new(0, 34, 0, 34),
+	Visible = false,
+	ZIndex = 10,
+}, gui)
+
+local zoneWarning = UIUtil.label("ENEMY SPAWN - LEAVE NOW! You are taking damage.", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0.3, 0),
+	Size = UDim2.new(0.6, 0, 0, 36),
+	BackgroundColor3 = Color3.fromRGB(80, 20, 15),
+	BackgroundTransparency = 0.2,
+	TextColor3 = C.Danger,
+	Visible = false,
+}, gui)
+UIUtil.corner(zoneWarning, 8)
+
+local birdIcon = UIUtil.label("🐦 Birds flew up near you - keep moving", {
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, 14, 1, -14),
+	Size = UDim2.new(0, 300, 0, 22),
+	TextColor3 = C.TextDim,
+	TextTransparency = 0.2,
+	Font = UIUtil.FontRegular,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	Visible = false,
+}, gui)
+
+---------------------------------------------------------------------------
+-- Updating
+---------------------------------------------------------------------------
+local STATE_TEXT = {
+	CamoSelect = "Camo selection",
+	Round = "Round in progress",
+	Results = "Round over",
+	Intermission = "Intermission",
+}
+
+local function refreshTeam()
+	local team = player.Team
+	if team and not player.Neutral then
+		teamLabel.Text = "You are on " .. team.Name
+		teamLabel.TextColor3 = if team:GetAttribute("TeamKey") == "Green" then C.Green else C.Brown
+	else
+		teamLabel.Text = ""
+	end
+end
+
+local lastState = ""
+local function onStateChanged()
+	local state = status:GetAttribute("State") or "Waiting"
+	if state == "Round" and lastState ~= "Round" then
+		SoundUtil.Play2D(GameConfig.SOUNDS.RoundStart, 0.6)
+		pushLine(notes, "Round started! Shop open for " .. GameConfig.SHOP_OPEN_TIME .. "s at your supply crate.", C.Accent, 6)
+	elseif state == "Results" and lastState == "Round" then
+		SoundUtil.Play2D(GameConfig.SOUNDS.RoundEnd, 0.6)
+	end
+	lastState = state
+	local inRound = state == "CamoSelect" or state == "Round" or state == "Results"
+	greenBox.Visible = inRound
+	brownBox.Visible = inRound
+end
+
+local function onResultChanged()
+	local text = status:GetAttribute("ResultText") or ""
+	banner.Text = text
+	banner.Visible = text ~= ""
+end
+
+function HudController.Init()
+	status:GetAttributeChangedSignal("State"):Connect(onStateChanged)
+	status:GetAttributeChangedSignal("ResultText"):Connect(onResultChanged)
+	player:GetPropertyChangedSignal("Team"):Connect(refreshTeam)
+	player:GetPropertyChangedSignal("Neutral"):Connect(refreshTeam)
+	onStateChanged()
+	onResultChanged()
+	refreshTeam()
+
+	-- Timer + alive counts, every frame (cheap)
+	RunService.Heartbeat:Connect(function()
+		local state = status:GetAttribute("State") or "Waiting"
+		local endsAt = status:GetAttribute("EndsAt") or 0
+		if endsAt > 0 then
+			timerLabel.Text = UIUtil.formatTime(endsAt - workspace:GetServerTimeNow())
+		else
+			timerLabel.Text = "--:--"
+		end
+		local text = status:GetAttribute("StatusText")
+		stateLabel.Text = if text and text ~= "" then text else (STATE_TEXT[state] or "")
+		greenBox.Text = "GREEN " .. (status:GetAttribute("GreenAlive") or 0)
+		brownBox.Text = (status:GetAttribute("BrownAlive") or 0) .. " BROWN"
+	end)
+
+	Remotes.Get("KillFeed").OnClientEvent:Connect(function(killerName: string?, victimName: string, headshot: boolean)
+		local text
+		if killerName then
+			text = killerName .. " eliminated " .. victimName .. (if headshot then " (headshot)" else "")
+		else
+			text = victimName .. " was eliminated"
+		end
+		pushLine(feed, text, C.Text, 6)
+	end)
+
+	Remotes.Get("Notify").OnClientEvent:Connect(function(text: string)
+		if typeof(text) == "string" then
+			pushLine(notes, text, C.Gold, 4)
+		end
+	end)
+
+	Remotes.Get("HitMarker").OnClientEvent:Connect(function(headshot: boolean, killed: boolean)
+		hitMarker.TextColor3 = if headshot or killed then C.Danger else Color3.new(1, 1, 1)
+		hitMarker.Visible = true
+		SoundUtil.Play2D(GameConfig.SOUNDS.HitMarker, if killed then 0.9 else 0.6)
+		task.delay(0.25, function()
+			hitMarker.Visible = false
+		end)
+	end)
+
+	player:GetAttributeChangedSignal("InEnemyZone"):Connect(function()
+		zoneWarning.Visible = player:GetAttribute("InEnemyZone") == true
+	end)
+
+	-- The server only tells us birds were spotted, never the stillness timer
+	player:GetAttributeChangedSignal("BirdsSpottedAt"):Connect(function()
+		local stamp = player:GetAttribute("BirdsSpottedAt")
+		birdIcon.Visible = true
+		task.delay(4, function()
+			if player:GetAttribute("BirdsSpottedAt") == stamp then
+				birdIcon.Visible = false
+			end
+		end)
+	end)
+end
+
+return HudController
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="36">
+            <Properties>
+              <string name="Name">ItemClient</string>
+              <string name="Source"><![CDATA[--[[
+	ItemClient  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Client side of the one-round shop items:
+	  Binoculars    - click (or tap) to toggle zoom. Purely visual.
+	  Bird Whistle  - click to whistle at the spot you aim at
+	  Smoke Grenade - click to throw at the spot you aim at
+	  Bandage       - click to start healing (stand still!)
+	Whistle/smoke/bandage only send a REQUEST; the server validates it.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local Zoom = require(script.Parent.Zoom)
+
+local ItemClient = {}
+
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+local function onActivated(tool: Tool)
+	local itemId = tool:GetAttribute("ItemId")
+	if itemId == "Binoculars" then
+		Zoom.Set(if Zoom.Get() == "Binoculars" then nil else "Binoculars")
+	elseif itemId == "BirdWhistle" or itemId == "SmokeGrenade" then
+		Remotes.Get("UseItem"):FireServer(itemId, mouse.Hit.Position)
+	elseif itemId == "Bandage" then
+		Remotes.Get("UseItem"):FireServer(itemId)
+	end
+end
+
+local function watchCharacter(character: Model)
+	character.ChildAdded:Connect(function(child)
+		if child:IsA("Tool") and child:GetAttribute("ItemId") then
+			local conn = child.Activated:Connect(function()
+				onActivated(child)
+			end)
+			child.Unequipped:Once(function()
+				conn:Disconnect()
+				if child:GetAttribute("ItemId") == "Binoculars" and Zoom.Get() == "Binoculars" then
+					Zoom.Set(nil)
+				end
+			end)
+		end
+	end)
+end
+
+function ItemClient.Init()
+	player.CharacterAdded:Connect(watchCharacter)
+	if player.Character then
+		watchCharacter(player.Character)
+	end
+end
+
+return ItemClient
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="37">
+            <Properties>
+              <string name="Name">MainMenu</string>
+              <string name="Source"><![CDATA[--[[
+	MainMenu  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Simple full-screen menu with a Play button and your saved stats.
+	Pressing Play tells the server you're ready to be put into rounds
+	(players still on this menu are left out of the next round).
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+local UIUtil = require(script.Parent.UIUtil)
+
+local MainMenu = {}
+
+local player = Players.LocalPlayer
+local C = UIUtil.Colors
+
+function MainMenu.Init()
+	local gui = UIUtil.screen("MainMenu", 20)
+
+	local backdrop = UIUtil.new("Frame", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.fromRGB(16, 24, 14),
+		BackgroundTransparency = 0.1,
+	}, gui)
+	UIUtil.new("UIGradient", {
+		Color = ColorSequence.new(Color3.fromRGB(40, 60, 32), Color3.fromRGB(10, 14, 9)),
+		Rotation = 90,
+	}, backdrop)
+
+	UIUtil.label("AVOID THE SNIPERS", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0.18, 0),
+		Size = UDim2.new(0.8, 0, 0, 70),
+		TextColor3 = C.Accent,
+	}, backdrop)
+	UIUtil.label("Hide. Spot. Shoot first. Don't stay still - the birds will give you away.", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0.18, 78),
+		Size = UDim2.new(0.8, 0, 0, 24),
+		TextColor3 = C.TextDim,
+		Font = UIUtil.FontRegular,
+	}, backdrop)
+
+	local stats = UIUtil.label("", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0.45, 0),
+		Size = UDim2.new(0.6, 0, 0, 24),
+		TextColor3 = C.Gold,
+		Font = UIUtil.FontRegular,
+	}, backdrop)
+	local function refreshStats()
+		stats.Text = ("Total kills: %d    Total wins: %d    Coins: %d"):format(
+			player:GetAttribute("TotalKills") or 0,
+			player:GetAttribute("TotalWins") or 0,
+			player:GetAttribute("Coins") or 0
+		)
+	end
+	for _, name in { "TotalKills", "TotalWins", "Coins" } do
+		player:GetAttributeChangedSignal(name):Connect(refreshStats)
+	end
+	refreshStats()
+
+	local play = UIUtil.button("PLAY", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0.55, 0),
+		Size = UDim2.new(0, 240, 0, 64),
+		BackgroundColor3 = Color3.fromRGB(70, 110, 50),
+	}, backdrop)
+
+	UIUtil.label("Shift: sprint   C / Ctrl: crouch   Right mouse / Q: scope   Click: shoot", {
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -30),
+		Size = UDim2.new(0.8, 0, 0, 20),
+		TextColor3 = C.TextDim,
+		Font = UIUtil.FontRegular,
+	}, backdrop)
+
+	play.MouseButton1Click:Connect(function()
+		SoundUtil.Play2D(GameConfig.SOUNDS.UIClick, 0.5)
+		Remotes.Get("PlayerReady"):FireServer()
+		gui:Destroy()
+	end)
+end
+
+return MainMenu
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="38">
+            <Properties>
+              <string name="Name">MovementController</string>
+              <string name="Source"><![CDATA[--[[
+	MovementController  (ModuleScript in StarterPlayerScripts/Controllers)
+	Client half of movement (server half: MovementService).
+
+	  Hold C or Left Ctrl -> crouch
+	  Hold Left Shift     -> sprint
+	  Mobile: on-screen "Crouch" and "Sprint" buttons (tap to toggle)
+
+	The client only tells the server which stance it WANTS. The server sets
+	the real speed, the crouch pose, and the footstep/rustle sounds.
+]]
+
+local ContextActionService = game:GetService("ContextActionService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+
+local MovementController = {}
+
+local player = Players.LocalPlayer
+local crouchHeld = false
+local sprintHeld = false
+local currentStance = "Walk"
+local crouchTrack: AnimationTrack? = nil
+
+-- Crouch wins over sprint; otherwise walk.
+local function updateStance()
+	local wanted = if crouchHeld then "Crouch" elseif sprintHeld then "Sprint" else "Walk"
+	if wanted ~= currentStance then
+		currentStance = wanted
+		Remotes.Get("SetStance"):FireServer(wanted)
+	end
+end
+
+local function handle(actionName: string, state: Enum.UserInputState, input: InputObject)
+	local isTouch = input.UserInputType == Enum.UserInputType.Touch
+	if isTouch then
+		-- Mobile buttons toggle, so your thumbs stay free to move and aim
+		if state ~= Enum.UserInputState.Begin then
+			return Enum.ContextActionResult.Sink
+		end
+		if actionName == "Crouch" then
+			crouchHeld = not crouchHeld
+			sprintHeld = false
+		else
+			sprintHeld = not sprintHeld
+			crouchHeld = false
+		end
+	else
+		local down = state == Enum.UserInputState.Begin
+		if state ~= Enum.UserInputState.Begin and state ~= Enum.UserInputState.End then
+			return Enum.ContextActionResult.Pass
+		end
+		if actionName == "Crouch" then
+			crouchHeld = down
+		else
+			sprintHeld = down
+		end
+	end
+	updateStance()
+	return Enum.ContextActionResult.Sink
+end
+
+-- Optional uploaded crouch animation (GameConfig.CROUCH_ANIMATION_ID).
+-- Animations played on your own character replicate to everyone.
+local function watchCrouchAnimation(character: Model)
+	if GameConfig.CROUCH_ANIMATION_ID == "" then
+		return
+	end
+	local humanoid = character:WaitForChild("Humanoid") :: Humanoid
+	local animator = humanoid:WaitForChild("Animator") :: Animator
+	local animation = Instance.new("Animation")
+	animation.AnimationId = GameConfig.CROUCH_ANIMATION_ID
+	crouchTrack = animator:LoadAnimation(animation)
+	character:GetAttributeChangedSignal("Stance"):Connect(function()
+		local track = crouchTrack
+		if not track then
+			return
+		end
+		if character:GetAttribute("Stance") == "Crouch" then
+			track:Play(0.2)
+		else
+			track:Stop(0.2)
+		end
+	end)
+end
+
+function MovementController.Init()
+	ContextActionService:BindAction("Crouch", handle, true, Enum.KeyCode.C, Enum.KeyCode.LeftControl, Enum.KeyCode.ButtonB)
+	ContextActionService:BindAction("Sprint", handle, true, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
+	-- Titles/positions only matter for the mobile buttons
+	ContextActionService:SetTitle("Crouch", "Crouch")
+	ContextActionService:SetTitle("Sprint", "Sprint")
+	ContextActionService:SetPosition("Crouch", UDim2.new(1, -230, 1, -90))
+	ContextActionService:SetPosition("Sprint", UDim2.new(1, -230, 1, -150))
+
+	player.CharacterAdded:Connect(function(character)
+		-- New character starts walking (the server resets too)
+		crouchHeld, sprintHeld, currentStance = false, false, "Walk"
+		watchCrouchAnimation(character)
+	end)
+	if player.Character then
+		task.spawn(watchCrouchAnimation, player.Character)
+	end
+end
+
+return MovementController
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="39">
+            <Properties>
+              <string name="Name">NameTagController</string>
+              <string name="Source"><![CDATA[--[[
+	NameTagController  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	During rounds the SERVER hides every name tag and health bar
+	(DisplayDistanceType = None). This script turns them back on, on YOUR
+	screen only, for YOUR TEAMMATES. Enemy names stay hidden.
+
+	(Changing a property of someone else's Humanoid on the client only
+	affects your own screen - it doesn't replicate.)
+]]
+
+local Players = game:GetService("Players")
+
+local NameTagController = {}
+
+local player = Players.LocalPlayer
+
+local function update()
+	local myTeam = if player.Neutral then nil else player.Team
+	for _, other in Players:GetPlayers() do
+		if other ~= player then
+			local humanoid = other.Character and other.Character:FindFirstChildOfClass("Humanoid")
+			if humanoid and myTeam and not other.Neutral then
+				if other.Team == myTeam then
+					humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
+					humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.DisplayWhenDamaged
+				else
+					humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+					humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+				end
+			end
+		end
+	end
+end
+
+function NameTagController.Init()
+	task.spawn(function()
+		while true do
+			update()
+			task.wait(0.5)
+		end
+	end)
+end
+
+return NameTagController
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="40">
+            <Properties>
+              <string name="Name">ShopUI</string>
+              <string name="Source"><![CDATA[--[[
+	ShopUI  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	The supply-crate shop window. It opens only when the SERVER says so
+	(after checking team, house and time), shows items, prices and your
+	Coins, and sends ONLY the item id when you click Buy. The server
+	re-checks everything and answers with the new state.
+
+	It also hides the enemy team's crate prompt on your screen, and hides
+	your own crate's prompt once the shop has closed.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local ShopCatalog = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ShopCatalog"))
+local Remotes = require(ReplicatedStorage.Shared:WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+local UIUtil = require(script.Parent.UIUtil)
+
+local ShopUI = {}
+
+local player = Players.LocalPlayer
+local status = Remotes.GetStatus()
+local C = UIUtil.Colors
+
+local gui = UIUtil.screen("Shop", 8)
+gui.Enabled = false
+
+local panel = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.new(0, 560, 0, 440),
+	BackgroundColor3 = C.Panel,
+	BackgroundTransparency = 0.05,
+}, gui)
+UIUtil.corner(panel, 12)
+
+UIUtil.label("SUPPLY CRATE", {
+	Position = UDim2.new(0, 16, 0, 10),
+	Size = UDim2.new(0, 220, 0, 30),
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, panel)
+local coinsLabel = UIUtil.label("Coins: 0", {
+	Position = UDim2.new(0, 250, 0, 12),
+	Size = UDim2.new(0, 160, 0, 26),
+	TextColor3 = C.Gold,
+}, panel)
+local timeLabel = UIUtil.label("", {
+	Position = UDim2.new(0, 16, 0, 42),
+	Size = UDim2.new(1, -32, 0, 18),
+	TextColor3 = C.TextDim,
+	Font = UIUtil.FontRegular,
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, panel)
+local closeButton = UIUtil.button("X", {
+	Position = UDim2.new(1, -46, 0, 10),
+	Size = UDim2.new(0, 34, 0, 34),
+	BackgroundColor3 = Color3.fromRGB(90, 40, 30),
+}, panel)
+local messageLabel = UIUtil.label("", {
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, 16, 1, -8),
+	Size = UDim2.new(1, -32, 0, 22),
+	TextColor3 = C.Gold,
+	Font = UIUtil.FontRegular,
+}, panel)
+
+local list = UIUtil.new("ScrollingFrame", {
+	Position = UDim2.new(0, 12, 0, 66),
+	Size = UDim2.new(1, -24, 1, -104),
+	BackgroundTransparency = 1,
+	ScrollBarThickness = 6,
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	CanvasSize = UDim2.new(),
+}, panel)
+UIUtil.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) }, list)
+
+local shopState: any = nil
+
+local function header(text: string, order: number)
+	UIUtil.label(text, {
+		Size = UDim2.new(1, -8, 0, 24),
+		TextColor3 = C.Accent,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		LayoutOrder = order,
+	}, list)
+end
+
+-- One row: [swatch] Name / description ............ [button]
+local function row(order: number, name: string, description: string, buttonText: string, enabled: boolean, color: Color3?, onClick: () -> ())
+	local frame = UIUtil.new("Frame", {
+		Size = UDim2.new(1, -8, 0, 52),
+		BackgroundColor3 = C.PanelLight,
+		LayoutOrder = order,
+	}, list)
+	UIUtil.corner(frame, 8)
+	local textX = 10
+	if color then
+		local swatch = UIUtil.new("Frame", {
+			Position = UDim2.new(0, 8, 0, 8),
+			Size = UDim2.new(0, 36, 0, 36),
+			BackgroundColor3 = color,
+		}, frame)
+		UIUtil.corner(swatch, 6)
+		textX = 52
+	end
+	UIUtil.label(name, {
+		Position = UDim2.new(0, textX, 0, 4),
+		Size = UDim2.new(1, -textX - 130, 0, 22),
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, frame)
+	UIUtil.label(description, {
+		Position = UDim2.new(0, textX, 0, 27),
+		Size = UDim2.new(1, -textX - 130, 0, 18),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = C.TextDim,
+		Font = UIUtil.FontRegular,
+	}, frame)
+	local button = UIUtil.button(buttonText, {
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -8, 0.5, 0),
+		Size = UDim2.new(0, 112, 0, 36),
+		BackgroundColor3 = if enabled then Color3.fromRGB(70, 100, 50) else Color3.fromRGB(60, 60, 60),
+		AutoButtonColor = enabled,
+	}, frame)
+	if enabled then
+		button.MouseButton1Click:Connect(onClick)
+	end
+end
+
+local function buy(itemId: string)
+	SoundUtil.Play2D(GameConfig.SOUNDS.UIClick, 0.4)
+	Remotes.Get("ShopBuy"):FireServer(itemId)
+end
+
+local function render()
+	for _, child in list:GetChildren() do
+		if not child:IsA("UIListLayout") then
+			child:Destroy()
+		end
+	end
+	if not shopState then
+		return
+	end
+	coinsLabel.Text = "Coins: " .. tostring(shopState.Coins)
+	local coins = shopState.Coins
+
+	local order = 0
+	local function nextOrder()
+		order += 1
+		return order
+	end
+
+	header("THIS ROUND ONLY", nextOrder())
+	for _, item in ShopCatalog.RoundItems do
+		local bought = shopState.Bought[item.Id]
+		local text = if bought then "Bought" else (item.Price .. " coins")
+		row(nextOrder(), item.Name, item.Description, text, not bought and coins >= item.Price, nil, function()
+			buy(item.Id)
+		end)
+	end
+
+	header("CAMOS (PERMANENT)", nextOrder())
+	for _, item in ShopCatalog.Camos do
+		local owned = table.find(shopState.OwnedCamos, item.CamoName) ~= nil
+		local text = if owned then "Owned" else (item.Price .. " coins")
+		row(nextOrder(), item.Name, "Unlock forever. Pick it in camo selection.", text, not owned and coins >= item.Price, item.Color, function()
+			buy(item.Id)
+		end)
+	end
+
+	header("SNIPER SKINS (COSMETIC)", nextOrder())
+	for _, item in ShopCatalog.Skins do
+		local owned = table.find(shopState.OwnedSkins, item.Id) ~= nil
+		local equipped = shopState.EquippedSkin == item.Id
+		local text = if equipped then "Unequip" elseif owned then "Equip" else (item.Price .. " coins")
+		local enabled = owned or coins >= item.Price
+		row(nextOrder(), item.Name, "Muted rifle color. Looks only.", text, enabled, item.Color, function()
+			buy(item.Id)
+		end)
+	end
+end
+
+local function close()
+	gui.Enabled = false
+	shopState = nil
+end
+
+-- Show your own crate's prompt only while the shop is open
+local prompts: { ProximityPrompt } = {}
+local function updatePrompts()
+	local myKey = player.Team and not player.Neutral and player.Team:GetAttribute("TeamKey")
+	local roundStart = status:GetAttribute("RoundStartedAt") or 0
+	local open = status:GetAttribute("State") == "Round"
+		and workspace:GetServerTimeNow() - roundStart <= GameConfig.SHOP_OPEN_TIME
+	if #prompts == 0 then
+		-- Find the crate prompts once (the map has thousands of parts)
+		local map = workspace:FindFirstChild("Map")
+		if not map then
+			return
+		end
+		for _, d in map:GetDescendants() do
+			if d:IsA("ProximityPrompt") and d.Name == "ShopPrompt" then
+				table.insert(prompts, d)
+			end
+		end
+	end
+	for _, prompt in prompts do
+		local crate = prompt.Parent
+		prompt.Enabled = open and myKey ~= nil and crate ~= nil and crate:GetAttribute("Team") == myKey
+	end
+end
+
+function ShopUI.Init()
+	closeButton.MouseButton1Click:Connect(close)
+
+	Remotes.Get("OpenShop").OnClientEvent:Connect(function(state)
+		shopState = state
+		messageLabel.Text = ""
+		render()
+		gui.Enabled = true
+	end)
+
+	Remotes.Get("ShopResult").OnClientEvent:Connect(function(success: boolean, message: string, state)
+		messageLabel.TextColor3 = if success then C.Gold else C.Danger
+		messageLabel.Text = message or ""
+		if state and gui.Enabled then
+			shopState = state
+			render()
+		end
+	end)
+
+	-- Countdown, auto-close, prompt visibility
+	task.spawn(function()
+		while true do
+			updatePrompts()
+			if gui.Enabled and shopState then
+				local left = (shopState.ClosesAt or 0) - workspace:GetServerTimeNow()
+				timeLabel.Text = ("Shop closes in %d s"):format(math.max(0, math.ceil(left)))
+				if left <= 0 or status:GetAttribute("State") ~= "Round" then
+					close()
+				end
+			end
+			task.wait(0.25)
+		end
+	end)
+end
+
+return ShopUI
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="41">
+            <Properties>
+              <string name="Name">SniperClient</string>
+              <string name="Source"><![CDATA[--[[
+	SniperClient  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Client side of the sniper. It ONLY:
+	  * aims (camera/mouse ray) and sends a fire REQUEST to the server
+	  * handles the scope zoom (right mouse / Q / mobile "Scope" button)
+	  * draws tracers and plays gunshots the server tells it about
+	The server decides if the shot hit and how much damage it did.
+]]
+
+local ContextActionService = game:GetService("ContextActionService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local SoundUtil = require(ReplicatedStorage.Shared:WaitForChild("SoundUtil"))
+local Zoom = require(script.Parent.Zoom)
+
+local SniperClient = {}
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local mouse = player:GetMouse()
+
+local equipped: Tool? = nil
+local lastShot = 0
+
+-- Where is the player aiming? Returns (direction, hitPart, hitPosition)
+local function aim(): (Vector3, BasePart?, Vector3?)
+	local ray
+	if Zoom.Get() == "Scope" then
+		local size = camera.ViewportSize
+		ray = camera:ViewportPointToRay(size.X / 2, size.Y / 2)
+	else
+		ray = mouse.UnitRay -- also follows the last tap on mobile
+	end
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { player.Character :: Instance }
+	local result = workspace:Raycast(ray.Origin, ray.Direction * GameConfig.SNIPER_MAX_RANGE, params)
+	if result then
+		return ray.Direction, result.Instance :: BasePart, result.Position
+	end
+	return ray.Direction, nil, nil
+end
+
+local function fire()
+	if not equipped then
+		return
+	end
+	if os.clock() - lastShot < GameConfig.SNIPER_FIRE_COOLDOWN then
+		return
+	end
+	lastShot = os.clock()
+	local direction, hitPart, hitPosition = aim()
+	Remotes.Get("FireSniper"):FireServer(direction, hitPart, hitPosition)
+end
+
+local function setScoped(scoped: boolean)
+	if scoped and equipped then
+		Zoom.Set("Scope")
+	elseif Zoom.Get() == "Scope" then
+		Zoom.Set(nil)
+	end
+end
+
+local function onScopeAction(_, state: Enum.UserInputState, input: InputObject)
+	if not equipped then
+		return Enum.ContextActionResult.Pass
+	end
+	if input.UserInputType == Enum.UserInputType.MouseButton2 then
+		setScoped(state == Enum.UserInputState.Begin) -- hold right mouse
+	elseif state == Enum.UserInputState.Begin then
+		setScoped(Zoom.Get() ~= "Scope") -- Q / touch button toggles
+	end
+	return Enum.ContextActionResult.Sink
+end
+
+local activatedConn: RBXScriptConnection? = nil
+
+local function onEquipped(tool: Tool)
+	equipped = tool
+	activatedConn = tool.Activated:Connect(fire)
+	ContextActionService:BindAction("SniperScope", onScopeAction, true, Enum.UserInputType.MouseButton2, Enum.KeyCode.Q, Enum.KeyCode.ButtonL2)
+	ContextActionService:SetTitle("SniperScope", "Scope")
+	ContextActionService:SetPosition("SniperScope", UDim2.new(1, -170, 1, -150))
+end
+
+local function onUnequipped()
+	equipped = nil
+	if activatedConn then
+		activatedConn:Disconnect()
+		activatedConn = nil
+	end
+	ContextActionService:UnbindAction("SniperScope")
+	setScoped(false)
+end
+
+local function watchCharacter(character: Model)
+	onUnequipped()
+	character.ChildAdded:Connect(function(child)
+		if child:IsA("Tool") and child:GetAttribute("IsSniper") then
+			onEquipped(child)
+		end
+	end)
+	character.ChildRemoved:Connect(function(child)
+		if child == equipped then
+			onUnequipped()
+		end
+	end)
+end
+
+-- Tracer + gunshot for EVERY shot on the map (yours and enemies')
+local function onShotFired(origin: Vector3, hitPosition: Vector3, soundId: string)
+	local distance = (hitPosition - origin).Magnitude
+	if distance > 0.5 then
+		local tracer = Instance.new("Part")
+		tracer.Name = "Tracer"
+		tracer.Anchored = true
+		tracer.CanCollide = false
+		tracer.CanQuery = false
+		tracer.CanTouch = false
+		tracer.CastShadow = false
+		tracer.Material = Enum.Material.Neon
+		tracer.Color = Color3.fromRGB(255, 236, 170)
+		tracer.Transparency = 0.2
+		tracer.Size = Vector3.new(0.12, 0.12, distance)
+		tracer.CFrame = CFrame.lookAt((origin + hitPosition) / 2, hitPosition)
+		tracer.Parent = workspace
+		TweenService:Create(tracer, TweenInfo.new(GameConfig.TRACER_LIFETIME), { Transparency = 1 }):Play()
+		Debris:AddItem(tracer, GameConfig.TRACER_LIFETIME + 0.1)
+	end
+	-- Loud: heard across the whole map, so shooting reveals your position
+	SoundUtil.PlayAt(origin, soundId, { Volume = 2, MinDistance = 80, MaxDistance = 3000 })
+end
+
+function SniperClient.Init()
+	player.CharacterAdded:Connect(watchCharacter)
+	if player.Character then
+		watchCharacter(player.Character)
+	end
+	Remotes.Get("ShotFired").OnClientEvent:Connect(onShotFired)
+end
+
+return SniperClient
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="42">
+            <Properties>
+              <string name="Name">SpectateController</string>
+              <string name="Source"><![CDATA[--[[
+	SpectateController  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	When you die in a round the server sets your "Spectating" attribute.
+	You can then watch ALIVE TEAMMATES ONLY (never enemies), so dead
+	players can't scout enemy positions. Use the < > buttons or the
+	Left/Right arrow keys to switch.
+]]
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local UIUtil = require(script.Parent.UIUtil)
+
+local SpectateController = {}
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local C = UIUtil.Colors
+
+local gui = UIUtil.screen("Spectate", 3)
+gui.Enabled = false
+local bar = UIUtil.new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.5, 0, 1, -20),
+	Size = UDim2.new(0, 380, 0, 50),
+	BackgroundColor3 = C.Panel,
+	BackgroundTransparency = 0.2,
+}, gui)
+UIUtil.corner(bar, 10)
+local prevButton = UIUtil.button("<", { Position = UDim2.new(0, 6, 0, 6), Size = UDim2.new(0, 38, 0, 38) }, bar)
+local nextButton = UIUtil.button(">", { Position = UDim2.new(1, -44, 0, 6), Size = UDim2.new(0, 38, 0, 38) }, bar)
+local nameLabel = UIUtil.label("", {
+	Position = UDim2.new(0, 50, 0, 6),
+	Size = UDim2.new(1, -100, 0, 38),
+}, bar)
+
+local index = 1
+
+-- Alive players on MY team (not me)
+local function aliveTeammates(): { Player }
+	local list = {}
+	for _, other in Players:GetPlayers() do
+		if other ~= player and other.Team == player.Team and not other.Neutral and not other:GetAttribute("Spectating") then
+			local humanoid = other.Character and other.Character:FindFirstChildOfClass("Humanoid")
+			if humanoid and humanoid.Health > 0 then
+				table.insert(list, other)
+			end
+		end
+	end
+	return list
+end
+
+local function refresh()
+	local spectating = player:GetAttribute("Spectating") == true and player.Team ~= nil and not player.Neutral
+	gui.Enabled = spectating
+	if not spectating then
+		return
+	end
+	local mates = aliveTeammates()
+	if #mates == 0 then
+		nameLabel.Text = "No teammates left"
+		return
+	end
+	index = ((index - 1) % #mates) + 1
+	local target = mates[index]
+	local humanoid = target.Character and target.Character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		camera.CameraSubject = humanoid
+		nameLabel.Text = "Spectating " .. target.DisplayName
+	end
+end
+
+local function step(delta: number)
+	index += delta
+	refresh()
+end
+
+function SpectateController.Init()
+	prevButton.MouseButton1Click:Connect(function()
+		step(-1)
+	end)
+	nextButton.MouseButton1Click:Connect(function()
+		step(1)
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed or not gui.Enabled then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.Left then
+			step(-1)
+		elseif input.KeyCode == Enum.KeyCode.Right then
+			step(1)
+		end
+	end)
+
+	player:GetAttributeChangedSignal("Spectating"):Connect(function()
+		index = 1
+		refresh()
+		if not player:GetAttribute("Spectating") then
+			-- back to our own character
+			local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+			if humanoid then
+				camera.CameraSubject = humanoid
+			end
+		end
+	end)
+
+	-- Re-check every second (teammates die, leave, etc.)
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			if gui.Enabled or player:GetAttribute("Spectating") then
+				refresh()
+			end
+		end
+	end)
+end
+
+return SpectateController
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="43">
+            <Properties>
+              <string name="Name">UIUtil</string>
+              <string name="Source"><![CDATA[--[[
+	UIUtil  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Builds UI from code so the whole game is plain text.
+	  UIUtil.new("TextLabel", { Text = "Hi", Size = ... }, parent)
+	Also holds shared colors/fonts so every screen looks the same.
+]]
+
+local Players = game:GetService("Players")
+
+local UIUtil = {}
+
+UIUtil.Colors = {
+	Panel = Color3.fromRGB(24, 32, 22),
+	PanelLight = Color3.fromRGB(40, 52, 36),
+	Text = Color3.fromRGB(232, 236, 222),
+	TextDim = Color3.fromRGB(170, 180, 160),
+	Accent = Color3.fromRGB(150, 190, 90),
+	Green = Color3.fromRGB(110, 180, 90),
+	Brown = Color3.fromRGB(190, 130, 70),
+	Danger = Color3.fromRGB(220, 90, 70),
+	Gold = Color3.fromRGB(230, 200, 90),
+}
+UIUtil.Font = Enum.Font.GothamBold
+UIUtil.FontRegular = Enum.Font.Gotham
+
+function UIUtil.new(className: string, props: { [string]: any }?, parent: Instance?): any
+	local instance = Instance.new(className)
+	if props then
+		for key, value in props do
+			(instance :: any)[key] = value
+		end
+	end
+	if parent then
+		instance.Parent = parent
+	end
+	return instance
+end
+
+-- Rounded corners on any GuiObject
+function UIUtil.corner(parent: Instance, radius: number?)
+	UIUtil.new("UICorner", { CornerRadius = UDim.new(0, radius or 8) }, parent)
+end
+
+-- A ScreenGui that survives respawns
+function UIUtil.screen(name: string, displayOrder: number?): ScreenGui
+	return UIUtil.new("ScreenGui", {
+		Name = name,
+		ResetOnSpawn = false,
+		IgnoreGuiInset = true,
+		DisplayOrder = displayOrder or 0,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+	}, Players.LocalPlayer:WaitForChild("PlayerGui"))
+end
+
+-- A standard label
+function UIUtil.label(text: string, props: { [string]: any }?, parent: Instance?): TextLabel
+	local label = UIUtil.new("TextLabel", {
+		Text = text,
+		BackgroundTransparency = 1,
+		TextColor3 = UIUtil.Colors.Text,
+		Font = UIUtil.Font,
+		TextScaled = true,
+	}, parent)
+	if props then
+		for key, value in props do
+			(label :: any)[key] = value
+		end
+	end
+	return label
+end
+
+-- A standard button
+function UIUtil.button(text: string, props: { [string]: any }?, parent: Instance?): TextButton
+	local button = UIUtil.new("TextButton", {
+		Text = text,
+		BackgroundColor3 = UIUtil.Colors.PanelLight,
+		TextColor3 = UIUtil.Colors.Text,
+		Font = UIUtil.Font,
+		TextScaled = true,
+		AutoButtonColor = true,
+	}, parent)
+	if props then
+		for key, value in props do
+			(button :: any)[key] = value
+		end
+	end
+	UIUtil.corner(button)
+	return button
+end
+
+-- "1:05" style time text
+function UIUtil.formatTime(seconds: number): string
+	seconds = math.max(0, math.ceil(seconds))
+	return string.format("%d:%02d", seconds // 60, seconds % 60)
+end
+
+return UIUtil
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="44">
+            <Properties>
+              <string name="Name">Zoom</string>
+              <string name="Source"><![CDATA[--[[
+	Zoom  (ModuleScript in StarterPlayerScripts/Controllers)
+
+	Camera zoom shared by the sniper scope and the binoculars.
+	Zoom is purely visual, so it's fine for the client to do it.
+	  Zoom.Set("Scope")       -> sniper scope (crosshair overlay)
+	  Zoom.Set("Binoculars")  -> binocular view (two circles overlay)
+	  Zoom.Set(nil)           -> back to normal
+]]
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local GameConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("GameConfig"))
+local UIUtil = require(script.Parent.UIUtil)
+
+local Zoom = {}
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local current: string? = nil
+local normalFov = 70
+local normalCameraMode = Enum.CameraMode.Classic
+
+local gui = UIUtil.screen("ZoomOverlay", 5)
+gui.Enabled = false
+
+-- Scope overlay: black edges + a thin crosshair in the middle
+local scopeFrame = UIUtil.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1 }, gui)
+do
+	local ring = UIUtil.new("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.9, 0.9),
+		BackgroundTransparency = 1,
+	}, scopeFrame)
+	UIUtil.new("UIAspectRatioConstraint", { AspectRatio = 1 }, ring)
+	UIUtil.new("UIStroke", { Thickness = 2000, Color = Color3.new(0, 0, 0) }, ring) -- huge stroke = black outside the circle
+	UIUtil.corner(ring, 10000)
+	for _, size in { UDim2.new(1, 0, 0, 2), UDim2.new(0, 2, 1, 0) } do
+		UIUtil.new("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = size,
+			BackgroundColor3 = Color3.new(0, 0, 0),
+			BorderSizePixel = 0,
+		}, ring)
+	end
+end
+
+-- Binocular overlay: two overlapping circles
+local binoFrame = UIUtil.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1 }, gui)
+for _, x in { 0.38, 0.62 } do
+	local circle = UIUtil.new("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(x, 0.5),
+		Size = UDim2.fromScale(0.62, 0.62),
+		BackgroundTransparency = 1,
+	}, binoFrame)
+	UIUtil.new("UIAspectRatioConstraint", { AspectRatio = 1 }, circle)
+	UIUtil.new("UIStroke", { Thickness = 6, Color = Color3.new(0, 0, 0) }, circle)
+	UIUtil.corner(circle, 10000)
+end
+
+function Zoom.Get(): string?
+	return current
+end
+
+function Zoom.Set(mode: string?)
+	if mode == current then
+		return
+	end
+	if current == nil then
+		-- remember the normal view before zooming
+		normalFov = camera.FieldOfView
+		normalCameraMode = player.CameraMode
+	end
+	current = mode
+
+	if mode == nil then
+		camera.FieldOfView = normalFov
+		player.CameraMode = normalCameraMode
+		UserInputService.MouseDeltaSensitivity = 1
+		gui.Enabled = false
+		return
+	end
+
+	player.CameraMode = Enum.CameraMode.LockFirstPerson
+	gui.Enabled = true
+	scopeFrame.Visible = mode == "Scope"
+	binoFrame.Visible = mode == "Binoculars"
+	if mode == "Scope" then
+		camera.FieldOfView = GameConfig.SNIPER_SCOPE_FOV
+		UserInputService.MouseDeltaSensitivity = GameConfig.SCOPE_SENSITIVITY
+	else
+		camera.FieldOfView = GameConfig.BINOCULARS_FOV
+		UserInputService.MouseDeltaSensitivity = 0.4
+	end
+end
+
+-- Leave zoom when the character dies or respawns
+player.CharacterAdded:Connect(function()
+	Zoom.Set(nil)
+end)
+
+return Zoom
+]]></string>
+            </Properties>
+          </Item>
+        </Item>
+      </Item>
+      <Item class="LocalScript" referent="45">
+        <Properties>
+          <string name="Name">RbxCharacterSounds</string>
+          <string name="Source"><![CDATA[--[[
+	RbxCharacterSounds  (LocalScript in StarterPlayer/StarterPlayerScripts)
+
+	A LocalScript with this exact name REPLACES Roblox's default character
+	sounds script. We do this on purpose: the default footsteps would play
+	even while crouching. Footsteps and rustling are made by the server
+	instead (MovementService), based on your stance.
+
+	Leave this script empty.
+]]
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+</roblox>

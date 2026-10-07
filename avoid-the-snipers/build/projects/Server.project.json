@@ -1,0 +1,8 @@
+{
+  "name": "AvoidTheSnipers_Server",
+  "tree": {
+    "$className": "Folder",
+    "Main": { "$path": "../../src/ServerScriptService/Main.server.lua" },
+    "Services": { "$path": "../../src/ServerScriptService/Services" }
+  }
+}

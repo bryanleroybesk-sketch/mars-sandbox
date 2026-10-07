@@ -1,0 +1,360 @@
+<roblox version="4">
+  <Item class="Folder" referent="0">
+    <Properties>
+      <string name="Name">Shared</string>
+    </Properties>
+    <Item class="ModuleScript" referent="1">
+      <Properties>
+        <string name="Name">CamoData</string>
+        <string name="Source"><![CDATA[--[[
+	CamoData  (ModuleScript in ReplicatedStorage/Shared)
+
+	The list of every camouflage. Each camo has three colors that are
+	spread over the body parts to give a blotchy camo look.
+
+	Price = 0  -> free for everyone (the 5 starter camos)
+	Price > 0  -> permanent unlock bought in the shop
+
+	Optional: put Shirt/Pants template IDs from the Creator Store in
+	ShirtTemplate / PantsTemplate to also dress players in real camo
+	clothing. Leave them "" to use plain colored body parts.
+]]
+
+local CamoData = {}
+
+CamoData.DEFAULT_CAMO = "Jungle"
+
+CamoData.List = {
+	-- The 5 free starter camos (shown in this order in the menu)
+	{
+		Name = "Jungle",
+		Price = 0,
+		Colors = { Color3.fromRGB(46, 74, 38), Color3.fromRGB(30, 50, 25), Color3.fromRGB(70, 92, 45) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Grass",
+		Price = 0,
+		Colors = { Color3.fromRGB(110, 150, 60), Color3.fromRGB(88, 128, 48), Color3.fromRGB(138, 168, 80) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Rice Field",
+		Price = 0,
+		Colors = { Color3.fromRGB(158, 164, 72), Color3.fromRGB(128, 138, 55), Color3.fromRGB(184, 178, 96) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Mud",
+		Price = 0,
+		Colors = { Color3.fromRGB(95, 70, 45), Color3.fromRGB(74, 54, 35), Color3.fromRGB(116, 90, 60) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Shadow",
+		Price = 0,
+		Colors = { Color3.fromRGB(20, 28, 20), Color3.fromRGB(12, 16, 12), Color3.fromRGB(34, 42, 30) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+
+	-- Permanent unlocks (bought with Coins in the shop)
+	{
+		Name = "Bamboo",
+		Price = 150,
+		Colors = { Color3.fromRGB(120, 140, 70), Color3.fromRGB(92, 110, 50), Color3.fromRGB(158, 158, 98) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Autumn",
+		Price = 250,
+		Colors = { Color3.fromRGB(138, 90, 42), Color3.fromRGB(108, 70, 35), Color3.fromRGB(158, 120, 62) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Swamp",
+		Price = 300,
+		Colors = { Color3.fromRGB(60, 70, 45), Color3.fromRGB(45, 55, 40), Color3.fromRGB(84, 90, 55) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+	{
+		Name = "Temple Stone",
+		Price = 400,
+		Colors = { Color3.fromRGB(110, 110, 95), Color3.fromRGB(85, 88, 75), Color3.fromRGB(130, 128, 110) },
+		ShirtTemplate = "",
+		PantsTemplate = "",
+	},
+}
+
+-- Quick lookup: CamoData.ByName["Mud"]
+CamoData.ByName = {}
+for _, camo in CamoData.List do
+	CamoData.ByName[camo.Name] = camo
+end
+
+-- Is this camo free for everyone?
+function CamoData.IsFree(name: string): boolean
+	local camo = CamoData.ByName[name]
+	return camo ~= nil and camo.Price == 0
+end
+
+return CamoData
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="2">
+      <Properties>
+        <string name="Name">Remotes</string>
+        <string name="Source"><![CDATA[--[[
+	Remotes  (ModuleScript in ReplicatedStorage/Shared)
+
+	One place that creates (on the server) or finds (on the client) every
+	RemoteEvent the game uses, plus the "GameStatus" folder whose attributes
+	tell clients what the round is doing.
+
+	Client -> Server events are REQUESTS. The server checks every one of them.
+	Server -> Client events are just information for UI and effects.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local Remotes = {}
+
+local EVENT_NAMES = {
+	-- Client -> Server (always validated on the server)
+	"PlayerReady", -- (no args) player pressed Play on the main menu
+	"SelectCamo", -- (camoName: string)
+	"SetStance", -- (stance: "Crouch" | "Walk" | "Sprint")
+	"FireSniper", -- (direction: Vector3, hitPart: BasePart?, hitPosition: Vector3?)
+	"ShopBuy", -- (itemId: string)
+	"UseItem", -- (itemId: string, aimPosition: Vector3?)
+
+	-- Server -> Client
+	"CamoMenu", -- (open: boolean, ownedCamos: {string}?, endsAt: number?)
+	"ShotFired", -- (origin: Vector3, hitPosition: Vector3, soundId: string)
+	"HitMarker", -- (isHeadshot: boolean, killed: boolean)
+	"KillFeed", -- (killerName: string?, victimName: string, headshot: boolean)
+	"BirdFlock", -- (position: Vector3, count: number, kind: string)
+	"OpenShop", -- (shopState: table)
+	"ShopResult", -- (success: boolean, message: string, shopState: table?)
+	"Notify", -- (text: string)
+}
+
+local isServer = RunService:IsServer()
+local folder: Folder
+local statusFolder: Folder
+
+if isServer then
+	local existing = ReplicatedStorage:FindFirstChild("Remotes")
+	if existing then
+		folder = existing :: any
+	else
+		local newFolder = Instance.new("Folder")
+		newFolder.Name = "Remotes"
+		newFolder.Parent = ReplicatedStorage
+		folder = newFolder
+	end
+	for _, name in EVENT_NAMES do
+		if not folder:FindFirstChild(name) then
+			local event = Instance.new("RemoteEvent")
+			event.Name = name
+			event.Parent = folder
+		end
+	end
+
+	local existingStatus = ReplicatedStorage:FindFirstChild("GameStatus")
+	if existingStatus then
+		statusFolder = existingStatus :: any
+	else
+		local newStatus = Instance.new("Folder")
+		newStatus.Name = "GameStatus"
+		newStatus.Parent = ReplicatedStorage
+		statusFolder = newStatus
+	end
+else
+	folder = ReplicatedStorage:WaitForChild("Remotes") :: Folder
+	statusFolder = ReplicatedStorage:WaitForChild("GameStatus") :: Folder
+end
+
+-- Returns the RemoteEvent with this name.
+function Remotes.Get(name: string): RemoteEvent
+	local event = if isServer then folder:FindFirstChild(name) else folder:WaitForChild(name)
+	assert(event, "Unknown remote: " .. name)
+	return event :: RemoteEvent
+end
+
+-- The folder whose attributes describe the round. Attributes used:
+--   State        "Waiting" | "CamoSelect" | "Round" | "Results" | "Intermission"
+--   EndsAt       server time (workspace:GetServerTimeNow()) when this state ends, or 0
+--   StatusText   short text for the top bar ("Waiting for players (1/2)")
+--   GreenAlive / BrownAlive   players alive per team
+--   ResultText   the results banner text
+--   RoundStartedAt  server time the current round started
+function Remotes.GetStatus(): Folder
+	return statusFolder
+end
+
+return Remotes
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="3">
+      <Properties>
+        <string name="Name">ShopCatalog</string>
+        <string name="Source"><![CDATA[--[[
+	ShopCatalog  (ModuleScript in ReplicatedStorage/Shared)
+
+	Everything the supply crate sells. The CLIENT only uses this to draw
+	the shop; the SERVER uses it to check prices. A hacked client cannot
+	change prices because the server reads its own copy.
+
+	BALANCE RULE: nothing here raises damage, range or max health.
+	Coins only buy tactics (one-round items) and style (camos, skins).
+]]
+
+local CamoData = require(script.Parent.CamoData)
+
+local ShopCatalog = {}
+
+-- One-round items: given as Tools, removed when the round ends.
+ShopCatalog.RoundItems = {
+	{
+		Id = "Binoculars",
+		Name = "Binoculars",
+		Price = 40,
+		Description = "Zoom in to scout without raising your rifle scope.",
+	},
+	{
+		Id = "BirdWhistle",
+		Name = "Bird Whistle",
+		Price = 60,
+		Description = "One use. Birds fly up where you aim - fake your position!",
+	},
+	{
+		Id = "SmokeGrenade",
+		Name = "Smoke Grenade",
+		Price = 50,
+		Description = "One throw. A smoke cloud for 8 seconds to cross open ground.",
+	},
+	{
+		Id = "Bandage",
+		Name = "Bandage",
+		Price = 35,
+		Description = "One use. Heals 40 health over 3 seconds. Stand still!",
+	},
+}
+
+-- Sniper skins: cosmetic only, muted colors only (nothing bright or glowing).
+ShopCatalog.Skins = {
+	{ Id = "Skin_OliveDrab", Name = "Olive Drab", Price = 200, Color = Color3.fromRGB(85, 90, 55) },
+	{ Id = "Skin_DesertTan", Name = "Desert Tan", Price = 300, Color = Color3.fromRGB(150, 130, 95) },
+	{ Id = "Skin_Charcoal", Name = "Charcoal", Price = 350, Color = Color3.fromRGB(45, 45, 45) },
+	{ Id = "Skin_Moss", Name = "Moss", Price = 400, Color = Color3.fromRGB(70, 95, 55) },
+	{ Id = "Skin_Rust", Name = "Rust", Price = 500, Color = Color3.fromRGB(110, 65, 40) },
+}
+
+-- Camo unlocks are generated from CamoData (any camo with a price).
+ShopCatalog.Camos = {}
+for _, camo in CamoData.List do
+	if camo.Price > 0 then
+		table.insert(ShopCatalog.Camos, {
+			Id = "Camo_" .. camo.Name,
+			Name = camo.Name .. " Camo",
+			CamoName = camo.Name,
+			Price = camo.Price,
+			Color = camo.Colors[1],
+		})
+	end
+end
+
+-- Lookup tables used by the server: ShopCatalog.ById["Bandage"]
+ShopCatalog.ById = {}
+for _, item in ShopCatalog.RoundItems do
+	ShopCatalog.ById[item.Id] = { Kind = "RoundItem", Item = item }
+end
+for _, item in ShopCatalog.Skins do
+	ShopCatalog.ById[item.Id] = { Kind = "Skin", Item = item }
+end
+for _, item in ShopCatalog.Camos do
+	ShopCatalog.ById[item.Id] = { Kind = "Camo", Item = item }
+end
+
+return ShopCatalog
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="4">
+      <Properties>
+        <string name="Name">SoundUtil</string>
+        <string name="Source"><![CDATA[--[[
+	SoundUtil  (ModuleScript in ReplicatedStorage/Shared)
+
+	Tiny helpers to play one-shot sounds. Works on server or client.
+	  PlayAt(position, soundId, options)  -> 3D sound in the world
+	  Play2D(soundId, volume)             -> UI sound, no position
+]]
+
+local Debris = game:GetService("Debris")
+local SoundService = game:GetService("SoundService")
+
+local SoundUtil = {}
+
+export type SoundOptions = {
+	Volume: number?,
+	MaxDistance: number?, -- how far away it can be heard
+	MinDistance: number?, -- full volume inside this distance
+	PlaybackSpeed: number?,
+	Lifetime: number?,
+}
+
+function SoundUtil.PlayAt(position: Vector3, soundId: string, options: SoundOptions?): Sound?
+	if not soundId or soundId == "" then
+		return nil
+	end
+	local opts: SoundOptions = options or {}
+
+	-- An Attachment on Terrain is the cheapest way to give a sound a position.
+	local attachment = Instance.new("Attachment")
+	attachment.WorldPosition = position
+	attachment.Parent = workspace.Terrain
+
+	local sound = Instance.new("Sound")
+	sound.SoundId = soundId
+	sound.Volume = opts.Volume or 1
+	sound.PlaybackSpeed = opts.PlaybackSpeed or 1
+	sound.RollOffMode = Enum.RollOffMode.InverseTapered
+	sound.RollOffMinDistance = opts.MinDistance or 10
+	sound.RollOffMaxDistance = opts.MaxDistance or 100
+	sound.Parent = attachment
+	sound:Play()
+
+	Debris:AddItem(attachment, opts.Lifetime or 6)
+	return sound
+end
+
+function SoundUtil.Play2D(soundId: string, volume: number?)
+	if not soundId or soundId == "" then
+		return
+	end
+	local sound = Instance.new("Sound")
+	sound.SoundId = soundId
+	sound.Volume = volume or 0.5
+	sound.Parent = SoundService
+	sound:Play()
+	Debris:AddItem(sound, 6)
+end
+
+return SoundUtil
+]]></string>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>
