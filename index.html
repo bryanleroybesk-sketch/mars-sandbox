@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RD Global Connect — Destination Intelligence & AI Infrastructure</title>
+<meta name="description" content="RD Global Connect Co., Ltd. — the operational engine behind Experience Pattaya City and BESK Creative. DMC, MICE, government liaison and frontier AI digital infrastructure.">
+<meta name="theme-color" content="#0a0a0c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0c; --bg2:#0f0f13; --line:#1f1f23; --txt:#f4f6f8; --mut:#9aa0aa;
+  --cy:#00f2fe; --bl:#4facfe; --mg:#ff3d9a; --glass:rgba(255,255,255,.04);
+  --r:18px; --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--txt);font-family:'Outfit',system-ui,sans-serif;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.wrap{width:min(1240px,100% - 40px);margin-inline:auto}
+section{position:relative;padding:130px 0}
+h1,h2,h3{line-height:1.08;letter-spacing:-.025em;font-weight:700}
+h2{font-size:clamp(2rem,4.4vw,3.4rem)}
+.grad{background:linear-gradient(100deg,var(--cy),var(--bl) 55%,#b388ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.eyebrow{display:inline-flex;gap:.6rem;align-items:center;font:500 .74rem/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--cy)}
+.eyebrow::before{content:"";width:28px;height:1px;background:var(--cy);box-shadow:0 0 10px var(--cy)}
+.lead{color:var(--mut);font-size:1.12rem;max-width:62ch}
+.sec-head{margin-bottom:60px;display:grid;gap:18px}
+
+/* cursor glow */
+#glow{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(520px circle at var(--mx,50%) var(--my,30%),rgba(0,242,254,.07),transparent 60%)}
+#progress{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--cy),var(--bl),var(--mg));z-index:100;box-shadow:0 0 12px var(--cy)}
+
+/* nav */
+header{position:fixed;inset:0 0 auto 0;z-index:50;transition:.4s var(--ease)}
+header.s{background:rgba(10,10,12,.72);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:78px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.18em;font-size:.95rem}
+.brand svg{width:34px;height:34px}
+.links{display:flex;gap:30px;align-items:center}
+.links a.l{font-size:.92rem;color:var(--mut);position:relative;transition:.3s}
+.links a.l:hover{color:#fff}
+.links a.l::after{content:"";position:absolute;left:0;bottom:-6px;height:1px;width:0;background:var(--cy);transition:.35s var(--ease);box-shadow:0 0 8px var(--cy)}
+.links a.l:hover::after{width:100%}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 26px;border-radius:999px;font-weight:600;font-size:.95rem;border:1px solid transparent;cursor:pointer;transition:.35s var(--ease);position:relative;overflow:hidden;font-family:inherit}
+.btn.p{background:linear-gradient(100deg,var(--cy),var(--bl));color:#031016;box-shadow:0 0 34px rgba(0,242,254,.28)}
+.btn.p:hover{transform:translateY(-2px);box-shadow:0 0 52px rgba(0,242,254,.5)}
+.btn.g{background:var(--glass);border-color:rgba(255,255,255,.16);color:#fff;backdrop-filter:blur(10px)}
+.btn.g:hover{border-color:var(--cy);box-shadow:0 0 28px rgba(0,242,254,.2);transform:translateY(-2px)}
+.btn.sm{padding:10px 20px;font-size:.86rem}
+.burger{display:none;background:none;border:1px solid var(--line);color:#fff;width:44px;height:44px;border-radius:12px;cursor:pointer}
+.burger span{display:block;width:18px;height:1.5px;background:#fff;margin:5px auto;transition:.3s}
+
+/* hero */
+.hero{min-height:100svh;padding:0;display:flex;align-items:center;overflow:hidden;isolation:isolate}
+.hero canvas.morph{position:absolute;inset:0;width:100%;height:100%;z-index:-3}
+#net{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;background:
+  linear-gradient(180deg,rgba(10,10,12,.7),rgba(10,10,12,.15) 38%,rgba(10,10,12,.75) 82%,var(--bg)),
+  radial-gradient(ellipse at 22% 55%,rgba(10,10,12,.82),transparent 62%)}
+.hero-in{padding:150px 0 190px;max-width:880px}
+.badge{display:inline-flex;align-items:center;gap:10px;padding:9px 16px;border-radius:999px;background:var(--glass);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px);font:500 .72rem/1 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#cfe;margin-bottom:28px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--cy);box-shadow:0 0 12px var(--cy);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.3;transform:scale(.7)}}
+.hero h1{font-size:clamp(2.5rem,6.2vw,5.4rem);margin-bottom:26px}
+.hero .lead{font-size:clamp(1.02rem,1.5vw,1.25rem);color:#c3c8d0;margin-bottom:38px}
+.cta{display:flex;gap:14px;flex-wrap:wrap}
+.scene-tag{position:absolute;right:20px;bottom:150px;display:flex;align-items:center;gap:12px;font:500 .72rem/1.3 'JetBrains Mono',monospace;color:#cfd6df;text-align:right;letter-spacing:.06em}
+.scene-tag b{display:block;color:var(--cy);font-weight:500}
+.scene-bars{display:flex;gap:6px}
+.scene-bars i{width:30px;height:3px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden;position:relative;cursor:pointer}
+.scene-bars i.on::after{content:"";position:absolute;inset:0;background:var(--cy);transform-origin:left;animation:fill var(--dur,6s) linear forwards}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.metrics{position:absolute;left:0;right:0;bottom:0;border-top:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,transparent,rgba(10,10,12,.85));backdrop-filter:blur(8px)}
+.metrics .wrap{display:grid;grid-template-columns:repeat(3,1fr)}
+.m{padding:26px 28px 26px 0;border-right:1px solid rgba(255,255,255,.08)}
+.m+.m{padding-left:28px}.m:last-child{border:0}
+.m small{display:block;font:500 .68rem/1 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--cy);margin-bottom:10px}
+.m p{font-size:.95rem;color:#d3d8df;line-height:1.45}
+
+/* ecosystem */
+.eco{background:radial-gradient(ellipse at 50% 0,rgba(79,172,254,.07),transparent 60%)}
+#constel{width:100%;height:auto;display:block;margin-bottom:34px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(160deg,#0d0d11,#09090b);overflow:visible}
+#constel .edge{stroke:rgba(0,242,254,.35);stroke-width:1.2;fill:none;stroke-dasharray:4 7;animation:dash 22s linear infinite}
+#constel .edge.dim{stroke:rgba(255,255,255,.13)}
+@keyframes dash{to{stroke-dashoffset:-400}}
+#constel text{fill:#e9edf2;font-family:'Outfit',sans-serif}
+#constel .sub{font:500 11px 'JetBrains Mono',monospace;fill:#7f8794;letter-spacing:.08em}
+#constel g.node{cursor:pointer}
+#constel g.node circle.ring{transition:.4s var(--ease);transform-box:fill-box;transform-origin:center}
+#constel g.node:hover circle.ring,#constel g.node.act circle.ring{transform:scale(1.25);stroke-width:2}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{position:relative;padding:34px;border-radius:var(--r);background:var(--glass);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(14px);transition:.5s var(--ease);overflow:hidden}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(420px circle at var(--cx,50%) var(--cy2,0%),rgba(0,242,254,.12),transparent 55%);opacity:0;transition:.4s}
+.card:hover{transform:translateY(-6px);border-color:rgba(0,242,254,.4)}
+.card:hover::before{opacity:1}
+.card>*{position:relative}
+.card .role{font:500 .7rem/1 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--cy);margin-bottom:16px;display:block}
+.card h3{font-size:1.45rem;margin-bottom:6px}
+.card .sub2{color:var(--mut);margin-bottom:18px;font-size:.95rem}
+.card p{color:#c1c6ce;font-size:.96rem}
+.card .ref{display:inline-block;margin-top:20px;font:500 .8rem 'JetBrains Mono',monospace;color:var(--bl);border-bottom:1px solid rgba(79,172,254,.4)}
+.ico{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(0,242,254,.18),rgba(79,172,254,.05));border:1px solid rgba(0,242,254,.3);margin-bottom:22px}
+.ico svg{width:22px;height:22px;stroke:var(--cy);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* connect lab */
+.lab{background:#08080a;border-block:1px solid var(--line);overflow:hidden}
+.lab-grid>*{min-width:0}
+.lab-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:34px;align-items:start}
+.stage{width:100%}
+.stage{position:relative;border-radius:26px;overflow:hidden;border:1px solid rgba(0,242,254,.25);box-shadow:0 0 90px rgba(0,242,254,.08);aspect-ratio:16/10;min-height:280px;background:#000}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+.stage .hud{position:absolute;left:18px;top:16px;right:18px;display:flex;justify-content:space-between;font:500 .7rem 'JetBrains Mono',monospace;letter-spacing:.1em;color:#d5fbff;text-transform:uppercase;pointer-events:none;text-shadow:0 0 8px #000}
+.stage .prompt{position:absolute;left:16px;right:16px;bottom:16px;padding:14px 18px;border-radius:14px;background:rgba(8,10,14,.66);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);font:400 .82rem/1.5 'JetBrains Mono',monospace;color:#dff;min-height:56px;pointer-events:none}
+.prompt .caret{display:inline-block;width:7px;height:1em;background:var(--cy);vertical-align:-2px;animation:pulse 1s infinite}
+.panel{display:flex;flex-direction:column;gap:20px}
+.chips{display:grid;gap:10px}
+.chip{display:flex;align-items:center;gap:14px;text-align:left;padding:14px 18px;border-radius:14px;background:var(--glass);border:1px solid rgba(255,255,255,.09);color:#fff;font:inherit;cursor:pointer;transition:.35s var(--ease)}
+.chip:hover{border-color:rgba(0,242,254,.5)}
+.chip.on{background:linear-gradient(100deg,rgba(0,242,254,.14),rgba(79,172,254,.04));border-color:var(--cy);box-shadow:0 0 30px rgba(0,242,254,.14)}
+.chip i{font:500 .7rem 'JetBrains Mono',monospace;color:var(--cy);font-style:normal}
+.chip span{display:block;font-weight:600}.chip small{color:var(--mut);font-size:.82rem}
+.scrub{display:grid;gap:10px;font:500 .72rem 'JetBrains Mono',monospace;color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:linear-gradient(90deg,var(--cy),var(--bl));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(0,242,254,.3),0 0 22px var(--cy);cursor:grab}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border:0;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(0,242,254,.3);cursor:grab}
+.pipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font:500 .72rem 'JetBrains Mono',monospace;color:var(--mut)}
+.pipe b{padding:6px 11px;border-radius:8px;border:1px solid rgba(255,255,255,.12);color:#dfe6ee;font-weight:500}
+.pipe em{color:var(--cy);font-style:normal}
+
+/* pillars */
+.pillars{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.pillar{padding:42px}
+.pillar .n{position:absolute;right:28px;top:14px;font:700 5.5rem/1 'Outfit';color:rgba(255,255,255,.035);letter-spacing:-.04em}
+.pillar h3{font-size:1.55rem;margin-bottom:20px;max-width:90%}
+.pillar ul{list-style:none;display:grid;gap:14px}
+.pillar li{padding-left:26px;position:relative;color:#c1c6ce;font-size:.97rem}
+.pillar li::before{content:"";position:absolute;left:0;top:.62em;width:12px;height:1px;background:var(--cy);box-shadow:0 0 8px var(--cy)}
+.pillar li b{color:#fff;font-weight:600}
+.agency{display:grid;gap:12px;margin:6px 0 4px}
+.agency div{padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);font-size:.92rem;color:#c1c6ce}
+.agency strong{color:var(--cy);font:500 .85rem 'JetBrains Mono',monospace;margin-right:8px}
+
+/* tech */
+.tech{padding:70px 0;border-block:1px solid var(--line);background:#0b0b0e}
+.tech-rows{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-bottom:40px}
+.tech-rows h4{font:500 .72rem 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--cy);margin-bottom:12px}
+.tech-rows p{color:#d3d8df}
+.marquee{overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.track{display:flex;gap:56px;width:max-content;animation:mq 38s linear infinite;font:700 clamp(1.6rem,3.4vw,2.6rem)/1 'Outfit';color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.28);white-space:nowrap}
+.track span:nth-child(3n){-webkit-text-stroke:1px var(--cy);color:rgba(0,242,254,.06)}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* contact */
+.contact{background:radial-gradient(ellipse at 80% 100%,rgba(0,242,254,.08),transparent 55%)}
+.c-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px}
+.cats{display:grid;gap:10px;margin:28px 0}
+.cat{padding:16px 20px;border-radius:14px;background:var(--glass);border:1px solid rgba(255,255,255,.09);display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:.35s var(--ease);color:#fff;font:inherit;text-align:left;width:100%}
+.cat:hover,.cat.on{border-color:var(--cy);transform:translateX(6px);background:rgba(0,242,254,.06)}
+form{display:grid;gap:14px;padding:34px;border-radius:22px;background:var(--glass);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(16px)}
+label{font:500 .7rem 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);display:grid;gap:8px}
+input,textarea,select{background:rgba(0,0,0,.4);border:1px solid var(--line);color:#fff;padding:14px 16px;border-radius:12px;font:400 1rem 'Outfit',sans-serif;outline:none;transition:.3s;width:100%}
+input:focus,textarea:focus,select:focus{border-color:var(--cy);box-shadow:0 0 0 3px rgba(0,242,254,.14)}
+select option{background:#111}
+textarea{min-height:120px;resize:vertical}
+footer{border-top:1px solid var(--line);padding:50px 0 40px;color:var(--mut);font-size:.9rem}
+.f-row{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}
+footer b{color:#fff;letter-spacing:.14em}
+
+.rv{opacity:0;transform:translateY(34px);transition:1s var(--ease)}
+.rv.in{opacity:1;transform:none}
+.d1{transition-delay:.12s}.d2{transition-delay:.24s}
+
+@media(max-width:980px){
+  section{padding:90px 0}
+  .links{position:fixed;inset:78px 0 auto 0;flex-direction:column;align-items:stretch;gap:0;background:rgba(10,10,12,.96);backdrop-filter:blur(20px);padding:10px 20px 26px;border-bottom:1px solid var(--line);transform:translateY(-130%);transition:.5s var(--ease)}
+  .links.open{transform:none}
+  .links a.l{padding:16px 0;border-bottom:1px solid var(--line);font-size:1.05rem}
+  .links .btn{margin-top:18px;justify-content:center}
+  .burger{display:block}
+  .grid3,.pillars,.lab-grid,.c-grid,.tech-rows{grid-template-columns:1fr}
+  .metrics{position:relative;margin-top:-120px}
+  .metrics .wrap{grid-template-columns:1fr}
+  .m,.m+.m{padding:18px 0;border-right:0;border-bottom:1px solid rgba(255,255,255,.08)}
+  .hero{align-items:flex-start;flex-direction:column;justify-content:space-between}
+  .hero-in{padding:130px 0 120px}
+  .scene-tag{display:none}
+  .pillar{padding:30px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="progress"></div><div id="glow"></div>
+
+<header id="hd">
+  <div class="wrap nav">
+    <a href="#top" class="brand" aria-label="RD Global Connect">
+      <svg viewBox="0 0 40 40" fill="none"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#00f2fe"/><stop offset="1" stop-color="#4facfe"/></linearGradient></defs>
+        <circle cx="8" cy="20" r="3.4" fill="url(#lg)"/><circle cx="31" cy="9" r="3.4" fill="url(#lg)"/><circle cx="31" cy="31" r="3.4" fill="url(#lg)"/><circle cx="20" cy="20" r="2" fill="#fff"/>
+        <path d="M8 20 20 20 31 9M20 20 31 31" stroke="url(#lg)" stroke-width="1.6"/></svg>
+      RD GLOBAL CONNECT
+    </a>
+    <nav class="links" id="links">
+      <a class="l" href="#ecosystem">Ecosystem</a>
+      <a class="l" href="#capabilities">Core Capabilities</a>
+      <a class="l" href="#lab">Digital &amp; AI</a>
+      <a class="l" href="#government">Government &amp; MICE</a>
+      <a class="l" href="#contact">Contact</a>
+      <a class="btn p sm" href="#contact">Partner With Us / Inquire</a>
+    </nav>
+    <button class="burger" id="burger" aria-label="Menu"><span></span><span></span></button>
+  </div>
+</header>
+
+<main id="top">
+<!-- HERO -->
+<section class="hero" aria-label="Introduction">
+  <canvas class="morph" id="heroMorph"></canvas>
+  <canvas id="net"></canvas>
+  <div class="wrap">
+    <div class="hero-in">
+      <div class="badge rv"><span class="dot"></span>Institutional Operations • Destination Intelligence • Digital Infrastructure</div>
+      <h1 class="rv d1">The Operational Engine Behind <span class="grad">Regional Destination Platforms</span> &amp; Next-Gen Digital Experiences.</h1>
+      <p class="lead rv d2">RD Global Connect bridges physical execution, government-grade destination management, and frontier AI digital infrastructure. We power high-impact platforms like Experience Pattaya City and execute elite production and tech initiatives for BESK Creative.</p>
+      <div class="cta rv d2">
+        <a class="btn p" href="#ecosystem">Explore Our Ecosystem <span>→</span></a>
+        <a class="btn g" href="#contact">Contact Corporate Desk</a>
+      </div>
+    </div>
+  </div>
+  <div class="scene-tag" id="heroTag">
+    <div><b id="tagName">—</b><span id="tagSub"></span></div>
+    <div class="scene-bars" id="heroBars"></div>
+  </div>
+  <div class="metrics">
+    <div class="wrap">
+      <div class="m"><small>DMC &amp; MICE Infrastructure</small><p>Tier-1 Venue &amp; Government Alignment</p></div>
+      <div class="m"><small>Digital Reach</small><p>Multi-Platform Tourism &amp; Nightlife Engines</p></div>
+      <div class="m"><small>Technology</small><p>3D WebGL, Multi-Agent AI Pipelines &amp; Secure Integrations</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ECOSYSTEM -->
+<section class="eco" id="ecosystem">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow rv">Strategic Ecosystem</span>
+      <h2 class="rv d1">One core. <span class="grad">Every connection</span> runs through it.</h2>
+      <p class="lead rv d2">RD Global Connect anchors platforms, agencies and institutions in a single operating architecture. Hover a node to trace its links.</p>
+    </div>
+
+    <svg id="constel" viewBox="0 0 1100 560" role="img" aria-label="Ecosystem diagram: RD Global Connect at the centre linked to Experience Pattaya City, BESK Creative, NXGT, government bodies and technology partners">
+      <defs>
+        <radialGradient id="hubg"><stop offset="0" stop-color="#00f2fe" stop-opacity=".55"/><stop offset="1" stop-color="#00f2fe" stop-opacity="0"/></radialGradient>
+        <filter id="blur"><feGaussianBlur stdDeviation="2"/></filter>
+      </defs>
+      <circle cx="550" cy="260" r="150" fill="url(#hubg)"/>
+      <g id="edges"></g>
+      <g id="nodes"></g>
+    </svg>
+
+    <div class="grid3">
+      <article class="card rv">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></div>
+        <span class="role">Sole Operational &amp; Destination Management Entity</span>
+        <h3>Experience Pattaya City (EPC)</h3>
+        <div class="sub2">Destination Portal &amp; Smart Tourism</div>
+        <p>Digital platform management, official municipal collaborations, tourism ecosystem monetization, and international visitor onboarding.</p>
+        <a class="ref" href="https://experiencepattayacity.com" target="_blank" rel="noopener">experiencepattayacity.com ↗</a>
+      </article>
+      <article class="card rv d1">
+        <div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></svg></div>
+        <span class="role">Execution &amp; Technical Co-Development Partner</span>
+        <h3>BESK Creative</h3>
+        <div class="sub2">Creative Direction &amp; Media Production · besk.ae</div>
+        <p>End-to-end production pipelines, cinema-grade commercial assets, and spatial computing / 3D interactive visual layers.</p>
+        <a class="ref" href="https://besk.ae" target="_blank" rel="noopener">besk.ae ↗</a>
+      </article>
+      <article class="card rv d2">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5M3 17.5l9 5 9-5"/></svg></div>
+        <span class="role">Proprietary Incubated Product</span>
+        <h3>NXGT Platform</h3>
+        <div class="sub2">Interactive Nightlife &amp; Entertainment Engine</div>
+        <p>WebGL 3D spatial venue exploration, ticketing infrastructure, and digital hospitality networks.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- CONNECT LAB -->
+<section class="lab" id="lab">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow rv">Digital &amp; AI</span>
+      <h2 class="rv d1">Where one image <span class="grad">connects</span> to the next.</h2>
+      <p class="lead rv d2">Our AI pipelines treat every frame as a node: a destination, a venue, a night out, a summit. Drag the slider and watch the circuitry stitch one scene into another — the same logic we apply to content localization and visitor journeys.</p>
+    </div>
+    <div class="lab-grid">
+      <div class="stage rv">
+        <canvas id="labMorph"></canvas>
+        <div class="hud"><span id="labName">Scene</span><span id="labPct">00%</span></div>
+        <div class="prompt"><span id="typed"></span><span class="caret"></span></div>
+      </div>
+      <div class="panel rv d1">
+        <div class="chips" id="chips"></div>
+        <div class="scrub"><span>Connection strength</span><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Morph progress"></div>
+        <div class="pipe"><b>Prompt</b><em>→</em><b>Claude agents</b><em>→</em><b>Image / video models</b><em>→</em><b>Localize</b><em>→</em><b>Publish</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLARS -->
+<section id="capabilities">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow rv">Core Pillars &amp; Capabilities</span>
+      <h2 class="rv d1">Four disciplines. <span class="grad">One operator.</span></h2>
+    </div>
+    <div class="pillars">
+      <article class="card pillar rv" id="government">
+        <span class="n">01</span>
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10m14 11V10M9 21V10m6 11V10M2 10l10-6 10 6z"/></svg></div>
+        <h3>Destination Management (DMC) &amp; MICE Execution</h3>
+        <ul>
+          <li>Real-time on-site coordination for international conferences, summits, and executive corporate retreats.</li>
+          <li>Exclusive access and event management across leading regional venues, including the <b>Royal Cliff Hotels Group</b> and <b>PEACH</b> (Pattaya Exhibition and Convention Hall).</li>
+          <li>Turnkey logistics: VIP handling, private dining curations, and high-level corporate itineraries.</li>
+        </ul>
+      </article>
+      <article class="card pillar rv d1">
+        <span class="n">02</span>
+        <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div>
+        <h3>Institutional &amp; Government Liaison</h3>
+        <div class="agency">
+          <div><strong>TCEB</strong>Thailand Convention and Exhibition Bureau — bidding and staging international conventions.</div>
+          <div><strong>TAT</strong>Tourism Authority of Thailand — destination branding, promotion, international media outreach.</div>
+          <div><strong>DASTA</strong>Designated Areas for Sustainable Tourism Administration — sustainable development and community tourism integration.</div>
+        </div>
+        <ul><li>Direct regulatory compliance, venue permits, and municipal channel management.</li></ul>
+      </article>
+      <article class="card pillar rv">
+        <span class="n">03</span>
+        <div class="ico"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4m6-4v4M9 19v4m6-4v4M1 9h4m-4 6h4m14-6h4m-4 6h4"/></svg></div>
+        <h3>AI Solutions &amp; Content Localization Pipelines</h3>
+        <ul>
+          <li><b>Automated Multi-Lingual Localization:</b> real-time translation, regional cultural adaptation, and programmatic content engines for travelers across English, Chinese, Thai, and European languages.</li>
+          <li><b>Agentic AI Infrastructure:</b> custom prompt orchestration and multi-agent workflows powering customer discovery, automated concierge interactions, and smart itineraries.</li>
+          <li><b>Workflow Automation:</b> Claude-powered back-office document parsing, vendor RFP automation, and dynamic content scheduling.</li>
+        </ul>
+      </article>
+      <article class="card pillar rv d1">
+        <span class="n">04</span>
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/></svg></div>
+        <h3>Modern Digital Engineering &amp; Secure Payments</h3>
+        <ul>
+          <li>High-performance web development utilizing 3D WebGL (Three.js), GSAP interactive animations, and responsive spatial grids.</li>
+          <li>Regulated fintech and e-commerce integrations, including <b>Omise</b> payment gateway architectures and cross-border billing protocols.</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- TECH -->
+<section class="tech" aria-label="Technology stack">
+  <div class="wrap">
+    <div class="tech-rows">
+      <div class="rv"><h4>AI &amp; Logic</h4><p>Anthropic Claude API • Multi-Agent Automation • Custom Prompt Architectures</p></div>
+      <div class="rv d1"><h4>Frontend &amp; 3D</h4><p>Three.js • WebGL • GSAP • Modern UI Frameworks</p></div>
+      <div class="rv d2"><h4>Commerce &amp; Infrastructure</h4><p>Omise Gateway • Cloud Infrastructure • Headless CMS</p></div>
+    </div>
+    <div class="marquee" aria-hidden="true"><div class="track" id="track"></div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="wrap c-grid">
+    <div>
+      <span class="eyebrow rv">Corporate Inquiries</span>
+      <h2 class="rv d1" style="margin:18px 0 22px">Let's <span class="grad">connect</span>.</h2>
+      <p class="lead rv d2">Choose a desk and tell us what you're building. Our corporate team replies directly.</p>
+      <div class="cats rv" id="cats">
+        <button class="cat on" type="button" data-v="MICE & Corporate Events">MICE &amp; Corporate Events <span>→</span></button>
+        <button class="cat" type="button" data-v="Government & Civic Partnerships">Government &amp; Civic Partnerships <span>→</span></button>
+        <button class="cat" type="button" data-v="Technology & Platform Integration">Technology &amp; Platform Integration <span>→</span></button>
+      </div>
+      <p class="mono" style="color:var(--mut);font-size:.85rem">info@rdglobalconnect.com<br>Chonburi / Pattaya City, Thailand</p>
+    </div>
+    <form class="rv d1" id="form">
+      <label>Name<input name="name" required autocomplete="name"></label>
+      <label>Organisation<input name="org" autocomplete="organization"></label>
+      <label>Email<input type="email" name="email" required autocomplete="email"></label>
+      <label>Inquiry category<select name="cat" id="catSel"><option>MICE &amp; Corporate Events</option><option>Government &amp; Civic Partnerships</option><option>Technology &amp; Platform Integration</option></select></label>
+      <label>Message<textarea name="msg" required></textarea></label>
+      <button class="btn p" type="submit">Send Inquiry <span>→</span></button>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap f-row">
+    <div><b>RD GLOBAL CONNECT CO., LTD.</b><br>Legal Entity · Chonburi / Pattaya City, Thailand</div>
+    <div><a href="mailto:info@rdglobalconnect.com">info@rdglobalconnect.com</a><br>© 2026 RD Global Connect Co., Ltd. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+(()=>{
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* =========================================================
+   SCENES
+   Each scene is painted procedurally (AI-style concept frames)
+   so the page works fully offline. To use real photography,
+   set `src` to a CORS-enabled image URL (e.g. from besk.ae or
+   experiencepattayacity.com). It crossfades in automatically
+   when loaded; the procedural frame remains the fallback.
+   ========================================================= */
+const SCENES=[
+ {id:'dusk', name:'Pattaya Bay · Dusk', sub:'Experience Pattaya City', src:'',
+  prompt:'Cinematic wide shot, Pattaya bay at golden hour, glowing skyline reflecting on calm water, warm haze, 35mm anamorphic'},
+ {id:'night', name:'NXGT · Nightlife Engine', sub:'Interactive venue exploration', src:'',
+  prompt:'Neon-drenched nightlife venue, laser beams through haze, silhouetted crowd, magenta and cyan palette, volumetric light'},
+ {id:'mice', name:'MICE · Global Summit', sub:'DMC & government-grade events', src:'',
+  prompt:'International summit hall, vast LED wall showing a connected world network, executive seating, precise stage lighting'},
+ {id:'spatial', name:'Spatial · 3D Intelligence', sub:'BESK Creative × RD Global', src:'',
+  prompt:'Wireframe terrain of a future city, luminous nodes linked by data lines, spatial computing, electric cyan on obsidian'}
+];
+const W=1280,H=800;
+function rng(seed){return()=>((seed=Math.imul(seed^seed>>>15,seed|1),seed^=seed+Math.imul(seed^seed>>>7,seed|61),((seed^seed>>>14)>>>0)/4294967296))}
+function mk(){const c=document.createElement('canvas');c.width=W;c.height=H;return[c,c.getContext('2d')]}
+function glowDot(x,g,y,r,col,a){const q=x.createRadialGradient(g,y,0,g,y,r);q.addColorStop(0,col.replace('A',a));q.addColorStop(1,col.replace('A',0));x.fillStyle=q;x.fillRect(g-r,y-r,r*2,r*2)}
+
+function paintDusk(){
+ const [c,x]=mk(),r=rng(11),hz=H*.62;
+ let g=x.createLinearGradient(0,0,0,hz);
+ [[0,'#120a35'],[.35,'#5a2380'],[.62,'#e0476a'],[.85,'#ff8a5c'],[1,'#ffc47a']].forEach(s=>g.addColorStop(...s));
+ x.fillStyle=g;x.fillRect(0,0,W,hz);
+ for(let i=0;i<110;i++){x.fillStyle=`rgba(255,255,255,${r()*.7})`;x.fillRect(r()*W,r()*hz*.5,1.4,1.4)}
+ const sx=W*.62,sy=hz-22;
+ x.globalCompositeOperation='lighter';
+ glowDot(x,sx,sy,420,'rgba(255,150,80,A)',.55);
+ x.fillStyle='#ffe2a8';x.beginPath();x.arc(sx,sy,62,0,7);x.fill();
+ for(let i=0;i<9;i++){x.fillStyle=`rgba(255,120,150,${.07+r()*.1})`;x.beginPath();x.ellipse(r()*W,60+r()*hz*.7,160+r()*260,6+r()*14,0,0,7);x.fill()}
+ x.globalCompositeOperation='source-over';
+ g=x.createLinearGradient(0,hz,0,H);g.addColorStop(0,'#2a2250');g.addColorStop(.25,'#0e2343');g.addColorStop(1,'#040a18');
+ x.fillStyle=g;x.fillRect(0,hz,W,H-hz);
+ x.globalCompositeOperation='lighter';
+ for(let i=0;i<150;i++){const y=hz+4+Math.pow(r(),1.6)*(H-hz),w=(30+r()*160)*(1+(y-hz)/200);x.fillStyle=`rgba(255,${130+r()*80|0},90,${.35*(1-(y-hz)/(H-hz))})`;x.fillRect(sx-w/2+(r()-.5)*40,y,w,1.6+r()*2)}
+ x.globalCompositeOperation='source-over';
+ const bld=(x0,x1,tall)=>{for(let bx=x0;bx<x1;){const w=22+r()*52,h=40+r()*tall;x.fillStyle='#08081a';x.fillRect(bx,hz-h,w,h);
+   for(let wy=hz-h+8;wy<hz-6;wy+=9)for(let wx=bx+4;wx<bx+w-4;wx+=8)if(r()>.55){x.fillStyle=r()>.7?'#00f2fe':'#ffd27a';x.globalAlpha=.55+r()*.4;x.fillRect(wx,wy,3,4)}
+   x.globalAlpha=1;bx+=w+2}};
+ bld(0,W*.34,250);bld(W*.82,W,330);
+ x.fillStyle='#08081a';x.fillRect(W*.9,hz-470,12,470);x.beginPath();x.ellipse(W*.9+6,hz-470,28,10,0,0,7);x.fill();
+ x.globalCompositeOperation='lighter';glowDot(x,W*.9+6,hz-470,50,'rgba(0,242,254,A)',.8);glowDot(x,W*.2,hz,300,'rgba(0,242,254,A)',.18);
+ return c}
+
+function paintNight(){
+ const [c,x]=mk(),r=rng(23);
+ x.fillStyle='#06020e';x.fillRect(0,0,W,H);
+ let g=x.createRadialGradient(W/2,H*.35,0,W/2,H*.35,W*.7);g.addColorStop(0,'#3a0a55');g.addColorStop(1,'#06020e');x.fillStyle=g;x.fillRect(0,0,W,H);
+ x.globalCompositeOperation='lighter';
+ const cols=['255,61,154','0,242,254','140,90,255','79,172,254'];
+ for(let i=0;i<13;i++){const ox=W*(.1+.8*i/12),tx=r()*W,col=cols[i%4];
+   const q=x.createLinearGradient(ox,0,tx,H*.8);q.addColorStop(0,`rgba(${col},.55)`);q.addColorStop(1,`rgba(${col},0)`);
+   x.fillStyle=q;x.beginPath();x.moveTo(ox-3,0);x.lineTo(ox+3,0);x.lineTo(tx+60+r()*60,H*.85);x.lineTo(tx-60-r()*60,H*.85);x.fill()}
+ for(let i=0;i<5;i++)glowDot(x,r()*W,r()*H*.6,260+r()*200,`rgba(${cols[i%4]},A)`,.22);
+ x.strokeStyle='rgba(255,61,154,.5)';x.lineWidth=1.2;const fy=H*.72;
+ for(let i=-14;i<=14;i++){x.beginPath();x.moveTo(W/2+i*20,fy);x.lineTo(W/2+i*160,H);x.stroke()}
+ for(let i=0;i<9;i++){const y=fy+Math.pow(i/8,2)*(H-fy);x.beginPath();x.moveTo(0,y);x.lineTo(W,y);x.stroke()}
+ x.shadowColor='#ff3d9a';x.shadowBlur=40;x.fillStyle='#ffd6ee';x.font='800 150px Outfit,sans-serif';x.textAlign='center';x.fillText('NXGT',W/2,H*.5);
+ x.shadowColor='#00f2fe';x.shadowBlur=26;x.strokeStyle='#00f2fe';x.lineWidth=3;x.strokeRect(W/2-250,H*.5-150,500,190);x.shadowBlur=0;
+ x.globalCompositeOperation='source-over';x.fillStyle='#030108';
+ for(let i=0;i<46;i++){const px=r()*W,py=H*(.84+r()*.2),s=26+r()*20;x.beginPath();x.arc(px,py-s*1.6,s*.5,0,7);x.fill();x.fillRect(px-s*.7,py-s*1.15,s*1.4,s*3);
+   if(r()>.8){x.fillRect(px+s*.5,py-s*3.2,5,s*1.6)}}
+ return c}
+
+function paintMice(){
+ const [c,x]=mk(),r=rng(37);
+ let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#05081a');g.addColorStop(1,'#0a1430');x.fillStyle=g;x.fillRect(0,0,W,H);
+ const sx=W*.2,sy=H*.14,sw=W*.6,sh=H*.42;
+ x.globalCompositeOperation='lighter';glowDot(x,W/2,sy+sh/2,620,'rgba(0,160,255,A)',.35);x.globalCompositeOperation='source-over';
+ g=x.createLinearGradient(0,sy,0,sy+sh);g.addColorStop(0,'#071a3d');g.addColorStop(1,'#0a2b5e');x.fillStyle=g;x.fillRect(sx,sy,sw,sh);
+ x.strokeStyle='rgba(0,242,254,.9)';x.lineWidth=3;x.strokeRect(sx,sy,sw,sh);
+ const pts=[];for(let i=0;i<46;i++)pts.push([sx+30+r()*(sw-60),sy+24+r()*(sh-48)]);
+ x.lineWidth=1;pts.forEach((p,i)=>{pts.forEach((q,j)=>{const d=Math.hypot(p[0]-q[0],p[1]-q[1]);if(j>i&&d<150){x.strokeStyle=`rgba(0,242,254,${.55-d/300})`;x.beginPath();x.moveTo(...p);x.lineTo(...q);x.stroke()}})});
+ pts.forEach(p=>{x.fillStyle='#bff9ff';x.beginPath();x.arc(p[0],p[1],2.4,0,7);x.fill()});
+ x.globalCompositeOperation='lighter';
+ for(let i=0;i<10;i++){const bx=W*(.06+.88*i/9);x.fillStyle='rgba(255,255,255,.9)';x.fillRect(bx-3,0,6,H*.05);
+   const q=x.createLinearGradient(bx,H*.05,bx,H*.7);q.addColorStop(0,'rgba(120,190,255,.28)');q.addColorStop(1,'rgba(120,190,255,0)');x.fillStyle=q;x.beginPath();x.moveTo(bx-4,H*.05);x.lineTo(bx+4,H*.05);x.lineTo(bx+90,H*.7);x.lineTo(bx-90,H*.7);x.fill()}
+ x.globalCompositeOperation='source-over';
+ x.fillStyle='#04060f';x.fillRect(W*.1,sy+sh+18,W*.8,10);
+ for(let row=0;row<8;row++){const y=H*.68+row*row*3.5+row*10,n=10+row*3,sz=10+row*4.5;
+   for(let i=0;i<n;i++){const px=W*.05+(W*.9)*(i+.5)/n;x.fillStyle=`rgba(${6+row*3},${12+row*5},${30+row*8},1)`;x.beginPath();x.arc(px,y,sz*.5,Math.PI,0);x.fill();x.fillRect(px-sz*.5,y,sz,sz*.9)}}
+ return c}
+
+function paintSpatial(){
+ const [c,x]=mk(),r=rng(53);
+ let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#02030a');g.addColorStop(.55,'#0a1230');g.addColorStop(1,'#030510');x.fillStyle=g;x.fillRect(0,0,W,H);
+ for(let i=0;i<140;i++){x.fillStyle=`rgba(200,230,255,${r()*.6})`;x.fillRect(r()*W,r()*H*.5,1.3,1.3)}
+ x.globalCompositeOperation='lighter';glowDot(x,W*.5,H*.42,480,'rgba(79,172,254,A)',.4);
+ x.fillStyle='rgba(0,242,254,.9)';x.beginPath();x.arc(W*.5,H*.38,70,0,7);x.fill();
+ x.globalCompositeOperation='source-over';
+ const rows=26,hz=H*.46;
+ for(let k=rows;k>=0;k--){const t=k/rows,y=hz+Math.pow(t,2.1)*(H-hz),sc=.2+t*1.3;
+   x.beginPath();for(let i=0;i<=80;i++){const u=i/80,px=W*(u-.5)*(.5+t*2.4)+W/2;
+     const h=(Math.sin(u*9+k*.45)*.5+Math.sin(u*23-k*.2)*.25+Math.sin(u*4+1)*.6)*60*sc*Math.min(1,Math.abs(u-.5)*3.2);
+     i?x.lineTo(px,y-Math.max(0,h)):x.moveTo(px,y-Math.max(0,h))}
+   x.lineTo(W+400,H+40);x.lineTo(-400,H+40);x.closePath();x.fillStyle='#030514';x.fill();
+   x.strokeStyle=`rgba(${t*70|0},${200+t*40|0},255,${.25+t*.65})`;x.lineWidth=1+t*1.2;x.stroke()}
+ const n=[];for(let i=0;i<34;i++)n.push([r()*W,H*.06+r()*H*.34]);
+ x.globalCompositeOperation='lighter';
+ n.forEach((p,i)=>n.forEach((q,j)=>{const d=Math.hypot(p[0]-q[0],p[1]-q[1]);if(j>i&&d<230){x.strokeStyle=`rgba(0,242,254,${.5-d/520})`;x.lineWidth=1;x.beginPath();x.moveTo(...p);x.lineTo(...q);x.stroke()}}));
+ n.forEach(p=>{glowDot(x,p[0],p[1],20,'rgba(0,242,254,A)',.8);x.fillStyle='#fff';x.beginPath();x.arc(p[0],p[1],2.6,0,7);x.fill()});
+ return c}
+const PAINT={dusk:paintDusk,night:paintNight,mice:paintMice,spatial:paintSpatial};
+
+/* =========================================================
+   WebGL morph: noise-warp dissolve + circuit "connection"
+   lines stitched along the transition front
+   ========================================================= */
+const VS='attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
+const FS=`precision highp float;varying vec2 v;
+uniform sampler2D A,B;uniform float t,prog;uniform vec2 res,mouse;uniform float press;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
+float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*n(p);p*=2.03;a*=.5;}return s;}
+vec2 cover(vec2 uv){float ra=res.x/res.y,sa=${(W/H).toFixed(3)};vec2 k=ra>sa?vec2(1.,sa/ra):vec2(ra/sa,1.);return (uv-.5)*k+.5;}
+void main(){
+  float asp=res.x/res.y;vec2 uv=v;vec2 p=uv*vec2(asp,1.);
+  vec2 md=p-mouse*vec2(asp,1.);float mr=length(md);
+  uv+=normalize(md+1e-4)*sin(mr*34.-t*3.)*exp(-mr*5.)*(.005+.01*press);
+  float nn=fbm(p*2.2+t*.04);
+  float f=prog*1.55-(uv.x*.35+(1.-uv.y)*.15+nn*.5);
+  float m=smoothstep(0.,.38,f);
+  float edge=clamp(m*(1.-m)*4.,0.,1.);
+  vec2 d=vec2(nn-.5,fbm(p*2.2+7.)-.5)*.14;
+  vec2 ua=cover(uv+d*m),ub=cover(uv-d*(1.-m));
+  float ca=.006*edge+.0015;
+  vec3 a=vec3(texture2D(A,ua+vec2(ca,0.)).r,texture2D(A,ua).g,texture2D(A,ua-vec2(ca,0.)).b);
+  vec3 b=vec3(texture2D(B,ub+vec2(ca,0.)).r,texture2D(B,ub).g,texture2D(B,ub-vec2(ca,0.)).b);
+  vec3 col=mix(a,b,m);
+  vec2 q=p*28.*vec2(1.,1.);vec2 c=floor(q),fr=fract(q);float hh=h(c);
+  float dl=hh<.25?abs(fr.y-.5):hh<.5?abs(fr.x-.5):hh<.75?abs(fr.x-fr.y)*.72:abs(fr.x+fr.y-1.)*.72;
+  float line=smoothstep(.045,.0,dl);float node=smoothstep(.16,.07,length(fr-.5));
+  float act=step(h(c+3.1),edge*.95);
+  float pulse=.55+.45*sin(t*4.+hh*30.);
+  col+=vec3(0.,.95,1.)*(line*.8+node*1.3*pulse)*act*edge*1.15;
+  col+=vec3(.2,.5,1.)*edge*.08;
+  col*=1.-.38*length(v-.5);
+  col+=(h(v*res+t)-.5)*.03;
+  gl_FragColor=vec4(col,1.);
+}`;
+const GLs=[];
+class Morph{
+ constructor(canvas,opt={}){
+  this.cv=canvas;this.cur=0;this.nxt=0;this.prog=0;this.target=null;this.anim=false;this.manual=false;
+  this.mouse=[.5,.5];this.mt=[.5,.5];this.press=0;this.visible=true;this.onchange=opt.onchange;
+  const gl=this.gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'});
+  if(!gl){this.ok=false;canvas.style.background='radial-gradient(circle at 60% 40%,#1b3a6b,#0a0a0c 70%)';return}
+  this.ok=true;
+  const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.warn(gl.getShaderInfoLog(o));return o};
+  const pr=this.pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);gl.useProgram(pr);
+  const bf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  this.u={};['A','B','t','prog','res','mouse','press'].forEach(k=>this.u[k]=gl.getUniformLocation(pr,k));
+  gl.uniform1i(this.u.A,0);gl.uniform1i(this.u.B,1);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+  this.tex=SCENES.map(s=>{const T=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,T);
+    [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T].forEach(w=>gl.texParameteri(gl.TEXTURE_2D,w,gl.CLAMP_TO_EDGE));
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);return T});
+  // upgrade textures if remote images loaded
+  SCENES.forEach((s,i)=>s.ready&&s.ready.then(()=>{gl.bindTexture(gl.TEXTURE_2D,this.tex[i]);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas)}));
+  const el=opt.pointerEl||canvas;
+  el.addEventListener('pointermove',e=>{const b=canvas.getBoundingClientRect();this.mt=[(e.clientX-b.left)/b.width,1-(e.clientY-b.top)/b.height]});
+  el.addEventListener('pointerdown',()=>this.press=1);addEventListener('pointerup',()=>this.press=0);
+  new IntersectionObserver(es=>this.visible=es[0].isIntersecting).observe(canvas);
+  GLs.push(this);this.resize();
+ }
+ resize(){if(!this.ok)return;const d=Math.min(devicePixelRatio||1,1.6),w=this.cv.clientWidth*d|0,h=this.cv.clientHeight*d|0;
+  if(w&&h&&(this.cv.width!==w||this.cv.height!==h)){this.cv.width=w;this.cv.height=h;this.gl.viewport(0,0,w,h)}}
+ go(i,dur=2.1){if(i===this.cur&&!this.anim)return;if(this.anim||this.manual){this.target=i;return}
+  this.nxt=i;this.prog=0;this.p0=0;this.anim=true;this.t0=performance.now();this.dur=dur*1000;this.onchange&&this.onchange(i,'start')}
+ scrub(v){ // manual progress between cur and nxt
+  if(!this.manual){this.manual=true;this.anim=false;if(this.nxt===this.cur)this.nxt=(this.cur+1)%SCENES.length}
+  this.prog=v;if(v>=.999)this.finish();}
+ release(){this.manual=false}
+ finish(){this.cur=this.nxt;this.prog=0;this.anim=false;this.manual=false;this.onchange&&this.onchange(this.cur,'end');
+  if(this.target!==null){const t=this.target;this.target=null;if(t!==this.cur)this.go(t)}}
+ frame(now){
+  if(!this.ok||!this.visible)return;this.resize();const gl=this.gl;
+  if(this.anim&&!this.manual){const k=Math.min(1,(now-this.t0)/this.dur);const e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2,p0=this.p0||0;this.prog=p0+(1-p0)*e;if(k>=1)this.finish()}
+  this.mouse[0]+=(this.mt[0]-this.mouse[0])*.08;this.mouse[1]+=(this.mt[1]-this.mouse[1])*.08;
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.tex[this.cur]);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,this.tex[this.nxt]);
+  gl.uniform1f(this.u.t,now/1000);gl.uniform1f(this.u.prog,this.prog);gl.uniform2f(this.u.res,this.cv.width,this.cv.height);
+  gl.uniform2f(this.u.mouse,this.mouse[0],this.mouse[1]);gl.uniform1f(this.u.press,this.press);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+ }
+}
+
+// paint all scenes + optional remote upgrade
+SCENES.forEach(s=>{
+  s.canvas=PAINT[s.id]();
+  if(s.src){s.ready=new Promise(res=>{const im=new Image();im.crossOrigin='anonymous';
+    im.onload=()=>{const [c,x]=mk();const k=Math.max(W/im.width,H/im.height);x.drawImage(im,(W-im.width*k)/2,(H-im.height*k)/2,im.width*k,im.height*k);s.canvas=c;res()};
+    im.onerror=()=>{};im.src=s.src})}
+});
+
+/* hero */
+const heroEl=$('.hero');
+const bars=$('#heroBars'),DUR=6.5;
+SCENES.forEach((s,i)=>{const b=document.createElement('i');b.title=s.name;b.addEventListener('click',()=>{hero.go(i);resetAuto()});bars.appendChild(b)});
+function setTag(i){$('#tagName').textContent=SCENES[i].name;$('#tagSub').textContent=SCENES[i].sub;
+  $$('i',bars).forEach((b,k)=>{b.classList.remove('on');if(k===i){void b.offsetWidth;b.style.setProperty('--dur',DUR+'s');b.classList.add('on')}})}
+const hero=new Morph($('#heroMorph'),{pointerEl:heroEl,onchange:(i,ph)=>{if(ph==='start')setTag(i)}});
+setTag(0);
+let autoT;const auto=()=>{autoT=setTimeout(()=>{hero.go((hero.cur+1)%SCENES.length);auto()},DUR*1000)};
+const resetAuto=()=>{clearTimeout(autoT);if(!reduce)auto()};
+if(!reduce)auto();
+
+/* lab */
+const labEl=$('.stage'),chips=$('#chips'),typed=$('#typed');
+let typeTimer;
+function typeText(s){clearInterval(typeTimer);typed.textContent='';let i=0;typeTimer=setInterval(()=>{typed.textContent=s.slice(0,++i);if(i>=s.length)clearInterval(typeTimer)},16)}
+SCENES.forEach((s,i)=>{const b=document.createElement('button');b.className='chip'+(i?'':' on');b.type='button';
+  b.innerHTML=`<i>0${i+1}</i><div><span>${s.name}</span><small>${s.sub}</small></div>`;
+  b.onclick=()=>{lab.release();$('#scrub').value=0;lab.go(i)};chips.appendChild(b)});
+const lab=new Morph($('#labMorph'),{onchange:(i,ph)=>{
+  const show=ph==='start'?lab.nxt:i;
+  $$('.chip',chips).forEach((c,k)=>c.classList.toggle('on',k===show));
+  $('#labName').textContent=SCENES[show].name;typeText(SCENES[show].prompt);
+  if(ph==='end'&&!lab.manual)$('#scrub').value=0}});
+$('#labName').textContent=SCENES[0].name;typeText(SCENES[0].prompt);
+const scrub=$('#scrub');
+scrub.addEventListener('input',()=>{const v=scrub.value/1000;lab.scrub(v);$('#labPct').textContent=String(Math.round(v*100)).padStart(2,'0')+'%';
+  $('#labName').textContent=SCENES[v>.5?lab.nxt:lab.cur].name;
+  $$('.chip',chips).forEach((c,k)=>c.classList.toggle('on',k===(v>.5?lab.nxt:lab.cur)))});
+scrub.addEventListener('change',()=>{
+  if(lab.prog>.5){lab.manual=false;lab.anim=true;lab.p0=lab.prog;lab.t0=performance.now();lab.dur=900}
+  else{lab.manual=false;lab.anim=false;lab.nxt=lab.cur;lab.prog=0;scrub.value=0}
+  $('#labPct').textContent='00%'});
+// idle demo in lab
+let labAuto=setInterval(()=>{if(!reduce&&lab.visible&&!lab.anim&&!lab.manual&&!labEl.matches(':hover'))lab.go((lab.cur+1)%SCENES.length,2.4)},7500);
+
+/* render loop */
+function loop(now){GLs.forEach(g=>g.frame(now));requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+addEventListener('resize',()=>GLs.forEach(g=>g.resize()));
+
+/* =========================================================
+   Hero particle network (connections follow the pointer)
+   ========================================================= */
+(()=>{
+ const cv=$('#net'),x=cv.getContext('2d');let w,h,N,pts=[],mouse={x:-999,y:-999},dpr;
+ function init(){dpr=Math.min(devicePixelRatio||1,2);w=cv.width=cv.clientWidth*dpr;h=cv.height=cv.clientHeight*dpr;N=Math.min(95,Math.round(w*h/(dpr*dpr)/14000));
+  pts=Array.from({length:N},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.35*dpr,vy:(Math.random()-.5)*.35*dpr,r:(Math.random()*1.4+.6)*dpr}))}
+ init();addEventListener('resize',init);
+ heroEl.addEventListener('pointermove',e=>{const b=cv.getBoundingClientRect();mouse.x=(e.clientX-b.left)*dpr;mouse.y=(e.clientY-b.top)*dpr});
+ heroEl.addEventListener('pointerleave',()=>mouse.x=mouse.y=-999);
+ let vis=true;new IntersectionObserver(e=>vis=e[0].isIntersecting).observe(cv);
+ const D=140*(devicePixelRatio>1?1.5:1);
+ (function draw(){
+  if(vis){x.clearRect(0,0,w,h);
+   for(const p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;
+     const dx=p.x-mouse.x,dy=p.y-mouse.y,d=Math.hypot(dx,dy);if(d<220*dpr){p.x-=dx*.004;p.y-=dy*.004}}
+   const all=mouse.x>0?[...pts,{x:mouse.x,y:mouse.y,r:3*dpr,m:1}]:pts;
+   for(let i=0;i<all.length;i++){const a=all[i];
+     for(let j=i+1;j<all.length;j++){const b=all[j],d=Math.hypot(a.x-b.x,a.y-b.y),lim=(a.m||b.m)?240*dpr:D*dpr/ (devicePixelRatio>1?1.5:1)*1.1;
+       if(d<lim){x.strokeStyle=`rgba(0,242,254,${(1-d/lim)*((a.m||b.m)?.75:.32)})`;x.lineWidth=dpr*((a.m||b.m)?1.1:.7);x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke()}}
+     x.fillStyle=a.m?'#fff':'rgba(190,250,255,.85)';x.shadowColor='#00f2fe';x.shadowBlur=a.m?18:8;x.beginPath();x.arc(a.x,a.y,a.r,0,7);x.fill();x.shadowBlur=0}}
+  requestAnimationFrame(draw)})();
+})();
+
+/* =========================================================
+   Ecosystem constellation (SVG)
+   ========================================================= */
+(()=>{
+ const NS='http://www.w3.org/2000/svg',E=$('#edges'),Nd=$('#nodes');
+ const hub={id:'rd',x:550,y:260,r:54,t:'RD GLOBAL',s:'CONNECT · OPERATOR',c:'#00f2fe'};
+ const main=[
+  {id:'epc',x:200,y:150,r:40,t:'EPC',s:'EXPERIENCE PATTAYA CITY',c:'#00f2fe'},
+  {id:'besk',x:900,y:150,r:40,t:'BESK',s:'CREATIVE · BESK.AE',c:'#ff3d9a'},
+  {id:'nxgt',x:550,y:430,r:40,t:'NXGT',s:'NIGHTLIFE ENGINE',c:'#b388ff'}];
+ const sat=[
+  {p:'epc',x:70,y:260,t:'TAT'},{p:'epc',x:130,y:50,t:'DASTA'},{p:'epc',x:330,y:40,t:'TCEB'},
+  {p:'rd',x:350,y:300,t:'MICE'},{p:'rd',x:750,y:300,t:'DMC'},
+  {p:'besk',x:1030,y:260,t:'Gen-AI'},{p:'besk',x:970,y:50,t:'3D / WebGL'},{p:'besk',x:770,y:40,t:'Claude'},
+  {p:'nxgt',x:340,y:450,t:'Ticketing'},{p:'nxgt',x:770,y:450,t:'Omise'},
+  {p:'epc',x:250,y:380,t:'Royal Cliff'},{p:'epc',x:410,y:400,t:'PEACH'}];
+ const all=[hub,...main],byId=Object.fromEntries(all.map(n=>[n.id,n]));
+ const mkE=(a,b,dim,k)=>{const e=document.createElementNS(NS,'path');e.setAttribute('d',`M${a.x} ${a.y} Q${(a.x+b.x)/2} ${(a.y+b.y)/2-30} ${b.x} ${b.y}`);e.setAttribute('class','edge'+(dim?' dim':''));e.dataset.k=k;E.appendChild(e);
+   if(!dim){const c=document.createElementNS(NS,'circle');c.setAttribute('r',3.2);c.setAttribute('fill',b.c||'#00f2fe');c.setAttribute('filter','url(#blur)');
+     const m=document.createElementNS(NS,'animateMotion');m.setAttribute('dur',(3+Math.random()*3)+'s');m.setAttribute('repeatCount','indefinite');m.setAttribute('path',e.getAttribute('d'));c.appendChild(m);E.appendChild(c)}return e};
+ main.forEach(n=>mkE(hub,n,false,n.id));
+ mkE(main[0],main[2],true,'x');mkE(main[1],main[2],true,'x');mkE(main[0],main[1],true,'x');
+ sat.forEach((s,i)=>{const p=byId[s.p];mkE(p,s,true,s.p);
+   const g=document.createElementNS(NS,'g');g.innerHTML=`<circle cx="${s.x}" cy="${s.y}" r="5" fill="#0a0a0c" stroke="${p.c||'#00f2fe'}" stroke-width="1.5"/><text x="${s.x}" y="${s.y+(s.y<260?-14:22)}" text-anchor="middle" class="sub" style="font-size:12px;fill:#c9d0d9">${s.t}</text>`;Nd.appendChild(g)});
+ all.forEach(n=>{const g=document.createElementNS(NS,'g');g.setAttribute('class','node');g.dataset.id=n.id;
+   g.innerHTML=`<circle class="ring" cx="${n.x}" cy="${n.y}" r="${n.r}" fill="#0b0b10" stroke="${n.c}" stroke-width="1.5" style="filter:drop-shadow(0 0 14px ${n.c})"/>
+   <circle cx="${n.x}" cy="${n.y}" r="${n.r+16}" fill="none" stroke="${n.c}" stroke-opacity=".25"><animate attributeName="r" values="${n.r+6};${n.r+30};${n.r+6}" dur="${4+Math.random()*2}s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".4;0;.4" dur="5s" repeatCount="indefinite"/></circle>
+   <text x="${n.x}" y="${n.y+5}" text-anchor="middle" style="font-weight:700;font-size:${n.id==='rd'?15:17}px;letter-spacing:.06em">${n.t}</text>
+   <text x="${n.x}" y="${n.y+n.r+26}" text-anchor="middle" class="sub">${n.s}</text>`;
+   g.addEventListener('pointerenter',()=>{g.classList.add('act');$$('.edge').forEach(e=>{const hit=n.id==='rd'||e.dataset.k===n.id;e.style.opacity=hit?1:.15})});
+   g.addEventListener('pointerleave',()=>{g.classList.remove('act');$$('.edge').forEach(e=>e.style.opacity='')});
+   Nd.appendChild(g)});
+})();
+
+/* tech marquee */
+const tech=['Claude API','Multi-Agent','Prompt Architecture','Three.js','WebGL','GSAP','Omise','Headless CMS','Cloud','Spatial 3D','Localization'];
+$('#track').innerHTML=[...tech,...tech].map(t=>`<span>${t}</span>`).join('');
+
+/* contact */
+$$('.cat').forEach(b=>b.addEventListener('click',()=>{$$('.cat').forEach(c=>c.classList.remove('on'));b.classList.add('on');$('#catSel').value=b.dataset.v;
+  const o=[...$('#catSel').options].find(o=>o.textContent===b.dataset.v);if(o)o.selected=true}));
+$('#form').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);
+  const body=`Name: ${f.get('name')}\nOrganisation: ${f.get('org')}\nEmail: ${f.get('email')}\nCategory: ${f.get('cat')}\n\n${f.get('msg')}`;
+  location.href=`mailto:info@rdglobalconnect.com?subject=${encodeURIComponent('Inquiry — '+f.get('cat'))}&body=${encodeURIComponent(body)}`});
+
+/* UI chrome */
+const hd=$('#hd'),pg=$('#progress');
+addEventListener('scroll',()=>{hd.classList.toggle('s',scrollY>40);const m=document.documentElement.scrollHeight-innerHeight;pg.style.width=(m>0?scrollY/m*100:0)+'%'},{passive:true});
+addEventListener('pointermove',e=>{document.documentElement.style.setProperty('--mx',e.clientX+'px');document.documentElement.style.setProperty('--my',e.clientY+'px')});
+$('#burger').onclick=()=>$('#links').classList.toggle('open');
+$$('#links a').forEach(a=>a.addEventListener('click',()=>$('#links').classList.remove('open')));
+$$('.card').forEach(c=>c.addEventListener('pointermove',e=>{const b=c.getBoundingClientRect();c.style.setProperty('--cx',(e.clientX-b.left)+'px');c.style.setProperty('--cy2',(e.clientY-b.top)+'px')}));
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+$$('.rv').forEach(el=>io.observe(el));
+})();
+</script>
+</body>
+</html>
