@@ -1,0 +1,8 @@
+{
+  "name": "AvoidTheSnipers_Client",
+  "tree": {
+    "$className": "Folder",
+    "ClientMain": { "$path": "../../src/StarterPlayerScripts/ClientMain.client.lua" },
+    "Controllers": { "$path": "../../src/StarterPlayerScripts/Controllers" }
+  }
+}
