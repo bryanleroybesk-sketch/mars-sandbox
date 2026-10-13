@@ -1,0 +1,26 @@
+{
+  "agent_bridge.py": {
+    "mtime": 1791365671.9366937,
+    "seen": 1791888351.327563,
+    "ast_hash": "35e5f175588db20fa8bd3b1c4ccd8cd4",
+    "semantic_hash": ""
+  },
+  "GRAPH.md": {
+    "mtime": 1791888300.3786645,
+    "seen": 1791888351.3275697,
+    "ast_hash": "f77d6262f4e117aa819d8b94838c2217",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1791365671.9366937,
+    "seen": 1791888351.327573,
+    "ast_hash": "18ae96bce73a6c65fcafefbe5306014e",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1791365671.9406936,
+    "seen": 1791888351.3275747,
+    "ast_hash": "017e729e29ee4b1feacab54817a9d37b",
+    "semantic_hash": ""
+  }
+}
