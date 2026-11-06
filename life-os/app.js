@@ -36,6 +36,44 @@
   db.settings = Object.assign(defaults().settings, db.settings);
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch {} };
 
+  // Preview mode (window.LIFEOS_DEMO): fill an empty app with clearly-marked sample data.
+  if (window.LIFEOS_DEMO && !Object.keys(db.days).length && !db.goals.length) seedDemo();
+  function seedDemo() {
+    const p2 = (n) => String(n).padStart(2, '0');
+    let w = 78.6, seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const k = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+      w -= 0.06 + (rnd() - 0.5) * 0.35;
+      const today = i === 0;
+      db.days[k] = {
+        water: today ? 1250 : Math.round(1500 + rnd() * 1300), steps: Math.round(5200 + rnd() * 7800),
+        weight: Math.round(w * 10) / 10, sleep: Math.round((6.2 + rnd() * 2) * 10) / 10,
+        mood: 2 + Math.round(rnd() * 3), energy: 4 + Math.round(rnd() * 5),
+        time: { deep: Math.round(rnd() * 6) * 25, self: Math.round(rnd() * 3) * 15, partner: Math.round(rnd() * 4) * 30,
+                body: rnd() > 0.4 ? 45 : 0, rest: 30, fun: Math.round(rnd() * 3) * 30 },
+        spend: today ? [{ amt: 4.2, cat: 'Food', note: 'Coffee' }, { amt: 13.9, cat: 'Food', note: 'Lunch' }]
+                     : [{ amt: Math.round(rnd() * 3500) / 100, cat: ['Food', 'Transport', 'Fun', 'Self-growth', 'Partner', 'Health'][Math.floor(rnd() * 6)], note: '' }],
+        wins: today ? 'Finished the project proposal before lunch' : '', gratitude: '',
+        habits: { 'Meditate': rnd() > 0.4, 'Read 20 min': rnd() > 0.5, 'Workout': rnd() > 0.5 },
+        source: { steps: 'health', weight: 'health', sleep: 'health' },
+      };
+    }
+    db.settings.weightGoal = 74;
+    db.vision = 'In 2 years: fit and calm, living with my partner in a bright apartment, 6 months of savings, and running my own small business.';
+    db.goals = [
+      { id: 'g1', title: 'Run a half marathon', area: 'health', why: 'Feel strong and proud of my body', done: false,
+        tasks: [{ id: 't1', t: 'Buy running shoes', done: true }, { id: 't2', t: 'Run 3× per week for a month', done: true },
+                { id: 't3', t: 'Run 10 km without stopping', done: false }, { id: 't4', t: 'Sign up for a race', done: false }] },
+      { id: 'g2', title: 'Save €5,000 emergency fund', area: 'money', why: 'Peace of mind', done: false,
+        tasks: [{ id: 't5', t: 'Open a savings account', done: true }, { id: 't6', t: 'Auto-transfer €300 each payday', done: false }] },
+      { id: 'g3', title: 'Weekly date night', area: 'love', why: 'Keep our relationship a priority', done: false,
+        tasks: [{ id: 't7', t: 'Pick a fixed evening', done: true }, { id: 't8', t: 'Make a list of 10 date ideas', done: false }] },
+    ];
+    db.wheel = { health: 6, work: 7, money: 5, love: 8, social: 6, growth: 7, peace: 4, fun: 5 };
+    db.demo = true;
+  }
+
   // ---------- helpers ----------
   const $ = (s, el = document) => el.querySelector(s);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -73,7 +111,7 @@
     const sy = (v) => max === min ? H / 2 : H - 6 - ((v - min) / (max - min)) * (H - 12);
     const d = pts.map((p, i) => `${i ? 'L' : 'M'}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(' ');
     const last = pts[pts.length - 1];
-    return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}">
       <path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
       <circle cx="${sx(last[0])}" cy="${sy(last[1])}" r="3.5" fill="${color}"/></svg>`;
   }
@@ -113,8 +151,8 @@
       if (got.length) { toast(`Imported: ${got.join(', ')}`); render(); }
       else { toast('Clipboard had no Life OS data. Run the Health Shortcut first.'); go('settings'); }
     } catch {
-      const text = prompt('Paste the text from your Health Shortcut:');
-      if (text) { const got = applyImport(parseImport(text)); toast(got.length ? `Imported: ${got.join(', ')}` : 'Nothing recognised'); render(); }
+      go('settings'); toast('Paste the Shortcut text in the Health box');
+      setTimeout(() => $('#pasteIn')?.focus(), 50);
     }
   }
   // URL import: /?steps=8000&weight=72.4  or  /?import=lifeos:steps=8000;weight=72.4
@@ -369,7 +407,7 @@
     const rings = [2, 4, 6, 8, 10].map(v => `<polygon points="${AREAS.map((_, i) => pt(i, R * v / 10).join(',')).join(' ')}" fill="none" stroke="var(--line)"/>`).join('');
     const shape = AREAS.map(([k], i) => pt(i, R * (scores[k] || 0) / 10).join(',')).join(' ');
     const labels = AREAS.map(([, l], i) => { const [x, y] = pt(i, R + 18); return `<text x="${x}" y="${y}" font-size="10" fill="var(--muted)" text-anchor="middle" dominant-baseline="middle">${esc(l.split(' ')[0])}</text>`; }).join('');
-    return `<svg class="wheel" viewBox="0 0 300 300">${rings}<polygon points="${shape}" fill="color-mix(in srgb, var(--accent) 30%, transparent)" stroke="var(--accent)" stroke-width="2"/>${labels}</svg>`;
+    return `<svg class="wheel" viewBox="-40 0 380 300">${rings}<polygon points="${shape}" fill="color-mix(in srgb, var(--accent) 30%, transparent)" stroke="var(--accent)" stroke-width="2"/>${labels}</svg>`;
   }
 
   views.settings = () => {
@@ -398,7 +436,12 @@
         <li>Tap <b>⟳ Health</b> at the top of this app — it reads the clipboard and fills in today.</li>
       </ol>
       <p class="muted small">Also works on a computer with a link: <code>${esc(appUrl)}?steps=8000&amp;weight=72.4</code></p>
-      <button data-act="sync">Import from clipboard now</button>
+      <label for="pasteIn">Or paste the Shortcut text here</label>
+      <textarea id="pasteIn" placeholder="lifeos:steps=8432;weight=72.4;sleep=7.5"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="primary" data-act="pasteimport">Import pasted text</button>
+        <button data-act="sync">Read clipboard</button>
+      </div>
     </div>
 
     <div class="card">
@@ -421,7 +464,7 @@
   // ---------- render & routing ----------
   let current = 'today';
   function render() {
-    $('#view').innerHTML = views[current]();
+    $('#view').innerHTML = (db.demo ? `<div class="banner"><span>You're looking at <b>sample data</b>.</span><button data-act="cleardemo">Clear &amp; start fresh</button></div>` : '') + views[current]();
     $('#viewTitle').textContent = titles[current];
     $('#dateLabel').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
     document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === current));
@@ -434,6 +477,13 @@
 
   // ---------- actions ----------
   const findGoal = (id) => db.goals.find(g => g.id === id);
+  // In-page "tap again to confirm" (works everywhere, unlike confirm()).
+  function armed(b, label = 'Tap again to confirm') {
+    if (b.dataset.armed) return true;
+    b.dataset.armed = '1'; b.dataset.orig = b.textContent; b.textContent = label;
+    setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = b.dataset.orig; } }, 3000);
+    return false;
+  }
   const actions = {
     water: (b) => { const d = day(); d.water = Math.max(0, d.water + Number(b.dataset.v)); },
     mood: (b) => { day().mood = Number(b.dataset.v); },
@@ -457,7 +507,7 @@
     },
     deltask: (b) => { const g = findGoal(b.dataset.g); g.tasks = g.tasks.filter(t => t.id !== b.dataset.t); },
     togglegoal: (b) => { const g = findGoal(b.dataset.g); g.done = !g.done; if (g.done) toast('🎉 Goal achieved!'); },
-    delgoal: (b) => { if (confirm('Delete this goal?')) db.goals = db.goals.filter(g => g.id !== b.dataset.g); },
+    delgoal: (b) => { if (!armed(b)) return 'norender'; db.goals = db.goals.filter(g => g.id !== b.dataset.g); },
     snapwheel: () => { db.wheelHistory.push({ date: todayKey(), scores: { ...db.wheel } }); toast('Snapshot saved'); },
     fmins: (b) => { if (focus.running) return; db.settings.focusMinutes = Number(b.dataset.v); focus.remaining = null; },
     fstart: () => {
@@ -476,7 +526,12 @@
       return 'norender';
     },
     importfile: () => { $('#fileIn').click(); return 'norender'; },
-    wipe: () => { if (confirm('Erase ALL data on this device? Export a backup first.')) { db = defaults(); } },
+    wipe: (b) => { if (!armed(b, 'Tap again to erase everything')) return 'norender'; db = defaults(); toast('All data erased'); },
+    pasteimport: () => {
+      const got = applyImport(parseImport($('#pasteIn').value));
+      toast(got.length ? `Imported: ${got.join(', ')}` : 'No steps/weight/sleep found in that text');
+    },
+    cleardemo: () => { db = defaults(); toast('Sample data cleared — start logging!'); },
   };
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-act]'); if (!b) return;
