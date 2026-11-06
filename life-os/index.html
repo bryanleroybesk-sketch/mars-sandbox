@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Life OS</title>
+  <meta name="description" content="Personal life dashboard: health, focus, money, relationships and goals.">
+  <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+  <!-- Makes it open full-screen like a native app when added to the iPhone home screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Life OS">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow" id="dateLabel"></div>
+      <h1 id="viewTitle">Today</h1>
+    </div>
+    <button class="ghost" id="syncBtn" title="Import today's numbers from Apple Health (via Shortcut)">⟳ Health</button>
+  </header>
+
+  <main id="view"></main>
+
+  <nav class="tabbar">
+    <button data-tab="today" class="active"><span>●</span>Today</button>
+    <button data-tab="focus"><span>◎</span>Focus</button>
+    <button data-tab="money"><span>€</span>Money</button>
+    <button data-tab="goals"><span>▲</span>Goals</button>
+    <button data-tab="life"><span>✦</span>Life</button>
+    <button data-tab="settings"><span>⚙</span>More</button>
+  </nav>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
