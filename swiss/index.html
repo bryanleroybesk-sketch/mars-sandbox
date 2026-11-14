@@ -32,6 +32,7 @@ h2{font-size:clamp(2.4rem,6vw,5.4rem);font-weight:500;letter-spacing:-.04em;line
 #gl{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block}
 .nogl #gl{display:none}
 .fallback{display:none}
+.fallback i{display:block;position:absolute;left:14%;right:14%;height:17%;border-radius:16px;background:rgba(255,255,255,.62);border:1px solid rgba(17,17,17,.08)}.fallback i:nth-child(1){top:16%}.fallback i:nth-child(2){top:36%}.fallback i:nth-child(3){top:56%}.fallback i:nth-child(4){top:76%;background:rgba(165,138,92,.35)}
 .nogl .fallback{display:block;position:fixed;z-index:0;right:12%;top:50%;width:230px;height:470px;margin-top:-235px;border-radius:44px;background:linear-gradient(150deg,rgba(255,255,255,.8),rgba(220,214,203,.35));border:1px solid rgba(17,17,17,.12);backdrop-filter:blur(14px);box-shadow:0 30px 80px rgba(17,17,17,.12)}
 
 /* header */
@@ -178,7 +179,7 @@ footer{padding-block:36px 44px;border-top:1px solid var(--line);color:var(--mut)
 </div>
 
 <canvas id="gl" aria-hidden="true"></canvas>
-<div class="fallback" aria-hidden="true"></div>
+<div class="fallback" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 
 <header id="hd">
   <div class="wrap nav">
@@ -300,7 +301,7 @@ footer{padding-block:36px 44px;border-top:1px solid var(--line);color:var(--mut)
   <div class="wrap frow"><span>© 2026 RD Global Connect Co., Ltd.</span><span>Chonburi / Pattaya City, Thailand</span><span>info@rdglobalconnect.com</span></div>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
 (function(){
 'use strict';
@@ -374,6 +375,7 @@ function reveal(){if(started)return;started=true;var L=$('#loader');L.classList.
 })();
 
 /* ---------- 3D glass liquid phone ---------- */
+function start3D(){
 var cv=$('#gl'),T=window.THREE,renderer=null;
 try{ if(T) renderer=new T.WebGLRenderer({canvas:cv,antialias:true,alpha:false,powerPreference:'high-performance'}) }catch(e){renderer=null}
 if(!renderer){root.classList.add('nogl');return}
@@ -509,6 +511,10 @@ function frame(){
   renderer.render(scene,camera);
 }
 requestAnimationFrame(frame);
+}
+var FB=['https://unpkg.com/three@0.160.0/build/three.min.js','https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js'];
+function loadFB(i){if(window.THREE)return start3D();if(i>=FB.length){root.classList.add('nogl');return}var sc=document.createElement('script');sc.src=FB[i];sc.onload=function(){window.THREE?start3D():loadFB(i+1)};sc.onerror=function(){loadFB(i+1)};document.head.appendChild(sc)}
+loadFB(0);
 })();
 </script>
 
