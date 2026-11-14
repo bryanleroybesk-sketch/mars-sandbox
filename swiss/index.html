@@ -1,12 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>RD Global Connect Schweiz</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><title>RD Global Connect Schweiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js')</script>
 <style>
 /* Layout: International Typographic style. White ground, flush-left 12-column grid, very large Inter headlines, hairline rules between every row, small spaced labels and light numerals. One quiet taupe accent, no imagery, no 3D. Single light look by design. */
 :root{
@@ -47,8 +43,21 @@ header.s{border-color:var(--line)}
 .burger{display:none;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;padding:0}
 .burger span{display:block;width:16px;height:1.5px;background:var(--ink);margin:4px auto}
 
+/* scroll stage: a pinned canvas plays the Blender frames while text steps fade in and out */
+.stage{position:relative;height:800vh}
+.pin{position:sticky;top:0;height:100vh;overflow:hidden;background:#ebebe9}
+#seq{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pin::after{content:"";position:absolute;left:0;right:0;bottom:0;height:14vh;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff);pointer-events:none}
+.st{position:absolute;left:max(20px,calc((100vw - 1240px)/2));top:50%;width:min(560px,calc(100vw - 40px));transform:translateY(-50%);opacity:0;pointer-events:none;display:grid;gap:22px}
+.st.on{pointer-events:auto}
+.st h1{font-size:clamp(3rem,7.4vw,7.6rem);font-weight:500;letter-spacing:-.055em;line-height:.95;text-wrap:balance}
+.st h2{font-size:clamp(2.4rem,5.4vw,5rem)}
+.rail{position:absolute;left:max(20px,calc((100vw - 1240px)/2));bottom:34px;display:flex;gap:18px;font-size:.7rem;letter-spacing:.14em;color:#9a958d;list-style:none;margin:0;padding:0;z-index:2}
+.rail li{transition:color .3s}.rail li.on{color:var(--ink)}
+.bar{position:absolute;left:max(20px,calc((100vw - 1240px)/2));bottom:62px;height:6px;width:44px;background:var(--ink);transform-origin:left;transform:scaleX(var(--p,0.1));border-radius:1px;z-index:2}
 /* hero */
 .hero{padding-top:72px}
+.nohero{display:none}
 .strip{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-block:22px;border-bottom:1px solid var(--line)}
 .hero h1{font-size:clamp(3rem,8.6vw,8.8rem);font-weight:500;letter-spacing:-.055em;line-height:.94;margin-block:clamp(28px,6vh,72px) clamp(28px,5vh,60px);max-width:12.5ch;text-wrap:balance}
 .hero-grid{display:grid;grid-template-columns:5fr 4fr;gap:clamp(24px,8vw,120px);align-items:start;padding-block:32px 96px;border-top:1px solid var(--line)}
@@ -146,6 +155,8 @@ footer{padding-block:34px 44px;border-top:1px solid var(--ink);color:var(--mut);
   .links .lang{align-self:flex-start;margin-top:16px}
   .links .pill{margin-top:14px;justify-content:center}
   .burger{display:block}
+  .st{top:auto;bottom:86px;transform:none;padding:22px;border-radius:22px;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .st h1{font-size:clamp(2.6rem,12vw,3.6rem)}.st h2{font-size:clamp(2rem,9vw,2.8rem)}
   .hero-grid,.row,.contact,.lead-sec{grid-template-columns:1fr}
   .hero-grid{padding-bottom:64px}
   .items li{grid-template-columns:1fr;gap:4px}
@@ -161,14 +172,6 @@ footer{padding-block:34px 44px;border-top:1px solid var(--ink);color:var(--mut);
 }
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
-</head>
-<body>
-
-
-
-
-<script>document.documentElement.classList.add('js')</script>
-
 
 <div id="loader" aria-hidden="true">
   <svg class="mark" viewBox="0 0 2000 1236"><path class="r" d="M90 22H890C1100 22 1290 190 1310 380L1316 520C1316 700 1190 790 1065 828C1050 833 1050 848 1058 856L1388 1212H1022C1005 1212 995 1205 985 1192L470 583C462 573 470 566 485 566H828C900 566 975 500 978 420C975 350 910 293 835 293H290C275 293 265 287 255 275L75 52C66 40 72 22 90 22Z"/><path class="r" d="M95 378C105 376 112 380 118 387L370 708C380 720 386 735 385 752L350 1190C348 1205 340 1212 328 1212H205C180 1212 160 1200 148 1185L35 1040C20 1022 12 1005 14 985L80 395C82 385 88 379 95 378Z"/><path class="d" d="M1115 22H1450C1700 22 1905 200 1943 410L1985 760C1992 1010 1790 1212 1540 1212H1455L1168 903H1465C1580 903 1660 815 1655 712L1635 460C1625 360 1545 297 1450 297H1348C1320 190 1230 85 1115 22Z"/></svg>
@@ -197,18 +200,36 @@ footer{padding-block:34px 44px;border-top:1px solid var(--ink);color:var(--mut);
 </header>
 
 <main id="top">
-  <section class="hero">
-    <div class="wrap">
-      <div class="strip label"><span>RD Global Connect Co., Ltd.</span><span data-i18n="h_l">Chon Buri, Thailand</span></div>
-      <h1 class="rise" data-i18n="h_h">Where connections become power.</h1>
-      <div class="hero-grid">
-        <p class="lead rise" data-i18n="h_p">RD Global Connect links destinations, institutions, technology and people, and runs the operation on the ground. We take on the hard part so your plans actually happen.</p>
-        <nav class="index rise" aria-label="Sections">
-          <a href="#power"><span>01</span><b data-i18n="nav1" style="font-weight:500">Power</b><i>↘</i></a>
-          <a href="#connections"><span>02</span><b data-i18n="nav2" style="font-weight:500">Connections</b><i>↘</i></a>
-          <a href="#innovation"><span>03</span><b data-i18n="nav3" style="font-weight:500">Innovation</b><i>↘</i></a>
-        </nav>
+  <section class="stage" id="stage" aria-label="Introduction">
+    <div class="pin">
+      <canvas id="seq" aria-hidden="true"></canvas>
+      <div class="st" data-a="0" data-b="0.95">
+        <p class="label"><span>RD Global Connect Co., Ltd.</span> · <span data-i18n="h_l">Chon Buri, Thailand</span></p>
+        <h1 data-i18n="h_h">Where connections become power.</h1>
+        <p class="lead" data-i18n="h_p">RD Global Connect links destinations, institutions, technology and people, and runs the operation on the ground. We take on the hard part so your plans actually happen.</p>
       </div>
+      <div class="st" data-a="1.1" data-b="1.95">
+        <p class="label"><b>01</b> · <span data-i18n="s1_l">Power</span></p>
+        <h2 data-i18n="s1_h">We carry it out on the ground.</h2>
+        <p class="lead" data-i18n="s1_p">Destination management, ground logistics, event production, and the venue and vendor contracts behind them. Plans are easy. Execution is what we do.</p>
+      </div>
+      <div class="st" data-a="2.55" data-b="3.45">
+        <p class="label"><b>02</b> · <span data-i18n="z1_l">Switzerland</span></p>
+        <h2 data-i18n="z1_h">Your market. Our standard.</h2>
+        <p class="lead" data-i18n="z1_p">We plan and run operations to Swiss expectations: precise, reliable and accountable from the first step to the last.</p>
+      </div>
+      <div class="st" data-a="4.25" data-b="5.15">
+        <p class="label"><b>03</b> · <span data-i18n="z2_l">Thailand</span></p>
+        <h2 data-i18n="z2_h">Our ground.</h2>
+        <p class="lead" data-i18n="z2_p">Based in Chon Buri and operating from Pattaya: destination management, logistics and events, carried out on site.</p>
+      </div>
+      <div class="st" data-a="5.95" data-b="7.1">
+        <p class="label"><b>04</b> · <span data-i18n="z3_l">Dubai</span></p>
+        <h2 data-i18n="z3_h">Connected further.</h2>
+        <p class="lead" data-i18n="z3_p">Together with BESK Creative, our network reaches beyond Thailand, from creative production to technology.</p>
+      </div>
+      <i class="bar" id="bar"></i>
+      <ol class="rail" aria-hidden="true"><li class="on">001</li><li>002</li><li>003</li><li>004</li><li>005</li></ol>
     </div>
   </section>
 
@@ -351,7 +372,8 @@ n1:'KI-Abläufe',n1p:'Automatisierung, die manuelle Schritte aus dem Betriebsall
 n2:'3D & Kreation',n2p:'Interaktive und filmische Arbeiten, gemeinsam mit BESK Creative entwickelt.',
 n3:'Massgeschneiderte Apps',n3p:'Apps, gebaut nach der Arbeitsweise Ihres Teams.',
 n4:'Plattformen',n4p:'Destinations- und Business-Plattformen, durchgängig betrieben.',
-w_l:'Im Einsatz',w_h:'Echte Plattformen. Echter Betrieb.',w_p:'Wählen Sie ein Projekt in der Liste.',
+z1_l:'Schweiz',z1_h:'Ihr Markt. Unser Standard.',z1_p:'Wir planen und führen Einsätze nach Schweizer Ansprüchen: präzise, verlässlich und nachvollziehbar vom ersten bis zum letzten Schritt.',z2_l:'Thailand',z2_h:'Unser Boden.',z2_p:'Mit Sitz in Chon Buri und Einsatz von Pattaya aus: Destinationsmanagement, Logistik und Events, vor Ort umgesetzt.',z3_l:'Dubai',z3_h:'Weiter verbunden.',z3_p:'Gemeinsam mit BESK Creative reicht unser Netzwerk über Thailand hinaus, von kreativer Produktion bis zur Technologie.',
+  w_l:'Im Einsatz',w_h:'Echte Plattformen. Echter Betrieb.',w_p:'Wählen Sie ein Projekt in der Liste.',
 p1c:'Destinationsplattform · Betriebspartner',p1d:'Der Betriebspartner vor Ort für die Destinationsplattform von Pattaya, der Markenvorgaben und Konzepte in die Umsetzung bringt.',
 p2c:'Kreation & Technologie',p2d:'Kreative Leitung, Medienproduktion und technische Mitentwicklung, geleitet von Bryan LeRoy.',
 p3c:'Lern-App',p3d:'Eine Lern-App, die Menschen Schritt für Schritt führt und ihren Fortschritt an einem Ort speichert.',
@@ -397,20 +419,54 @@ $('#form').addEventListener('submit',function(e){e.preventDefault();
   n.textContent=lang==='de'?'Ihre Anfrage ist bereit. Bitte senden Sie sie an info@rdglobalconnect.com.':'Your inquiry is ready. Please email it to info@rdglobalconnect.com.';
   try{location.href='mailto:info@rdglobalconnect.com?subject='+encodeURIComponent('Inquiry')+'&body='+encodeURIComponent(nm+'\n'+$('#f-co').value+'\n'+em+'\n\n'+m)}catch(x){}});
 
-/* ---------- loader (logo wipes in, counter, curtain) ---------- */
+/* ---------- scroll sequence (Blender frames) ---------- */
+var FR=144,frames=new Array(FR),loaded=0,ready=false;
+var cv=$('#seq'),ctx=cv.getContext('2d'),stage=$('#stage'),bar=$('#bar'),steps=$$('.st'),rail=$$('.rail li');
+var KP=[[0,0],[1,36],[1.9,46],[2.5,78],[3.5,90],[4.2,108],[5.2,118],[5.9,134],[7,143]];
+function fOf(p){if(p<=0)return 0;for(var i=0;i<KP.length-1;i++){var a=KP[i],b=KP[i+1];if(p<=b[0])return a[1]+(b[1]-a[1])*((p-a[0])/(b[0]-a[0]))}return FR-1}
+function sm(t){t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)}
+var W=0,H=0,dpr=1,cur=-1,tgt=0,shown=0;
+function size(){dpr=Math.min(devicePixelRatio||1,1.5);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;cur=-1}
+function draw(f){
+  var a=Math.floor(f),b=Math.min(a+1,FR-1),k=f-a,A=frames[a],B=frames[b];
+  if(!A||!A.complete||!A.naturalWidth)return;
+  var iw=A.naturalWidth,ih=A.naturalHeight,vw=cv.width,vh=cv.height,ar=vw/vh,ia=iw/ih,sw,sh,sx,sy;
+  if(ar<ia){sh=ih;sw=ih*ar;sx=Math.max(0,Math.min(iw-sw,iw*0.6-sw/2));sy=0}else{sw=iw;sh=iw/ar;sx=0;sy=(ih-sh)/2}
+  ctx.globalAlpha=1;ctx.drawImage(A,sx,sy,sw,sh,0,0,vw,vh);
+  if(k>0.02&&B&&B.complete&&B.naturalWidth){ctx.globalAlpha=k;ctx.drawImage(B,sx,sy,sw,sh,0,0,vw,vh);ctx.globalAlpha=1}
+}
+function sync(){
+  var r=stage.getBoundingClientRect(),vh=innerHeight,p=Math.max(0,Math.min(7,-r.top/vh));
+  tgt=fOf(p);
+  steps.forEach(function(el){var a=+el.dataset.a,b=+el.dataset.b,m=.22,o=Math.min(sm((p-a)/m),1-sm((p-b+m)/m));
+    if(+el.dataset.a===0)o=1-sm((p-b+m)/m);if(+el.dataset.b>=7)o=sm((p-a)/m);
+    el.style.opacity=o.toFixed(3);el.style.transform=innerWidth<=860?'translateY('+((1-o)*18).toFixed(1)+'px)':'translateY(calc(-50% + '+((1-o)*22).toFixed(1)+'px))';el.classList.toggle('on',o>.5)});
+  var act=p<1?0:p<2.3?1:p<3.9?2:p<5.55?3:4;rail.forEach(function(li,i){li.classList.toggle('on',i<=act&&i===act)});
+  bar.style.setProperty('--p',(0.1+0.9*(p/7)).toFixed(3));
+}
+function loop(){
+  shown+=(tgt-shown)*0.14;if(Math.abs(tgt-shown)<0.01)shown=tgt;
+  if(ready&&Math.abs(shown-cur)>0.001){draw(shown);cur=shown}
+  requestAnimationFrame(loop)}
+addEventListener('scroll',sync,{passive:true});addEventListener('resize',function(){size();sync()});size();sync();requestAnimationFrame(loop);
+
+/* ---------- loader: counts real frame loading, logo wipes in, curtain lifts ---------- */
 var started=false;
-function reveal(){if(started)return;started=true;var L=$('#loader');L.classList.add('out');root.classList.remove('lock');root.classList.add('ready');document.body.classList.add('ready');setTimeout(function(){L.style.display='none'},1100)}
+function reveal(){if(started)return;started=true;ready=true;size();cur=-1;sync();var L=$('#loader');L.classList.add('out');root.classList.remove('lock');root.classList.add('ready');document.body.classList.add('ready');setTimeout(function(){L.style.display='none'},1100)}
 (function(){
   if(!root.classList.contains('js'))return;
   root.classList.add('lock');
-  var n=$('#lnum'),bar=$('#lbar'),t0=performance.now(),D=reduce?200:2400;
-  (function tick(now){var k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,2.4),v=Math.round(e*100);
-    n.textContent=v;bar.style.setProperty('--p',v+'%');
-    if(k<1)requestAnimationFrame(tick);else setTimeout(reveal,240)})(t0);
-  setTimeout(reveal,6000);
+  var n=$('#lnum'),barl=$('#lbar'),t0=performance.now(),shownP=0,minMs=reduce?200:2400,idx=0,doneAll=false;
+  function onLoad(){loaded++;if(loaded>=FR)doneAll=true}
+  function next(){if(idx>=FR)return;var i=idx++,im=new Image();im.onload=im.onerror=function(){onLoad();next()};im.src='frames/f'+('00'+i).slice(-3)+'.jpg';frames[i]=im}
+  for(var c=0;c<6;c++)next();
+  (function tick(now){
+    var real=loaded/FR,time=Math.min(1,(now-t0)/minMs),target=Math.min(real,time);
+    shownP+=(target-shownP)*0.2;var v=Math.round(shownP*100);n.textContent=v;barl.style.setProperty('--p',v+'%');
+    if((doneAll&&time>=1&&shownP>.985)){n.textContent=100;barl.style.setProperty('--p','100%');setTimeout(reveal,240);return}
+    requestAnimationFrame(tick)})(t0);
+  setTimeout(function(){if(!started){reveal()}},30000);
 })();
 })();
 </script>
-
-</body>
-</html>
+</body></html>
