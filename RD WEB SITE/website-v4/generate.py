@@ -305,7 +305,7 @@ FOOT = '''<footer><div class="wrap"><div class="f">
 <div><h4>RD Global Connect Co., Ltd.</h4><p style="margin:0;max-width:34ch">Destination management, ground logistics, event and film production. Operating partner of Experience Pattaya City.</p></div>
 <div><h4>Pages</h4><a href="services.html">Services</a><a href="film.html">Film production</a><a href="work.html">Work</a><a href="about.html">About</a><a href="contact.html">Contact</a></div>
 <div><h4>Base</h4><span>Nong Prue, Bang Lamung<br>Chon Buri, Thailand<br><a href="mailto:info@rdglobalconnect.com" style="display:inline">info@rdglobalconnect.com</a></span></div></div>
-<div class="c">© RD Global Connect Co., Ltd. · Power · Connections · Innovation</div></div></footer>'''
+<div class="c">© RD Global Connect Co., Ltd. · Together with besk.ae · Power · Connections · Innovation</div></div></footer>'''
 
 def page(fn, title, body, active):
     head = ('<title>%s</title><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover">'
@@ -384,7 +384,7 @@ film = pagehead('Film production', 'The ground behind the picture', 'A productio
 
 # ---------- WORK ----------
 WK = [('Experience Pattaya City', 'Operating partner', 'The city visitor experience, operated on the ground by RD Global Connect.'),
-      ('BESK Creative', 'Sister company', 'Creative and technology studio, our sister company.'),
+      ('BESK Creative', 'Sister company', 'Creative and technology studio at besk.ae, working together with RD Global Connect.'),
       ('WAWA', 'Learning app', 'A learning application designed and built by our team.'),
       ('CLO', 'Application', 'A custom application built for its operator.'),
       ('Pulverlaguer', 'Application', 'A custom application built for the Pulverlaguer project.')]
@@ -397,8 +397,8 @@ about = pagehead('About', 'RD Global Connect', 'Power, connections, innovation. 
 <div class="txt2"><p>RD Global Connect Co., Ltd. is registered in Nong Prue, Bang Lamung District, Chon Buri Province, Thailand. We are the operating partner on the ground for Experience Pattaya City.</p>
 <p>Our services cover destination management, ground logistics, event and film production, vendor and venue contracts and government liaison with TCEB, TAT and DASTA. We also build applications, including WAWA, CLO, Experience Pattaya City and the Pulverlaguer app.</p>
 <p>We work for partners in Thailand and plan to Swiss expectations of precision, reliability and accountability, with a network that reaches Dubai.</p></div></div>
-<div class="split" style="margin-top:80px"><div><span class="k">Leadership</span><h2>One team, led from Chon Buri.</h2></div>
-<div><p class="txt2" style="margin:0 0 22px">RD Global Connect works alongside BESK Creative, its sister company. Together they combine operations and creative technology.</p>
+<div class="split" style="margin-top:80px"><div><span class="k">Leadership</span><h2>Together with BESK.</h2></div>
+<div><p class="txt2" style="margin:0 0 22px">RD Global Connect works together with BESK (<a href="https://besk.ae" target="_blank" rel="noopener" style="border-bottom:1px solid var(--line)">besk.ae</a>). Together the two companies combine operations on the ground with creative production and technology.</p>
 <dl class="dl"><div><dt>Company</dt><dd>RD Global Connect Co., Ltd.</dd></div><div><dt>Registered</dt><dd>Nong Prue, Bang Lamung, Chon Buri</dd></div><div><dt>Role</dt><dd>Operating partner, Experience Pattaya City</dd></div><div><dt>Liaison</dt><dd>TCEB · TAT · DASTA</dd></div><div><dt>Markets</dt><dd>Thailand · Switzerland · UAE</dd></div></dl></div></div>
 </div></section>'''
 
