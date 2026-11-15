@@ -100,6 +100,7 @@ html.pt-start #pt.out b{opacity:0;transition:opacity .3s}
 .o3{background:conic-gradient(#0e1a2c,#9aa7ba,#f2f5f8,#46566e,#0e1a2c);-webkit-mask:radial-gradient(circle,#000 60%,transparent 72%);mask:radial-gradient(circle,#000 60%,transparent 72%);animation:spin 8s linear infinite reverse}
 .o4{background:radial-gradient(circle at 38% 30%,#f2f5f8,#8b99ae 46%,#16243a);border-radius:60% 40% 30% 70%/60% 30% 70% 40%;animation:morph 7s ease-in-out infinite alternate,spin 28s linear infinite}
 .o5{background:repeating-radial-gradient(circle,rgba(255,255,255,0) 0 20px,rgba(196,208,226,.7) 26px 36px,rgba(255,255,255,0) 42px 62px);-webkit-mask:radial-gradient(circle,#000 52%,transparent 72%);mask:radial-gradient(circle,#000 52%,transparent 72%);animation:ping 6s ease-in-out infinite}
+#oc{position:absolute;inset:0;width:100%;height:100%;display:none;pointer-events:none}.ostage.gl #oc{display:block}.ostage.gl .og{display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes breathe{0%,100%{scale:1}50%{scale:1.1}}
 @keyframes sway{from{transform:translateX(-12%) scale(1)}to{transform:translateX(12%) scale(1.1)}}
@@ -236,13 +237,55 @@ addEventListener('scroll',function(){var m=d.documentElement.scrollHeight-innerH
 var ol=d.getElementById('ol'),ost=d.getElementById('ost');
 if(ol&&ost){
   var rows=[].slice.call(ol.querySelectorAll('li')),orbs=[].slice.call(ost.querySelectorAll('.o')),cur=0,auto=!reduce,tm;
+  /* presets: A=(R,w,soft,wobble) B=(swirl,rings,dark,coreR) fill */
+  var PRE=[[.54,.09,.09,.3, .25,0,0,.5, 0],[0,0,.2,.15, 0,0,.9,.55, 1],[.36,.3,.12,.6, 0,0,.6,.5, 0],[.3,.34,.12,.3, 1.6,0,0,.5, 0],[0,0,.2,1.0, .3,0,0,.55, 1],[.5,.55,.14,.35, 0,7,0,.5, 0]];
   function setO(i){cur=i;rows.forEach(function(r,k){r.classList.toggle('on',k===i)});orbs.forEach(function(o,k){o.classList.toggle('on',k===i)})}
   function cycle(){clearInterval(tm);if(auto)tm=setInterval(function(){setO((cur+1)%rows.length)},5200)}
   rows.forEach(function(r,i){var b=r.querySelector('button');['click','focus'].forEach(function(ev){b.addEventListener(ev,function(){auto=false;clearInterval(tm);setO(i)})});b.addEventListener('pointerenter',function(){auto=false;clearInterval(tm);setO(i)})});
-  var sec=ost.closest('.orbsec');
-  sec.addEventListener('pointermove',function(e){var r=ost.getBoundingClientRect();ost.style.setProperty('--mx',Math.max(-1,Math.min(1,(e.clientX-r.left)/r.width-.5)*2).toFixed(3));ost.style.setProperty('--my',Math.max(-1,Math.min(1,(e.clientY-r.top)/r.height-.5)*2).toFixed(3))});
-  sec.addEventListener('pointerleave',function(){ost.style.setProperty('--mx',0);ost.style.setProperty('--my',0)});
+  var sec=ost.closest('.orbsec'),tx=0,ty=0,hov=0,pulse=0;
+  sec.addEventListener('pointermove',function(e){var r=ost.getBoundingClientRect(),m=Math.min(r.width,r.height)/2;tx=(e.clientX-(r.left+r.width/2))/m*.85;ty=-(e.clientY-(r.top+r.height/2))/m*.85;hov=1;var x=Math.max(-1,Math.min(1,(e.clientX-r.left)/r.width-.5)*2),y=Math.max(-1,Math.min(1,(e.clientY-r.top)/r.height-.5)*2);ost.style.setProperty('--mx',x.toFixed(3));ost.style.setProperty('--my',y.toFixed(3))});
+  sec.addEventListener('pointerleave',function(){hov=0;tx=ty=0;ost.style.setProperty('--mx',0);ost.style.setProperty('--my',0)});
+  sec.addEventListener('pointerdown',function(){pulse=1});
   cycle();
+  /* WebGL: a soft shape that reshapes itself around the pointer */
+  var cv=d.getElementById('oc'),gl=null;try{gl=cv.getContext('webgl',{premultipliedAlpha:true,alpha:true,antialias:false})}catch(e){}
+  if(gl){
+    var vs='attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
+    var fs='precision highp float;uniform vec2 uRes,uM,uV;uniform float uT,uH,uPulse,uFill;uniform vec4 uA,uB;'+
+    'void main(){vec2 p=(gl_FragCoord.xy-.5*uRes)/(.5*min(uRes.x,uRes.y))*.85;float t=uT;'+
+    'vec2 dm=p-uM;float g=exp(-dot(dm,dm)*3.2)*uH;p-=dm*g*.42;'+
+    'float an=length(uV)*5.0*g;float cs=cos(an),sn=sin(an);vec2 q=p-uM;p=uM+mat2(cs,-sn,sn,cs)*q;'+
+    'p+=.05*vec2(sin(p.y*3.1+t*.8),cos(p.x*2.7+t*.9));'+
+    'float r=length(p),a=atan(p.y,p.x);float rr0=length(p);float wob=(uA.w+uPulse*.6)*smoothstep(.0,.38,rr0);'+
+    'r+=wob*.07*sin(a*3.+t*.9)+wob*.045*sin(a*5.-t*1.2)+wob*.03*sin(a*2.+t*.5);'+
+    'a+=uB.x*r*2.+t*.15;'+
+    'float R=uA.x,w=uA.y,so=uA.z;float ring=1.-smoothstep(w,w+so,abs(r-R));'+
+    'float rip=.5+.5*cos((r-R)*uB.y*5.6-t*1.6);ring*=mix(1.,rip,step(.5,uB.y));'+
+    'float core=uFill*(1.-smoothstep(uB.w*.6,uB.w+so,r));float I=max(ring,core);'+
+    'float L=.5+.5*cos(a+uB.x*r*3.+.8);L=mix(.7,L,smoothstep(.0,.4,r));float v=clamp(I*(.4+.62*L),0.,1.);'+
+    'vec3 c=mix(vec3(.16,.23,.33),vec3(.56,.62,.71),smoothstep(0.,.6,v));c=mix(c,vec3(.95,.96,.98),smoothstep(.55,1.,v));'+
+    'c=mix(c,vec3(.03,.06,.12),uB.z*(1.-smoothstep(0.,uB.w*.9,r))*core);'+
+    'float al=smoothstep(.02,.45,I);gl_FragColor=vec4(c*al,al);}';
+    function sh(t,src){var o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);return o}
+    var pg=gl.createProgram();gl.attachShader(pg,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pg,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pg);
+    if(gl.getProgramParameter(pg,gl.LINK_STATUS)){
+      gl.useProgram(pg);var bf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+      var al=gl.getAttribLocation(pg,'a');gl.enableVertexAttribArray(al);gl.vertexAttribPointer(al,2,gl.FLOAT,false,0,0);
+      var U={};['uRes','uM','uV','uT','uH','uPulse','uFill','uA','uB'].forEach(function(n){U[n]=gl.getUniformLocation(pg,n)});
+      gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.clearColor(0,0,0,0);
+      ost.classList.add('gl');
+      var P=PRE[0].slice();var mx=0,my=0,vx=0,vy=0,hv=0,vis=true,t0=performance.now(),dpr=Math.min(devicePixelRatio||1,1.5);
+      function fit(){var w=Math.round(cv.clientWidth*dpr),h=Math.round(cv.clientHeight*dpr);if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}gl.viewport(0,0,cv.width,cv.height)}
+      new IntersectionObserver(function(es){vis=es[0].isIntersecting}).observe(ost);
+      var last=performance.now();(function loop(now){requestAnimationFrame(loop);if(!vis){last=now;return}fit();var dt=Math.min(.25,Math.max(.001,(now-last)/1000));last=now;var f=function(r){return 1-Math.exp(-dt*r)};
+        var T=PRE[cur],kp=f(3.2);for(var k=0;k<9;k++)P[k]+=(T[k]-P[k])*kp;
+        var km=f(5.5),nx=mx+(tx-mx)*km,ny=my+(ty-my)*km;vx+=((nx-mx)/dt*.016-vx)*f(15);vy+=((ny-my)/dt*.016-vy)*f(15);mx=nx;my=ny;hv+=(hov-hv)*f(3.5);pulse*=Math.exp(-dt*3);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniform2f(U.uRes,cv.width,cv.height);gl.uniform2f(U.uM,mx,my);var vl=Math.sqrt(vx*vx+vy*vy),vk=vl>.15?.15/vl:1;gl.uniform2f(U.uV,vx*vk,vy*vk);gl.uniform1f(U.uT,reduce?0:(now-t0)/1000);gl.uniform1f(U.uH,hv);gl.uniform1f(U.uPulse,pulse);gl.uniform1f(U.uFill,P[8]);
+        gl.uniform4f(U.uA,P[0],P[1],P[2],P[3]);gl.uniform4f(U.uB,P[4],P[5],P[6],P[7]);
+        gl.drawArrays(gl.TRIANGLE_STRIP,0,4)})(performance.now());
+    }else{gl=null}
+  }
 }
 /* copy */
 var cp=d.getElementById('cp'),em=d.getElementById('em');
@@ -293,7 +336,7 @@ SERV = [
 ]
 rows=''.join('<li%s><button type="button" data-i="%d"><span class="n">%02d</span><span class="t">%s</span></button><div class="dd"><div><p>%s</p><a href="services.html">Read more</a></div></div></li>' % (' class="on"' if i==0 else '', i, i+1, c[1], c[2]) for i,c in enumerate(SERV))
 orbs=''.join('<i class="o o%d%s"></i>' % (i, ' on' if i==0 else '') for i in range(6))
-cards='<section class="orbsec"><div class="wrap"><h2>What we do</h2><p class="lead">Six capabilities, one accountable team. Choose one to see it move.</p><div class="ogrid"><ol class="ol" id="ol">%s</ol><div class="ostage" id="ost" aria-hidden="true"><div class="og">%s</div></div></div></div></section>' % (rows, orbs)
+cards='<section class="orbsec"><div class="wrap"><h2>What we do</h2><p class="lead">Six capabilities, one accountable team. Choose one to see it move.</p><div class="ogrid"><ol class="ol" id="ol">%s</ol><div class="ostage" id="ost" aria-hidden="true"><canvas id="oc"></canvas><div class="og">%s</div></div></div></div></section>' % (rows, orbs)
 home = '''
 <section class="hero"><div class="txt" id="ht"><div class="lg rv">%s</div><h1 class="rv">RD Global Connect</h1><div class="sub rv">Power · Connections · Innovation</div>
 <p class="rv">The operating partner behind the destination. We plan, contract and run it on the ground in Thailand, for partners from Switzerland to Dubai.</p><div class="ln rv" aria-hidden="true"></div></div></section>
