@@ -17,7 +17,7 @@ header{position:sticky;top:0;z-index:40;padding-top:env(safe-area-inset-top,0px)
 .links a:hover,.links a.on{color:var(--ink)}.links a:hover::after,.links a.on::after{transform:scaleX(1)}
 .mb{display:none;background:none;border:1px solid var(--line);padding:8px 14px;font:500 10.5px var(--fh);letter-spacing:.24em;text-transform:uppercase;color:var(--ink);cursor:pointer}
 /* hero: text only */
-.hero{position:relative;min-height:calc(100vh - 62px);min-height:calc(100svh - 62px);display:grid;place-items:center;text-align:center;background:radial-gradient(70% 60% at 50% 42%,#ffffff,#f1f1ef);overflow:hidden}
+.hero{position:relative;min-height:calc(100vh - 62px);min-height:calc(100svh - 62px);display:grid;place-items:center;text-align:center;background:linear-gradient(#ffffff,#f6f6f5);overflow:hidden}
 .hero .txt{display:grid;gap:20px;justify-items:center;padding:60px var(--gr) 90px var(--g);max-width:640px;will-change:opacity,transform}
 .hero h1{font-size:clamp(26px,4.4vw,52px);letter-spacing:.22em;color:#4a4d52;line-height:1.2;font-weight:500}
 .hero .sub{font-family:var(--fh);font-size:10.5px;letter-spacing:.5em;text-transform:uppercase;color:#8d9096}
@@ -34,6 +34,7 @@ header{position:sticky;top:0;z-index:40;padding-top:env(safe-area-inset-top,0px)
 #intro .nm{margin-top:34px;font-family:var(--fh);font-weight:500;font-size:clamp(14px,2vw,18px);letter-spacing:.34em;text-transform:uppercase;color:#2b2e33}
 #intro .tg{margin-top:12px;font-size:12px;letter-spacing:.06em;color:#8d9096;max-width:40ch}
 #intro .en{margin-top:34px;background:none;border:1px solid #cfd1d4;padding:12px 30px;font:500 10.5px var(--fh);letter-spacing:.34em;text-transform:uppercase;color:#2b2e33;cursor:pointer;transition:opacity 1.3s ease,transform 1.3s,background .3s,color .3s,border-color .3s}
+#intro .en:focus,#intro .en:focus-visible{outline:none}
 #intro .en:hover{background:#23262b;color:#fff;border-color:#23262b}
 #intro.s1 svg{opacity:1}#intro.s2 .nm,#intro.s2 .tg{opacity:1;transform:none}#intro.s3 .en{opacity:1;transform:none}
 .js:not(.ready) main,.js:not(.ready) footer{visibility:hidden}.js:not(.ready) body{background:#fff}
