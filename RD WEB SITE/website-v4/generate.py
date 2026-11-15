@@ -304,7 +304,7 @@ def header(active):
 FOOT = '''<footer><div class="wrap"><div class="f">
 <div><h4>RD Global Connect Co., Ltd.</h4><p style="margin:0;max-width:34ch">Destination management, ground logistics, event and film production. Operating partner of Experience Pattaya City.</p></div>
 <div><h4>Pages</h4><a href="services.html">Services</a><a href="film.html">Film production</a><a href="work.html">Work</a><a href="about.html">About</a><a href="contact.html">Contact</a></div>
-<div><h4>Base</h4><span>Nong Prue, Bang Lamung<br>Chon Buri, Thailand</span></div></div>
+<div><h4>Base</h4><span>Nong Prue, Bang Lamung<br>Chon Buri, Thailand<br><a href="mailto:info@rdglobalconnect.com" style="display:inline">info@rdglobalconnect.com</a></span></div></div>
 <div class="c">© RD Global Connect Co., Ltd. · Power · Connections · Innovation</div></div></footer>'''
 
 def page(fn, title, body, active):
@@ -384,7 +384,7 @@ film = pagehead('Film production', 'The ground behind the picture', 'A productio
 
 # ---------- WORK ----------
 WK = [('Experience Pattaya City', 'Operating partner', 'The city visitor experience, operated on the ground by RD Global Connect.'),
-      ('BESK Creative', 'Sister company', 'Creative and technology studio, led by our founder Bryan LeRoy.'),
+      ('BESK Creative', 'Sister company', 'Creative and technology studio, our sister company.'),
       ('WAWA', 'Learning app', 'A learning application designed and built by our team.'),
       ('CLO', 'Application', 'A custom application built for its operator.'),
       ('Pulverlaguer', 'Application', 'A custom application built for the Pulverlaguer project.')]
@@ -397,16 +397,16 @@ about = pagehead('About', 'RD Global Connect', 'Power, connections, innovation. 
 <div class="txt2"><p>RD Global Connect Co., Ltd. is registered in Nong Prue, Bang Lamung District, Chon Buri Province, Thailand. We are the operating partner on the ground for Experience Pattaya City.</p>
 <p>Our services cover destination management, ground logistics, event and film production, vendor and venue contracts and government liaison with TCEB, TAT and DASTA. We also build applications, including WAWA, CLO, Experience Pattaya City and the Pulverlaguer app.</p>
 <p>We work for partners in Thailand and plan to Swiss expectations of precision, reliability and accountability, with a network that reaches Dubai.</p></div></div>
-<div class="split" style="margin-top:80px"><div><span class="k">Leadership</span><h2>Founded and directed by Bryan LeRoy.</h2></div>
-<div><p class="txt2" style="margin:0 0 22px">Bryan also leads BESK Creative. Together the two companies combine operations and creative technology.</p>
+<div class="split" style="margin-top:80px"><div><span class="k">Leadership</span><h2>One team, led from Chon Buri.</h2></div>
+<div><p class="txt2" style="margin:0 0 22px">RD Global Connect works alongside BESK Creative, its sister company. Together they combine operations and creative technology.</p>
 <dl class="dl"><div><dt>Company</dt><dd>RD Global Connect Co., Ltd.</dd></div><div><dt>Registered</dt><dd>Nong Prue, Bang Lamung, Chon Buri</dd></div><div><dt>Role</dt><dd>Operating partner, Experience Pattaya City</dd></div><div><dt>Liaison</dt><dd>TCEB · TAT · DASTA</dd></div><div><dt>Markets</dt><dd>Thailand · Switzerland · UAE</dd></div></dl></div></div>
 </div></section>'''
 
 # ---------- CONTACT ----------
 contact = pagehead('Contact', 'Talk to us', 'Tell us the destination, the date and the outcome you need.') + '''
 <section class="s"><div class="wrap"><div class="split"><div><span class="k">Write to us</span><h2>We respond with a plan.</h2></div>
-<div style="display:grid;gap:22px;justify-items:start"><div class="mail" id="em">bryanleroy.besk@gmail.com</div><button class="btn" id="cp" type="button">Copy address</button>
-<dl class="dl" style="width:100%;max-width:520px"><div><dt>Company</dt><dd>RD Global Connect Co., Ltd.</dd></div><div><dt>Address</dt><dd>Nong Prue, Bang Lamung, Chon Buri, Thailand</dd></div><div><dt>Contact</dt><dd>Bryan LeRoy, Founder and Director</dd></div></dl></div></div></div></section>'''
+<div style="display:grid;gap:22px;justify-items:start"><a class="mail" id="em" href="mailto:info@rdglobalconnect.com">info@rdglobalconnect.com</a><button class="btn" id="cp" type="button">Copy address</button>
+<dl class="dl" style="width:100%;max-width:520px"><div><dt>Company</dt><dd>RD Global Connect Co., Ltd.</dd></div><div><dt>Address</dt><dd>Nong Prue, Bang Lamung, Chon Buri, Thailand</dd></div><div><dt>Email</dt><dd>info@rdglobalconnect.com</dd></div></dl></div></div></div></section>'''
 
 for fn, t, body, act in [('index.html', 'RD Global Connect', home, 'index.html'), ('services.html', 'Services · RD Global Connect', services, 'services.html'),
         ('film.html', 'Film production · RD Global Connect', film, 'film.html'), ('work.html', 'Work · RD Global Connect', work, 'work.html'),
