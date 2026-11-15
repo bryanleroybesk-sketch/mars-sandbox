@@ -1,0 +1,225 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"></head><body><title>RD Global Connect</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#050a18;--bg2:#0a1a3f;--ink:#eef1f8;--mut:#98a3bf;--line:rgba(190,205,240,.16);--blue:#8fb4ff;--card:rgba(255,255,255,.04);--serif:'Cormorant Garamond',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--g:max(20px,env(safe-area-inset-left,0px));--gr:max(20px,env(safe-area-inset-right,0px))}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.wrap{max-width:1280px;margin:0 auto;padding-left:var(--g);padding-right:var(--gr)}
+.eyebrow{font-size:.72rem;letter-spacing:.32em;text-transform:uppercase;color:var(--blue);font-weight:400}
+h1,h2,h3{font-family:var(--serif);font-weight:400;margin:0;letter-spacing:.01em;text-wrap:balance}
+h2{font-size:clamp(2.2rem,5vw,4.2rem);line-height:1.08}
+.lead{color:var(--mut);font-size:1.05rem;max-width:56ch}
+/* header */
+header{position:fixed;inset:0 0 auto;z-index:50;padding-top:env(safe-area-inset-top,0px);transition:background .4s,backdrop-filter .4s,border-color .4s;border-bottom:1px solid transparent}
+header.s{background:rgba(5,10,24,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:var(--line)}
+.nav{height:80px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:14px;font-family:var(--serif);font-size:1.2rem;letter-spacing:.2em;text-transform:uppercase}
+.brand svg{width:44px;height:auto}
+.links{display:flex;gap:34px;font-size:.74rem;letter-spacing:.22em;text-transform:uppercase}
+.links a{position:relative;padding:6px 0;color:var(--mut);transition:color .3s}
+.links a::after{content:"";position:absolute;left:0;bottom:0;height:1px;width:100%;background:var(--blue);transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.links a:hover{color:var(--ink)}.links a:hover::after{transform:scaleX(1)}
+.btn{display:inline-flex;align-items:center;gap:12px;padding:15px 30px;border:1px solid rgba(190,205,240,.4);border-radius:2px;font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;background:transparent;transition:background .35s,color .35s,border-color .35s,transform .25s}
+.btn:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn .ar{transition:transform .35s}.btn:hover .ar{transform:translateX(6px)}
+.btn.solid{background:var(--ink);color:var(--bg);border-color:var(--ink)}.btn.solid:hover{background:transparent;color:var(--ink)}
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.hero{background:radial-gradient(110% 80% at 50% 0%,#12307a 0%,#0a1a3f 38%,var(--bg) 78%)}
+#glow{position:absolute;width:700px;height:700px;border-radius:50%;left:0;top:0;background:radial-gradient(circle,rgba(110,160,255,.28),transparent 65%);pointer-events:none;transform:translate(-50%,-50%);transition:opacity .4s;opacity:0}
+.ring{position:absolute;left:50%;top:58%;border:1px solid var(--line);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+.hero-in{position:relative;padding:150px 0 110px;display:grid;gap:34px;justify-items:center}
+.hero h1{font-size:clamp(3.2rem,9.5vw,9rem);line-height:.98;letter-spacing:.02em;text-transform:none}
+.hero h1 em{font-style:italic;color:var(--blue)}
+.hero .lead{text-align:center;font-size:1.15rem}
+.cta{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.cue{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;color:var(--mut);display:grid;justify-items:center;gap:10px}
+.cue i{width:1px;height:46px;background:linear-gradient(var(--blue),transparent);animation:drip 2.2s ease-in-out infinite}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* stats */
+.stats{border-block:1px solid var(--line);background:linear-gradient(90deg,transparent,rgba(143,180,255,.05),transparent)}
+.stats .wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.stat{padding:48px 24px;text-align:center;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0}
+.stat b{display:block;font-family:var(--serif);font-weight:400;font-size:clamp(2.8rem,5vw,4.6rem);line-height:1}
+.stat span{font-size:.7rem;letter-spacing:.26em;text-transform:uppercase;color:var(--mut)}
+section.s{padding:clamp(80px,12vw,170px) 0}
+.head{display:grid;gap:22px;margin-bottom:64px;max-width:760px}
+.center{text-align:center;margin-inline:auto;justify-items:center}
+/* pillars */
+.pillars{display:flex;gap:14px;height:560px}
+.pil{flex:1;position:relative;overflow:hidden;border:1px solid var(--line);border-radius:4px;background:var(--card);padding:34px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;transition:flex .7s cubic-bezier(.2,.8,.2,1),background .5s,border-color .5s;min-width:0}
+.pil .no{font-family:var(--serif);font-size:1.3rem;color:var(--blue)}
+.pil h3{font-size:clamp(2rem,3.2vw,3rem);line-height:1}
+.pil p{margin:16px 0 0;color:var(--mut);max-width:38ch;opacity:0;max-height:0;transition:opacity .5s .1s,max-height .6s}
+.pil::before{content:"";position:absolute;inset:0;background:radial-gradient(80% 60% at 20% 100%,rgba(100,150,255,.28),transparent);opacity:0;transition:opacity .6s}
+.pil>*{position:relative}
+.pil.on,.pillars:hover .pil:hover{flex:3.2;border-color:rgba(143,180,255,.5)}
+.pil.on::before,.pillars:hover .pil:hover::before{opacity:1}
+.pil.on p,.pillars:hover .pil:hover p{opacity:1;max-height:200px}
+.pillars:hover .pil.on:not(:hover){flex:1}
+.pillars:hover .pil.on:not(:hover) p{opacity:0;max-height:0}
+.pillars:hover .pil.on:not(:hover)::before{opacity:0}
+/* services */
+.list{border-top:1px solid var(--line)}
+.row{border-bottom:1px solid var(--line)}
+.row button{width:100%;background:none;border:0;display:grid;grid-template-columns:70px 1fr 40px;align-items:center;gap:20px;padding:34px 0;text-align:left;transition:padding .4s,color .3s}
+.row .n{font-family:var(--serif);color:var(--mut);font-size:1.1rem}
+.row h3{font-size:clamp(1.8rem,3.6vw,3.2rem);line-height:1.1;transition:transform .45s,color .3s}
+.row .pl{font-size:1.6rem;color:var(--blue);transition:transform .4s;justify-self:end}
+.row:hover h3{transform:translateX(14px);color:#fff}
+.row.on .pl{transform:rotate(45deg)}
+.row .dd{display:grid;grid-template-rows:0fr;transition:grid-template-rows .55s cubic-bezier(.2,.8,.2,1)}
+.row.on .dd{grid-template-rows:1fr}
+.row .dd>div{overflow:hidden}
+.row .dd p{margin:0 0 34px 90px;max-width:62ch;color:var(--mut)}
+/* work */
+.cards{display:flex;gap:14px;height:520px}
+.card{flex:1;min-width:0;position:relative;overflow:hidden;border:1px solid var(--line);border-radius:4px;padding:30px;display:flex;flex-direction:column;justify-content:flex-end;background:var(--card);transition:flex .7s cubic-bezier(.2,.8,.2,1),border-color .5s;cursor:pointer}
+.card::before{content:"";position:absolute;inset:0;background:var(--c);opacity:.5;transition:opacity .6s,transform .9s}
+.card::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 30%,rgba(5,10,24,.9))}
+.card>*{position:relative;z-index:1}
+.card .k{font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:var(--blue)}
+.card h3{font-size:2rem;line-height:1.05;margin:8px 0}
+.card p{margin:0;color:var(--mut);font-size:.92rem;opacity:0;max-height:0;transition:opacity .5s .1s,max-height .5s}
+.card .big{position:absolute;right:22px;top:12px;font-family:var(--serif);font-size:7rem;line-height:1;color:rgba(255,255,255,.12);z-index:1}
+.cards:hover .card:hover,.card.on{flex:3.4;border-color:rgba(143,180,255,.5)}
+.card:hover::before,.card.on::before{opacity:1;transform:scale(1.06)}
+.card:hover p,.card.on p{opacity:1;max-height:160px}
+.cards:hover .card.on:not(:hover){flex:1}
+.cards:hover .card.on:not(:hover) p{opacity:0;max-height:0}
+/* swiss */
+.swiss{background:linear-gradient(180deg,var(--bg),#0a1a3f 50%,var(--bg))}
+.sw{display:grid;grid-template-columns:1.1fr .9fr;gap:70px;align-items:center}
+.sw .box{border:1px solid var(--line);border-radius:4px;padding:44px;background:var(--card);display:grid;gap:26px}
+.sw .box div{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:20px}
+.sw .box div:last-child{border:0;padding:0}
+.sw .box b{font-family:var(--serif);font-weight:400;font-size:2.4rem}
+.sw .box span{color:var(--mut);font-size:.8rem;letter-spacing:.2em;text-transform:uppercase}
+/* leader */
+.leader{display:grid;grid-template-columns:1fr 1fr;gap:70px}
+.leader dl{margin:0;display:grid;gap:0}
+.leader dl div{display:flex;justify-content:space-between;gap:20px;padding:20px 0;border-bottom:1px solid var(--line)}
+.leader dt{color:var(--mut);font-size:.74rem;letter-spacing:.22em;text-transform:uppercase}
+.leader dd{margin:0;text-align:right}
+/* contact */
+.contact{text-align:center;padding:clamp(100px,14vw,200px) 0;background:radial-gradient(90% 70% at 50% 100%,#12307a,transparent 70%)}
+.contact h2{font-size:clamp(2.8rem,8vw,7rem);line-height:1}
+.mail{display:inline-flex;gap:14px;align-items:center;margin-top:30px;font-family:var(--serif);font-size:clamp(1.3rem,2.6vw,2rem)}
+footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+/* reveal */
+.js .rv{opacity:0;transform:translateY(34px);transition:opacity 1s,transform 1s cubic-bezier(.2,.8,.2,1)}
+.js .rv.in{opacity:1;transform:none}
+@media(max-width:900px){
+.links{display:none}
+.pillars,.cards{flex-direction:column;height:auto}
+.pil,.card{flex:none!important;min-height:200px}
+.pil p,.card p{opacity:1!important;max-height:200px!important}
+.stats .wrap{grid-template-columns:repeat(2,minmax(0,1fr))}.stat:nth-child(3){border-left:0}.stat{border-top:1px solid var(--line)}
+.sw,.leader{grid-template-columns:1fr;gap:40px}
+.row button{grid-template-columns:44px 1fr 30px}.row .dd p{margin-left:64px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.js .rv{opacity:1;transform:none}}
+</style>
+
+<header id="hd"><div class="wrap nav">
+<a class="brand" href="#top" aria-label="RD Global Connect">
+<svg viewBox="0 0 2000 1236" aria-hidden="true"><path fill="#eef1f8" d="M90 22H890C1100 22 1290 190 1310 380L1316 520C1316 700 1190 790 1065 828C1050 833 1050 848 1058 856L1388 1212H1022C1005 1212 995 1205 985 1192L470 583C462 573 470 566 485 566H828C900 566 975 500 978 420C975 350 910 293 835 293H290C275 293 265 287 255 275L75 52C66 40 72 22 90 22Z"/><path fill="#8fb4ff" d="M95 378C105 376 112 380 118 387L370 708C380 720 386 735 385 752L350 1190C348 1205 340 1212 328 1212H205C180 1212 160 1200 148 1185L35 1040C20 1022 12 1005 14 985L80 395C82 385 88 379 95 378Z"/><path fill="#8fb4ff" d="M1115 22H1450C1700 22 1905 200 1943 410L1985 760C1992 1010 1790 1212 1540 1212H1455L1168 903H1465C1580 903 1660 815 1655 712L1635 460C1625 360 1545 297 1450 297H1348C1320 190 1230 85 1115 22Z"/></svg>
+<span>RD Global</span></a>
+<nav class="links" aria-label="Primary"><a href="#pillars">Power</a><a href="#services">Services</a><a href="#work">Work</a><a href="#swiss">Switzerland</a><a href="#about">Leadership</a></nav>
+<a class="btn" href="#contact">Contact <span class="ar">→</span></a>
+</div></header>
+
+<main id="top">
+<section class="hero" id="hero">
+<div id="glow"></div>
+<div class="ring" style="width:520px;height:520px"></div><div class="ring" style="width:860px;height:860px"></div><div class="ring" style="width:1280px;height:1280px"></div>
+<div class="wrap hero-in">
+<div class="eyebrow">RD Global Connect Co., Ltd. · Chon Buri, Thailand</div>
+<h1>Power. Connections.<br><em>Innovation.</em></h1>
+<p class="lead">The operating partner behind the destination. We plan, contract and run it on the ground, with the discipline of the institutions we work beside.</p>
+<div class="cta"><a class="btn solid" href="#services">Our capabilities <span class="ar">→</span></a><a class="btn" href="#contact">Start a conversation</a></div>
+</div>
+<div class="cue">Scroll<i></i></div>
+</section>
+
+<div class="stats"><div class="wrap">
+<div class="stat"><b data-n="3">0</b><span>Government bodies</span></div>
+<div class="stat"><b data-n="5">0</b><span>Core services</span></div>
+<div class="stat"><b data-n="4">0</b><span>Platforms built</span></div>
+<div class="stat"><b data-n="3">0</b><span>Markets</span></div>
+</div></div>
+
+<section class="s" id="pillars"><div class="wrap">
+<div class="head rv"><div class="eyebrow">The operational infrastructure</div><h2>Three forces behind every project.</h2><p class="lead">Hover or tap to open. Each one is a commitment we carry into the work.</p></div>
+<div class="pillars rv" id="pl">
+<button class="pil on"><span class="no">I</span><div><h3>Power</h3><p>We carry plans out on the ground: logistics, venues, vendors and permits, executed to a standard that holds under pressure.</p></div></button>
+<button class="pil"><span class="no">II</span><div><h3>Connections</h3><p>Standing relationships with TCEB, TAT and DASTA, and with the venues and suppliers that make a destination work.</p></div></button>
+<button class="pil"><span class="no">III</span><div><h3>Innovation</h3><p>We build the platforms that run the experience: apps, systems and tools designed with and for operators.</p></div></button>
+</div></div></section>
+
+<section class="s" id="services" style="padding-top:0"><div class="wrap">
+<div class="head rv"><div class="eyebrow">Capabilities</div><h2>What we carry out.</h2></div>
+<div class="list rv" id="sv">
+<div class="row on"><button><span class="n">01</span><h3>Destination management</h3><span class="pl">+</span></button><div class="dd"><div><p>Programmes, itineraries and on-site teams for groups, delegations and institutional visitors, planned and run from our base in Chon Buri.</p></div></div></div>
+<div class="row"><button><span class="n">02</span><h3>Ground logistics</h3><span class="pl">+</span></button><div class="dd"><div><p>Transport, accommodation, access and timing coordinated as one operation, with a single accountable contact.</p></div></div></div>
+<div class="row"><button><span class="n">03</span><h3>Event production</h3><span class="pl">+</span></button><div class="dd"><div><p>From concept to load-out: staging, technical production, hospitality and show control for events of every scale.</p></div></div></div>
+<div class="row"><button><span class="n">04</span><h3>Vendor and venue contracts</h3><span class="pl">+</span></button><div class="dd"><div><p>Negotiated and managed on your behalf, so quality, price and delivery are agreed before the day arrives.</p></div></div></div>
+<div class="row"><button><span class="n">05</span><h3>Government liaison</h3><span class="pl">+</span></button><div class="dd"><div><p>Direct working relationships with TCEB, TAT and DASTA for approvals, partnerships and destination programmes.</p></div></div></div>
+</div></div></section>
+
+<section class="s" id="work" style="padding-top:0"><div class="wrap">
+<div class="head rv"><div class="eyebrow">Proven in the field</div><h2>Platforms and partners.</h2><p class="lead">Technology is one of the things we do. These are the systems we have built and the partners we operate with.</p></div>
+<div class="cards rv" id="cd">
+<div class="card on" style="--c:linear-gradient(160deg,#1b4fd0,#0a1a3f)"><span class="big">01</span><span class="k">Operating partner</span><h3>Experience Pattaya City</h3><p>The city's visitor experience, operated on the ground by RD Global Connect.</p></div>
+<div class="card" style="--c:linear-gradient(160deg,#27489a,#0a1a3f)"><span class="big">02</span><span class="k">Sister company</span><h3>BESK Creative</h3><p>Creative and technology studio led by our founder.</p></div>
+<div class="card" style="--c:linear-gradient(160deg,#1a6fa8,#0a1a3f)"><span class="big">03</span><span class="k">Learning app</span><h3>WAWA</h3><p>A learning application designed and built by our team.</p></div>
+<div class="card" style="--c:linear-gradient(160deg,#3a3fa8,#0a1a3f)"><span class="big">04</span><span class="k">Application</span><h3>CLO</h3><p>A custom application built for its operator.</p></div>
+<div class="card" style="--c:linear-gradient(160deg,#17508f,#0a1a3f)"><span class="big">05</span><span class="k">Application</span><h3>Pulverlaguer</h3><p>A custom application built for the Pulverlaguer project.</p></div>
+</div></div></section>
+
+<section class="s swiss" id="swiss"><div class="wrap sw">
+<div class="rv" style="display:grid;gap:26px"><div class="eyebrow">For Swiss partners</div><h2>Your market.<br>Our standard.</h2><p class="lead">Precision, reliability and accountability are not slogans to us. We plan to Swiss expectations and answer for every step, on site, in Thailand.</p><div><a class="btn" href="#contact">Discuss a project <span class="ar">→</span></a></div></div>
+<div class="box rv"><div><span>Base</span><b>Chon Buri</b></div><div><span>Operating in</span><b>Pattaya</b></div><div><span>Institutions</span><b>TCEB · TAT · DASTA</b></div></div>
+</div></section>
+
+<section class="s" id="about"><div class="wrap leader">
+<div class="rv" style="display:grid;gap:26px;align-content:start"><div class="eyebrow">Leadership</div><h2>Founded and directed by Bryan LeRoy.</h2><p class="lead">Bryan also leads BESK Creative. That combination of operations and technology is the reason RD Global can build the system and run it.</p></div>
+<dl class="rv"><div><dt>Company</dt><dd>RD Global Connect Co., Ltd.</dd></div><div><dt>Registered</dt><dd>Nong Prue, Bang Lamung, Chon Buri</dd></div><div><dt>Role</dt><dd>Operating partner, Experience Pattaya City</dd></div><div><dt>Liaison</dt><dd>TCEB · TAT · DASTA</dd></div></dl>
+</div></section>
+
+<section class="contact" id="contact"><div class="wrap rv" style="display:grid;gap:30px;justify-items:center"><div class="eyebrow">Contact</div><h2>Let us carry it out.</h2><p class="lead" style="text-align:center">Tell us the destination, the date and the outcome you need. We will respond with a plan.</p><a class="btn solid" href="mailto:bryanleroy.besk@gmail.com">Write to Bryan <span class="ar">→</span></a><div class="mail" id="em">bryanleroy.besk@gmail.com</div><button class="btn" id="cp" type="button">Copy address</button></div></section>
+</main>
+<footer><div class="wrap"><span>© RD Global Connect Co., Ltd.</span><span>Nong Prue, Bang Lamung, Chon Buri, Thailand</span></div></footer>
+
+<script>
+(function(){
+var d=document,r=d.documentElement;r.classList.add('js');
+var hd=d.getElementById('hd');function sc(){hd.classList.toggle('s',scrollY>40)}addEventListener('scroll',sc,{passive:true});sc();
+/* cursor glow in hero */
+var h=d.getElementById('hero'),g=d.getElementById('glow'),px=0,py=0,gx=0,gy=0,run=false;
+h.addEventListener('pointermove',function(e){var b=h.getBoundingClientRect();px=e.clientX-b.left;py=e.clientY-b.top;g.style.opacity=1;if(!run){run=true;requestAnimationFrame(t)}});
+h.addEventListener('pointerleave',function(){g.style.opacity=0});
+function t(){gx+=(px-gx)*.08;gy+=(py-gy)*.08;g.style.left=gx+'px';g.style.top=gy+'px';if(Math.abs(px-gx)+Math.abs(py-gy)>.5)requestAnimationFrame(t);else run=false}
+/* panels: click to open (touch and keyboard) */
+function single(box,sel){var items=[].slice.call(box.querySelectorAll(sel));items.forEach(function(el){el.addEventListener('click',function(){items.forEach(function(o){o.classList.toggle('on',o===el)})})})}
+single(d.getElementById('pl'),'.pil');single(d.getElementById('cd'),'.card');
+var rows=[].slice.call(d.querySelectorAll('#sv .row'));rows.forEach(function(row){row.querySelector('button').addEventListener('click',function(){var was=row.classList.contains('on');rows.forEach(function(o){o.classList.remove('on')});if(!was)row.classList.add('on')})});
+/* reveal + counters */
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+[].forEach.call(d.querySelectorAll('.rv'),function(el){io.observe(el)});
+var co=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;co.unobserve(e.target);var n=+e.target.dataset.n,s=performance.now();(function f(now){var p=Math.min(1,(now-s)/1400),v=Math.round(n*(1-Math.pow(1-p,3)));e.target.textContent='0'+v;if(p<1)requestAnimationFrame(f)})(s)})},{threshold:.6});
+[].forEach.call(d.querySelectorAll('[data-n]'),function(el){co.observe(el)});
+/* copy */
+var cp=d.getElementById('cp');cp.addEventListener('click',function(){var t=d.getElementById('em').textContent;function ok(){cp.textContent='Copied';setTimeout(function(){cp.textContent='Copy address'},1800)}
+try{navigator.clipboard.writeText(t).then(ok,function(){sel()})}catch(e){sel()}
+function sel(){var rg=d.createRange();rg.selectNodeContents(d.getElementById('em'));var s=getSelection();s.removeAllRanges();s.addRange(rg)}});
+})();
+</script>
+</body></html>
