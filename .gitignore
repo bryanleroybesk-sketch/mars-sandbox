@@ -1,0 +1,10 @@
+# Godot
+.godot/
+*.import.tmp
+export_presets.cfg
+# Python
+__pycache__/
+.venv/
+*.pyc
+# Downloadable bundles
+dist/
