@@ -241,12 +241,12 @@ var ol=d.getElementById('ol'),ost=d.getElementById('ost');
 if(ol&&ost){
   var rows=[].slice.call(ol.querySelectorAll('li')),orbs=[].slice.call(ost.querySelectorAll('.o')),cur=0,auto=!reduce,tm;
   /* presets: A=(R,w,soft,wobble) B=(swirl,rings,dark,coreR) fill */
-  var PRE=[[.54,.09,.09,.3, .25,0,0,.5, 0],[0,0,.2,.15, 0,0,.9,.55, 1],[.36,.3,.12,.6, 0,0,.6,.5, 0],[.3,.34,.12,.3, 1.6,0,0,.5, 0],[0,0,.2,1.0, .3,0,0,.55, 1],[.5,.55,.14,.35, 0,7,0,.5, 0]];
+  var PRE=[[.54,.09,.09,.3, .25,0,0,.5, 0],[0,0,.2,.15, 0,0,.9,.55, 1],[.36,.3,.12,.6, 0,0,.6,.5, 0],[.3,.34,.12,.3, 1.6,0,0,.5, 0],[0,0,.2,1.0, .3,0,0,.55, 1],[.4,.22,.16,.35, 0,3.2,0,.5, 0]];
   function setO(i){cur=i;rows.forEach(function(r,k){r.classList.toggle('on',k===i)});orbs.forEach(function(o,k){o.classList.toggle('on',k===i)})}
   function cycle(){clearInterval(tm);if(auto)tm=setInterval(function(){setO((cur+1)%rows.length)},5200)}
   rows.forEach(function(r,i){var b=r.querySelector('button');['click','focus'].forEach(function(ev){b.addEventListener(ev,function(){auto=false;clearInterval(tm);setO(i)})});b.addEventListener('pointerenter',function(){auto=false;clearInterval(tm);setO(i)})});
   var sec=ost.closest('.orbsec'),tx=0,ty=0,hov=0,pulse=0;
-  sec.addEventListener('pointermove',function(e){var r=ost.getBoundingClientRect(),m=Math.min(r.width,r.height)/2;tx=(e.clientX-(r.left+r.width/2))/m*.85;ty=-(e.clientY-(r.top+r.height/2))/m*.85;hov=1;var x=Math.max(-1,Math.min(1,(e.clientX-r.left)/r.width-.5)*2),y=Math.max(-1,Math.min(1,(e.clientY-r.top)/r.height-.5)*2);ost.style.setProperty('--mx',x.toFixed(3));ost.style.setProperty('--my',y.toFixed(3))});
+  sec.addEventListener('pointermove',function(e){var r=ost.getBoundingClientRect(),m=Math.min(r.width,r.height)/2;tx=(e.clientX-(r.left+r.width/2))/m;ty=-(e.clientY-(r.top+r.height/2))/m;hov=1;var x=Math.max(-1,Math.min(1,(e.clientX-r.left)/r.width-.5)*2),y=Math.max(-1,Math.min(1,(e.clientY-r.top)/r.height-.5)*2);ost.style.setProperty('--mx',x.toFixed(3));ost.style.setProperty('--my',y.toFixed(3))});
   sec.addEventListener('pointerleave',function(){hov=0;tx=ty=0;ost.style.setProperty('--mx',0);ost.style.setProperty('--my',0)});
   sec.addEventListener('pointerdown',function(){pulse=1});
   cycle();
@@ -255,7 +255,7 @@ if(ol&&ost){
   if(gl){
     var vs='attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
     var fs='precision highp float;uniform vec2 uRes,uM,uV;uniform float uT,uH,uPulse,uFill;uniform vec4 uA,uB;'+
-    'void main(){vec2 p=(gl_FragCoord.xy-.5*uRes)/(.5*min(uRes.x,uRes.y))*.85;float t=uT;'+
+    'void main(){vec2 p=(gl_FragCoord.xy-.5*uRes)/(.5*min(uRes.x,uRes.y))*1.0;float t=uT;'+
     'vec2 dm=p-uM;float g=exp(-dot(dm,dm)*3.2)*uH;p-=dm*g*.42;'+
     'float an=length(uV)*5.0*g;float cs=cos(an),sn=sin(an);vec2 q=p-uM;p=uM+mat2(cs,-sn,sn,cs)*q;'+
     'p+=.05*vec2(sin(p.y*3.1+t*.8),cos(p.x*2.7+t*.9));'+
@@ -264,11 +264,11 @@ if(ol&&ost){
     'a+=uB.x*r*2.+t*.15;'+
     'float R=uA.x,w=uA.y,so=uA.z;float ring=1.-smoothstep(w,w+so,abs(r-R));'+
     'float rip=.5+.5*cos((r-R)*uB.y*5.6-t*1.6);ring*=mix(1.,rip,step(.5,uB.y));'+
-    'float core=uFill*(1.-smoothstep(uB.w*.6,uB.w+so,r));float I=max(ring,core);'+
+    'float core=uFill*(1.-smoothstep(uB.w*.6,uB.w+so,r));float I=max(ring,core)*(1.-smoothstep(.7,.94,r));'+
     'float L=.5+.5*cos(a+uB.x*r*3.+.8);L=mix(.7,L,smoothstep(.0,.4,r));float v=clamp(I*(.4+.62*L),0.,1.);'+
     'vec3 c=mix(vec3(.16,.23,.33),vec3(.56,.62,.71),smoothstep(0.,.6,v));c=mix(c,vec3(.95,.96,.98),smoothstep(.55,1.,v));'+
     'c=mix(c,vec3(.03,.06,.12),uB.z*(1.-smoothstep(0.,uB.w*.9,r))*core);'+
-    'float al=smoothstep(.02,.45,I);gl_FragColor=vec4(c*al,al);}';
+    'vec2 uv=gl_FragCoord.xy/uRes;float ed=smoothstep(0.,.12,min(min(uv.x,1.-uv.x),min(uv.y,1.-uv.y)));float al=smoothstep(.02,.45,I)*ed;gl_FragColor=vec4(c*al,al);}';
     function sh(t,src){var o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);return o}
     var pg=gl.createProgram();gl.attachShader(pg,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pg,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pg);
     if(gl.getProgramParameter(pg,gl.LINK_STATUS)){
