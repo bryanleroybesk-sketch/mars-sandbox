@@ -164,6 +164,23 @@ section.s{padding:78px 0}
 .dl dd{margin:0;text-align:right}
 .btn{display:inline-block;padding:13px 26px;border:1px solid var(--ink);font-family:var(--fh);font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;background:transparent;color:var(--ink);cursor:pointer;transition:background .3s,color .3s}
 .btn:hover{background:var(--ink);color:#fff}
+.form{display:grid;gap:26px;max-width:640px}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}
+.fld{display:grid;gap:6px;min-width:0}
+.fld label{font-family:var(--fh);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--mut)}
+.fld label span{letter-spacing:.06em;text-transform:none;color:#a0a3a8;margin-left:6px}
+.fld input,.fld select,.fld textarea{width:100%;border:0;border-bottom:1px solid #c4c6ca;border-radius:0;background:transparent;padding:10px 0;font:300 14px var(--ff);color:var(--ink);outline:none;transition:border-color .3s,box-shadow .3s;-webkit-appearance:none;appearance:none}
+.fld select{background-image:linear-gradient(45deg,transparent 50%,#7a7d83 50%),linear-gradient(135deg,#7a7d83 50%,transparent 50%);background-position:calc(100% - 12px) 55%,calc(100% - 7px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:22px;cursor:pointer}
+.fld textarea{resize:vertical;min-height:120px;line-height:1.6}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-bottom-color:var(--navy2);box-shadow:0 1px 0 0 var(--navy2)}
+.fld.bad input,.fld.bad textarea{border-bottom-color:#b24a4a;box-shadow:0 1px 0 0 #b24a4a}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.frow{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.fst{margin:0;font-size:13px;color:#686b71;max-width:44ch}
+.fst a{border-bottom:1px solid var(--line)}
+.fst.ok{color:#2c6a52}.fst.err{color:#8f3b3b}
+.form.done .fld,.form.done .row2{opacity:.45;pointer-events:none}
+.btn[disabled]{opacity:.55;cursor:default}
 .mail{font-family:var(--fh);font-size:clamp(14px,2vw,20px);letter-spacing:.1em;word-break:break-all}
 footer{background:var(--navy);color:#aab4c2;padding:50px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:12px}
 footer .f{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px}
@@ -171,6 +188,7 @@ footer h4{margin:0 0 12px;font:500 10px var(--fh);letter-spacing:.3em;text-trans
 footer a{display:block;padding:3px 0;transition:color .3s,transform .3s}footer a:hover{color:#fff;transform:translateX(4px)}
 footer .c{margin-top:36px;padding-top:20px;border-top:1px solid #22324a;font-size:11px;letter-spacing:.08em}
 @media(max-width:860px){
+.row2{grid-template-columns:1fr}
 .ogrid{grid-template-columns:1fr}.ostage{height:340px;order:-1}.ol .dd>div{padding-left:44px}
 .links{display:none;position:absolute;left:0;right:0;top:100%;background:var(--bg);flex-direction:column;gap:0;padding:8px var(--gr) 16px var(--g);border-bottom:1px solid var(--line)}.links.open{display:flex}.links a{padding:14px 0;border-bottom:1px solid var(--line)}.mb{display:block}
 .grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -296,6 +314,23 @@ if(ol&&ost){
     }else{gl=null}
   }
 }
+/* contact form: sends to the company inbox, falls back to the visitor's mail app */
+var cf=d.getElementById('cf');
+if(cf){var to='info@rdglobalconnect.com',st=d.getElementById('f-st'),go=d.getElementById('f-go');
+  function bad(el,on){el.closest('.fld').classList.toggle('bad',on)}
+  cf.addEventListener('submit',function(e){e.preventDefault();var g=function(n){return cf.elements[n].value.trim()};
+    var nm=g('name'),em=g('email'),co=g('company'),tp=g('topic'),ms=g('message'),ok=true;
+    bad(cf.elements.name,!nm);bad(cf.elements.email,!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em));bad(cf.elements.message,!ms);
+    if(!nm||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)||!ms){st.className='fst err';st.textContent='Please fill in your name, a valid email and a message.';return}
+    if(cf.elements._honey.value)return;
+    go.disabled=true;go.textContent='Sending…';st.className='fst';st.textContent='';
+    function fallback(){var sub=encodeURIComponent('Website enquiry: '+tp),body=encodeURIComponent('Name: '+nm+'\nEmail: '+em+(co?'\nCompany: '+co:'')+'\n\n'+ms);
+      st.className='fst err';st.innerHTML='We could not send this from the page. <a href="mailto:'+to+'?subject='+sub+'&body='+body+'">Open it in your email app</a> or write to '+to+'.';go.disabled=false;go.textContent='Send message'}
+    var ctl=window.AbortController?new AbortController():null,tm=setTimeout(function(){ctl&&ctl.abort()},12000);
+    fetch('https://formsubmit.co/ajax/'+to,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({name:nm,email:em,company:co||'-',topic:tp,message:ms,_subject:'Website enquiry: '+tp,_template:'table',_captcha:'false'}),signal:ctl?ctl.signal:undefined})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})}).then(function(x){clearTimeout(tm);
+      if(x.ok&&(x.j.success===true||x.j.success==='true')){cf.classList.add('done');st.className='fst ok';st.textContent='Thank you. Your message has been sent and we will reply by email.';go.textContent='Sent'}else fallback()})
+    .catch(function(){clearTimeout(tm);fallback()})})}
 /* copy */
 var cp=d.getElementById('cp'),em=d.getElementById('em');
 if(cp)cp.addEventListener('click',function(){function ok(){cp.textContent='Copied';setTimeout(function(){cp.textContent='Copy address'},1800)}function sel(){var r=d.createRange();r.selectNodeContents(em);var s=getSelection();s.removeAllRanges();s.addRange(r)}try{navigator.clipboard.writeText(em.textContent).then(ok,sel)}catch(e){sel()}});

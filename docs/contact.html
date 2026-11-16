@@ -164,6 +164,23 @@ section.s{padding:78px 0}
 .dl dd{margin:0;text-align:right}
 .btn{display:inline-block;padding:13px 26px;border:1px solid var(--ink);font-family:var(--fh);font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;background:transparent;color:var(--ink);cursor:pointer;transition:background .3s,color .3s}
 .btn:hover{background:var(--ink);color:#fff}
+.form{display:grid;gap:26px;max-width:640px}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}
+.fld{display:grid;gap:6px;min-width:0}
+.fld label{font-family:var(--fh);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--mut)}
+.fld label span{letter-spacing:.06em;text-transform:none;color:#a0a3a8;margin-left:6px}
+.fld input,.fld select,.fld textarea{width:100%;border:0;border-bottom:1px solid #c4c6ca;border-radius:0;background:transparent;padding:10px 0;font:300 14px var(--ff);color:var(--ink);outline:none;transition:border-color .3s,box-shadow .3s;-webkit-appearance:none;appearance:none}
+.fld select{background-image:linear-gradient(45deg,transparent 50%,#7a7d83 50%),linear-gradient(135deg,#7a7d83 50%,transparent 50%);background-position:calc(100% - 12px) 55%,calc(100% - 7px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:22px;cursor:pointer}
+.fld textarea{resize:vertical;min-height:120px;line-height:1.6}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-bottom-color:var(--navy2);box-shadow:0 1px 0 0 var(--navy2)}
+.fld.bad input,.fld.bad textarea{border-bottom-color:#b24a4a;box-shadow:0 1px 0 0 #b24a4a}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.frow{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.fst{margin:0;font-size:13px;color:#686b71;max-width:44ch}
+.fst a{border-bottom:1px solid var(--line)}
+.fst.ok{color:#2c6a52}.fst.err{color:#8f3b3b}
+.form.done .fld,.form.done .row2{opacity:.45;pointer-events:none}
+.btn[disabled]{opacity:.55;cursor:default}
 .mail{font-family:var(--fh);font-size:clamp(14px,2vw,20px);letter-spacing:.1em;word-break:break-all}
 footer{background:var(--navy);color:#aab4c2;padding:50px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:12px}
 footer .f{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px}
@@ -171,6 +188,7 @@ footer h4{margin:0 0 12px;font:500 10px var(--fh);letter-spacing:.3em;text-trans
 footer a{display:block;padding:3px 0;transition:color .3s,transform .3s}footer a:hover{color:#fff;transform:translateX(4px)}
 footer .c{margin-top:36px;padding-top:20px;border-top:1px solid #22324a;font-size:11px;letter-spacing:.08em}
 @media(max-width:860px){
+.row2{grid-template-columns:1fr}
 .ogrid{grid-template-columns:1fr}.ostage{height:340px;order:-1}.ol .dd>div{padding-left:44px}
 .links{display:none;position:absolute;left:0;right:0;top:100%;background:var(--bg);flex-direction:column;gap:0;padding:8px var(--gr) 16px var(--g);border-bottom:1px solid var(--line)}.links.open{display:flex}.links a{padding:14px 0;border-bottom:1px solid var(--line)}.mb{display:block}
 .grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -179,9 +197,17 @@ footer .c{margin-top:36px;padding-top:20px;border-top:1px solid #22324a;font-siz
 @media(max-width:520px){.grid3{grid-template-columns:1fr}.card p,.card .go{max-height:none;opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style></head><body><script>(function(r){r.classList.add("js");try{if(sessionStorage.getItem("rdp")==="1")r.classList.add("pt-start")}catch(e){}})(document.documentElement)</script><div id="pt" aria-hidden="true"><i></i><i></i><b><svg viewBox="0 0 2000 1236" aria-hidden="true"><path fill="#ffffff" d="M90 22H890C1100 22 1290 190 1310 380L1316 520C1316 700 1190 790 1065 828C1050 833 1050 848 1058 856L1388 1212H1022C1005 1212 995 1205 985 1192L470 583C462 573 470 566 485 566H828C900 566 975 500 978 420C975 350 910 293 835 293H290C275 293 265 287 255 275L75 52C66 40 72 22 90 22Z"/><path fill="#9fb0c6" d="M95 378C105 376 112 380 118 387L370 708C380 720 386 735 385 752L350 1190C348 1205 340 1212 328 1212H205C180 1212 160 1200 148 1185L35 1040C20 1022 12 1005 14 985L80 395C82 385 88 379 95 378Z"/><path fill="#9fb0c6" d="M1115 22H1450C1700 22 1905 200 1943 410L1985 760C1992 1010 1790 1212 1540 1212H1455L1168 903H1465C1580 903 1660 815 1655 712L1635 460C1625 360 1545 297 1450 297H1348C1320 190 1230 85 1115 22Z"/></svg></b></div><div class="bar" id="bar"></div><header><div class="wrap nav"><a class="brand" href="index.html" aria-label="RD Global Connect home"><svg viewBox="0 0 2000 1236" aria-hidden="true"><path fill="#23262b" d="M90 22H890C1100 22 1290 190 1310 380L1316 520C1316 700 1190 790 1065 828C1050 833 1050 848 1058 856L1388 1212H1022C1005 1212 995 1205 985 1192L470 583C462 573 470 566 485 566H828C900 566 975 500 978 420C975 350 910 293 835 293H290C275 293 265 287 255 275L75 52C66 40 72 22 90 22Z"/><path fill="#8793a4" d="M95 378C105 376 112 380 118 387L370 708C380 720 386 735 385 752L350 1190C348 1205 340 1212 328 1212H205C180 1212 160 1200 148 1185L35 1040C20 1022 12 1005 14 985L80 395C82 385 88 379 95 378Z"/><path fill="#8793a4" d="M1115 22H1450C1700 22 1905 200 1943 410L1985 760C1992 1010 1790 1212 1540 1212H1455L1168 903H1465C1580 903 1660 815 1655 712L1635 460C1625 360 1545 297 1450 297H1348C1320 190 1230 85 1115 22Z"/></svg> RD Global Connect</a><button class="mb" id="mb" aria-expanded="false" aria-controls="ln" type="button">Menu</button><nav class="links" id="ln" aria-label="Primary"><a href="index.html">Home</a><a href="services.html">Services</a><a href="film.html">Film</a><a href="work.html">Work</a><a href="about.html">About</a><a href="contact.html" class="on" aria-current="page">Contact</a></nav></div></header><main><section class="pagehead"><div class="wrap"><span class="k" style="color:#9fb0c6">Contact</span><h1 style="margin-top:16px">Talk to us</h1><p>Tell us the destination, the date and the outcome you need.</p></div></section>
-<section class="s"><div class="wrap"><div class="split"><div><span class="k">Write to us</span><h2>We respond with a plan.</h2></div>
-<div style="display:grid;gap:22px;justify-items:start"><a class="mail" id="em" href="mailto:info@rdglobalconnect.com">info@rdglobalconnect.com</a><button class="btn" id="cp" type="button">Copy address</button>
-<dl class="dl" style="width:100%;max-width:520px"><div><dt>Company</dt><dd>RD Global Connect Co., Ltd.</dd></div><div><dt>Address</dt><dd>Nong Prue, Bang Lamung, Chon Buri, Thailand</dd></div><div><dt>Email</dt><dd>info@rdglobalconnect.com</dd></div></dl></div></div></div></section></main><footer><div class="wrap"><div class="f">
+<section class="s"><div class="wrap"><div class="split"><div><span class="k">Write to us</span><h2>We respond with a plan.</h2>
+<dl class="dl" style="margin-top:34px;max-width:420px"><div><dt>Company</dt><dd>RD Global Connect Co., Ltd.</dd></div><div><dt>Address</dt><dd>Nong Prue, Bang Lamung, Chon Buri, Thailand</dd></div><div><dt>Email</dt><dd><a href="mailto:info@rdglobalconnect.com">info@rdglobalconnect.com</a></dd></div></dl></div>
+<div><form class="form" id="cf" novalidate>
+<div class="row2"><div class="fld"><label for="f-name">Name</label><input id="f-name" name="name" type="text" autocomplete="name" required></div>
+<div class="fld"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div></div>
+<div class="row2"><div class="fld"><label for="f-co">Company <span>optional</span></label><input id="f-co" name="company" type="text" autocomplete="organization"></div>
+<div class="fld"><label for="f-topic">What do you need</label><select id="f-topic" name="topic"><option>Destination management</option><option>Ground logistics</option><option>Event production</option><option>Film production</option><option>Vendor and venue contracts</option><option>Government liaison</option><option>Something else</option></select></div></div>
+<div class="fld"><label for="f-msg">Message</label><textarea id="f-msg" name="message" rows="5" required></textarea></div>
+<input class="hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+<div class="frow"><button class="btn solid" id="f-go" type="submit">Send message</button><p class="fst" id="f-st" role="status" aria-live="polite"></p></div>
+</form></div></div></div></section></main><footer><div class="wrap"><div class="f">
 <div><h4>RD Global Connect Co., Ltd.</h4><p style="margin:0;max-width:34ch">Destination management, ground logistics, event and film production. Operating partner of Experience Pattaya City.</p></div>
 <div><h4>Pages</h4><a href="services.html">Services</a><a href="film.html">Film production</a><a href="work.html">Work</a><a href="about.html">About</a><a href="contact.html">Contact</a></div>
 <div><h4>Base</h4><span>Nong Prue, Bang Lamung<br>Chon Buri, Thailand<br><a href="mailto:info@rdglobalconnect.com" style="display:inline">info@rdglobalconnect.com</a></span></div></div>
@@ -286,6 +312,23 @@ if(ol&&ost){
     }else{gl=null}
   }
 }
+/* contact form: sends to the company inbox, falls back to the visitor's mail app */
+var cf=d.getElementById('cf');
+if(cf){var to='info@rdglobalconnect.com',st=d.getElementById('f-st'),go=d.getElementById('f-go');
+  function bad(el,on){el.closest('.fld').classList.toggle('bad',on)}
+  cf.addEventListener('submit',function(e){e.preventDefault();var g=function(n){return cf.elements[n].value.trim()};
+    var nm=g('name'),em=g('email'),co=g('company'),tp=g('topic'),ms=g('message'),ok=true;
+    bad(cf.elements.name,!nm);bad(cf.elements.email,!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em));bad(cf.elements.message,!ms);
+    if(!nm||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)||!ms){st.className='fst err';st.textContent='Please fill in your name, a valid email and a message.';return}
+    if(cf.elements._honey.value)return;
+    go.disabled=true;go.textContent='Sending…';st.className='fst';st.textContent='';
+    function fallback(){var sub=encodeURIComponent('Website enquiry: '+tp),body=encodeURIComponent('Name: '+nm+'\nEmail: '+em+(co?'\nCompany: '+co:'')+'\n\n'+ms);
+      st.className='fst err';st.innerHTML='We could not send this from the page. <a href="mailto:'+to+'?subject='+sub+'&body='+body+'">Open it in your email app</a> or write to '+to+'.';go.disabled=false;go.textContent='Send message'}
+    var ctl=window.AbortController?new AbortController():null,tm=setTimeout(function(){ctl&&ctl.abort()},12000);
+    fetch('https://formsubmit.co/ajax/'+to,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({name:nm,email:em,company:co||'-',topic:tp,message:ms,_subject:'Website enquiry: '+tp,_template:'table',_captcha:'false'}),signal:ctl?ctl.signal:undefined})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})}).then(function(x){clearTimeout(tm);
+      if(x.ok&&(x.j.success===true||x.j.success==='true')){cf.classList.add('done');st.className='fst ok';st.textContent='Thank you. Your message has been sent and we will reply by email.';go.textContent='Sent'}else fallback()})
+    .catch(function(){clearTimeout(tm);fallback()})})}
 /* copy */
 var cp=d.getElementById('cp'),em=d.getElementById('em');
 if(cp)cp.addEventListener('click',function(){function ok(){cp.textContent='Copied';setTimeout(function(){cp.textContent='Copy address'},1800)}function sel(){var r=d.createRange();r.selectNodeContents(em);var s=getSelection();s.removeAllRanges();s.addRange(r)}try{navigator.clipboard.writeText(em.textContent).then(ok,sel)}catch(e){sel()}});
