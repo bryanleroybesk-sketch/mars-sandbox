@@ -1,0 +1,303 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"></head><body><title>RD Global Connect</title><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Montserrat:wght@400;500;600&display=swap"><style>
+:root{color-scheme:light;--bg:#f6f6f5;--card:#ffffff;--ink:#23262b;--mut:#7a7d83;--line:#e2e2df;--navy:#0d1726;--navy2:#2a3a52;--mist:#cfd6df;--g:max(20px,env(safe-area-inset-left,0px));--gr:max(20px,env(safe-area-inset-right,0px));--ff:'Inter',system-ui,sans-serif;--fh:'Montserrat','Inter',system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ff);font-size:14px;line-height:1.7;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--navy2);outline-offset:3px}
+.wrap{width:100%;max-width:1180px;margin:0 auto;padding-left:var(--g);padding-right:var(--gr)}
+h1,h2,h3{font-family:var(--fh);font-weight:500;margin:0;letter-spacing:.12em;text-transform:uppercase}
+.k{font-family:var(--fh);font-size:10.5px;letter-spacing:.38em;text-transform:uppercase;color:var(--mut);font-weight:500}
+header{position:sticky;top:0;z-index:40;padding-top:env(safe-area-inset-top,0px);background:rgba(246,246,245,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav{height:62px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{font-family:var(--fh);font-weight:600;font-size:12px;letter-spacing:.3em;text-transform:uppercase;display:flex;align-items:center;gap:12px}
+.brand svg{width:28px;height:auto}
+.links{display:flex;gap:30px}
+.links a{font-family:var(--fh);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--mut);padding:6px 0;position:relative;transition:color .3s}
+.links a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--ink);transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.links a:hover,.links a.on{color:var(--ink)}.links a:hover::after,.links a.on::after{transform:scaleX(1)}
+.mb{display:none;background:none;border:1px solid var(--line);padding:8px 14px;font:500 10.5px var(--fh);letter-spacing:.24em;text-transform:uppercase;color:var(--ink);cursor:pointer}
+/* hero: text only */
+.hero{position:relative;min-height:calc(100vh - 62px);min-height:calc(100svh - 62px);display:grid;place-items:center;text-align:center;background:linear-gradient(#ffffff,#f6f6f5);overflow:hidden}
+.hero .txt{display:grid;gap:20px;justify-items:center;padding:60px var(--gr) 90px var(--g);max-width:640px;will-change:opacity,transform}
+.hero h1{font-size:clamp(26px,4.4vw,52px);letter-spacing:.22em;color:#4a4d52;line-height:1.2;font-weight:500}
+.hero .sub{font-family:var(--fh);font-size:10.5px;letter-spacing:.5em;text-transform:uppercase;color:#8d9096}
+.hero p{margin:0;font-size:13.5px;color:#7d8085;max-width:46ch}
+.hero .ln{width:1px;height:54px;background:linear-gradient(#8d9096,transparent);margin-top:10px}
+.hero .lg{width:54px;margin-bottom:6px}
+/* intro */
+#intro{position:fixed;inset:0;z-index:100;background:#ffffff;display:none;place-items:center;text-align:center;transition:opacity 1.2s ease}
+.js #intro{display:grid}
+#intro.off{opacity:0;pointer-events:none}
+#intro .in1{display:grid;justify-items:center;gap:0;padding:0 var(--gr) 0 var(--g)}
+#intro svg{width:clamp(96px,13vw,140px);height:auto;opacity:0;transition:opacity 1.6s ease}
+#intro .nm,#intro .tg,#intro .en{opacity:0;transform:translateY(8px);transition:opacity 1.3s ease,transform 1.3s cubic-bezier(.2,.8,.2,1)}
+#intro .nm{margin-top:34px;font-family:var(--fh);font-weight:500;font-size:clamp(14px,2vw,18px);letter-spacing:.34em;text-transform:uppercase;color:#2b2e33}
+#intro .tg{margin-top:12px;font-size:12px;letter-spacing:.06em;color:#8d9096;max-width:40ch}
+#intro .en{margin-top:34px;background:none;border:1px solid #cfd1d4;padding:12px 30px;font:500 10.5px var(--fh);letter-spacing:.34em;text-transform:uppercase;color:#2b2e33;cursor:pointer;transition:opacity 1.3s ease,transform 1.3s,background .3s,color .3s,border-color .3s}
+#intro .en:focus,#intro .en:focus-visible{outline:none}
+#intro .en:hover{background:#23262b;color:#fff;border-color:#23262b}
+#intro.s1 svg{opacity:1}#intro.s2 .nm,#intro.s2 .tg{opacity:1;transform:none}#intro.s3 .en{opacity:1;transform:none}
+.js:not(.ready) main,.js:not(.ready) footer{visibility:hidden}.js:not(.ready) body{background:#fff}
+/* reveal */
+.js header{opacity:0;transition:opacity 1.4s ease}.js.ready header{opacity:1}
+.js .rv{opacity:0;transform:translateY(30px);filter:blur(6px);transition:opacity 1.3s ease,transform 1.3s cubic-bezier(.2,.8,.2,1),filter 1.3s ease;transition-delay:var(--d,0s)}
+.js .rv.in{opacity:1;transform:none;filter:none}
+.js .wd{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.12em;margin-bottom:-.12em}
+.js .wd>i{display:inline-block;font-style:normal;transform:translateY(112%) rotate(3deg);transform-origin:left bottom;transition:transform 1.2s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--i)*.08s + var(--d,0s))}
+.js .tt.in .wd>i{transform:none}
+.js .ph{clip-path:inset(100% 0 0 0);transition:clip-path 1.4s cubic-bezier(.76,0,.24,1),transform .5s,box-shadow .5s}
+.js .ph.in{clip-path:inset(0)}
+.list li,.dl div{border-bottom:0!important;position:relative}
+.list{border-top:0!important}
+.list li::after,.dl div::after,.list::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+.list::before{top:0;bottom:auto;position:relative;display:block}
+.js .list li::after,.js .dl div::after{transform:scaleX(0);transform-origin:left;transition:transform 1.5s cubic-bezier(.76,0,.24,1);transition-delay:var(--d,0s)}
+.js .list li.in::after,.js .dl div.in::after{transform:none}
+.bar{position:fixed;left:0;top:0;height:2px;width:100%;background:var(--navy2);transform-origin:left;transform:scaleX(0);z-index:60;pointer-events:none}
+/* page transition */
+#pt{position:fixed;inset:0;z-index:90;pointer-events:none;display:none}
+.js #pt{display:block}
+#pt i{position:absolute;inset:0;background:#cfd6df;transform:translateY(100%)}
+#pt i+i{background:var(--navy)}
+#pt b{position:absolute;left:50%;top:50%;width:64px;transform:translate(-50%,-50%);opacity:0}
+#pt b svg{width:100%;height:auto;display:block}
+#pt.in i{transform:translateY(0);transition:transform .85s cubic-bezier(.76,0,.24,1)}
+#pt.in i+i{transition-delay:.09s}
+#pt.in b{opacity:1;transition:opacity .5s .5s}
+html.pt-start #pt i{transform:translateY(0)}
+html.pt-start #pt b{opacity:1}
+html.pt-start #pt.out i{transform:translateY(-100%);transition:transform .95s cubic-bezier(.76,0,.24,1)}
+html.pt-start #pt.out i+i{transition-delay:.09s}
+html.pt-start #pt.out b{opacity:0;transition:opacity .3s}
+#pt.done{display:none!important}
+/* big orb */
+.orbsec{background:radial-gradient(90% 140% at 78% 120%,#8793a4 0%,#2a3a52 42%,var(--navy) 80%);color:#fff;padding:90px 0 80px;overflow:hidden}
+.orbsec h2{font-size:clamp(20px,3.4vw,38px);letter-spacing:.34em;font-weight:600}
+.orbsec .lead{margin:16px 0 0;max-width:52ch;color:#c3ccd8;font-size:13px}
+.ogrid{display:grid;grid-template-columns:1fr 1.1fr;gap:40px;align-items:center;margin-top:50px}
+.ol{list-style:none;margin:0;padding:0;border-top:1px solid rgba(255,255,255,.16)}
+.ol li{border-bottom:1px solid rgba(255,255,255,.16)}
+.ol button{width:100%;display:flex;gap:20px;align-items:baseline;padding:20px 0;background:none;border:0;color:#8f9db2;text-align:left;cursor:pointer;font:inherit;transition:color .5s,padding .5s}
+.ol .n{font-family:var(--fh);font-size:10.5px;letter-spacing:.2em;min-width:24px}
+.ol .t{font-family:var(--fh);font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:500}
+.ol li.on button{color:#fff;padding-left:10px}
+.ol .dd{display:grid;grid-template-rows:0fr;transition:grid-template-rows .6s cubic-bezier(.2,.8,.2,1)}
+.ol li.on .dd{grid-template-rows:1fr}
+.ol .dd>div{overflow:hidden;padding-left:54px}
+.ol .dd p{margin:0 0 8px;color:#b6c1d0;font-size:13px;max-width:44ch}
+.ol .dd a{display:inline-block;margin:6px 0 22px;font-family:var(--fh);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#fff;border-bottom:1px solid rgba(255,255,255,.4);padding-bottom:3px}
+.ostage{position:relative;height:540px;display:grid;place-items:center}
+.og{position:relative;width:min(460px,86vw);aspect-ratio:1;transition:transform 1s cubic-bezier(.2,.8,.2,1);transform:translate(calc(var(--mx,0)*30px),calc(var(--my,0)*22px)) rotate(calc(var(--mx,0)*7deg))}
+.o{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity 1.4s ease;filter:blur(9px)}
+.o.on{opacity:1}
+.o0{background:conic-gradient(#f4f6f9,#8e9bb0,#2a3a52,#8e9bb0,#f4f6f9);-webkit-mask:radial-gradient(circle,transparent 33%,#000 36%,#000 60%,transparent 72%);mask:radial-gradient(circle,transparent 33%,#000 36%,#000 60%,transparent 72%);animation:spin 24s linear infinite,breathe 8s ease-in-out infinite}
+.o1{background:radial-gradient(circle,#0a1424 0 28%,#3c4d66 46%,#cfd6df 68%,transparent 71%);animation:sway 9s ease-in-out infinite alternate}
+.o2{background:radial-gradient(circle at 66% 38%,#060d1a 0 32%,#566782 52%,#e8ecf1 74%,transparent 77%);animation:spin 15s linear infinite}
+.o3{background:conic-gradient(#0e1a2c,#9aa7ba,#f2f5f8,#46566e,#0e1a2c);-webkit-mask:radial-gradient(circle,#000 60%,transparent 72%);mask:radial-gradient(circle,#000 60%,transparent 72%);animation:spin 8s linear infinite reverse}
+.o4{background:radial-gradient(circle at 38% 30%,#f2f5f8,#8b99ae 46%,#16243a);border-radius:60% 40% 30% 70%/60% 30% 70% 40%;animation:morph 7s ease-in-out infinite alternate,spin 28s linear infinite}
+.o5{background:repeating-radial-gradient(circle,rgba(255,255,255,0) 0 20px,rgba(196,208,226,.7) 26px 36px,rgba(255,255,255,0) 42px 62px);-webkit-mask:radial-gradient(circle,#000 52%,transparent 72%);mask:radial-gradient(circle,#000 52%,transparent 72%);animation:ping 6s ease-in-out infinite}
+#oc{position:absolute;inset:0;width:100%;height:100%;display:none;pointer-events:none}.ostage.gl #oc{display:block}.ostage.gl .og{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes breathe{0%,100%{scale:1}50%{scale:1.1}}
+@keyframes sway{from{transform:translateX(-12%) scale(1)}to{transform:translateX(12%) scale(1.1)}}
+@keyframes morph{to{border-radius:30% 60% 70% 40%/50% 60% 30% 60%}}
+@keyframes ping{0%{transform:scale(.72) rotate(0)}50%{transform:scale(1.12) rotate(40deg)}100%{transform:scale(.72) rotate(0)}}
+@media(prefers-reduced-motion:reduce){.o{animation:none!important}}
+/* navy banner + shapes */
+.banner{background:radial-gradient(90% 140% at 78% 120%,#8793a4 0%,#2a3a52 42%,var(--navy) 80%);color:#fff;padding:78px 0 70px;position:relative;overflow:hidden}
+.banner::after{content:"";position:absolute;width:520px;height:520px;border-radius:50%;right:-120px;top:-160px;background:radial-gradient(circle at 40% 40%,rgba(255,255,255,.14),transparent 62%);filter:blur(6px)}
+.banner h2{font-size:clamp(20px,3.4vw,38px);letter-spacing:.34em;font-weight:600;text-align:center}
+.banner p{max-width:52ch;margin:18px auto 0;text-align:center;color:#c3ccd8;font-size:13px}
+.shapes{background:#f0f2f3;padding:70px 0 80px;position:relative}
+.shapes::before{content:"";position:absolute;inset:0;background-image:linear-gradient(45deg,#e8eaeb 25%,transparent 25%,transparent 75%,#e8eaeb 75%),linear-gradient(45deg,#e8eaeb 25%,transparent 25%,transparent 75%,#e8eaeb 75%);background-size:8px 8px;background-position:0 0,4px 4px;opacity:.5;-webkit-mask-image:linear-gradient(transparent 50%,#000);mask-image:linear-gradient(transparent 50%,#000);pointer-events:none}
+.grid3{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.card{position:relative;display:block;padding:26px 20px 24px;background:rgba(255,255,255,.55);border:1px solid #e3e6e8;overflow:hidden;--mx:0;--my:0;transition:background .4s,border-color .4s}
+.card:hover{background:#fff;border-color:#cfd5da}
+.sh{position:relative;height:190px;display:grid;place-items:center}
+.sh i{display:block;width:140px;height:140px;border-radius:50%;filter:blur(5px);transition:transform .8s cubic-bezier(.2,.8,.2,1),filter .6s;transform:translate(calc(var(--mx)*16px),calc(var(--my)*16px))}
+.card:hover .sh i{transform:translate(calc(var(--mx)*22px - 34px),calc(var(--my)*22px - 8px)) scale(1.12) rotate(14deg);filter:blur(2px)}
+.s1{background:radial-gradient(circle at 50% 60%,#e9edf1 0 22%,#9aa5b3 40%,#e6eaee 62%,#b8c1cc)}
+.s2{background:radial-gradient(circle at 50% 50%,#0f1a2a 0 36%,#46566d 52%,#d9dee4 74%)}
+.s3{background:radial-gradient(circle at 62% 42%,#0b1422 0 24%,#6b7a8f 46%,#dde2e8 72%);border-radius:48% 52% 55% 45%!important}
+.s4{background:conic-gradient(from 200deg,#1c2a3e,#7d8da3,#eef1f4,#52627a,#1c2a3e)}
+.s5{background:radial-gradient(circle at 50% 75%,#f4f6f8 0 20%,#a7b2c0 45%,#27374e 78%);border-radius:50% 50% 50% 50%/60% 60% 40% 40%!important}
+.s6{background:radial-gradient(circle at 50% 50%,#c9d1db 0 16%,#2c3c54 36%,#aeb9c7 56%,#1b283b 74%,#e6eaee)}
+.card h3{font-size:11px;letter-spacing:.24em;text-align:center;margin-top:4px}
+.card p{margin:10px 0 0;text-align:center;font-size:12px;color:var(--mut);max-height:0;opacity:0;transform:translateY(10px);transition:max-height .5s,opacity .5s,transform .5s}
+.card:hover p,.card:focus-visible p{max-height:90px;opacity:1;transform:none}
+.card .go{display:block;text-align:center;margin-top:10px;font-family:var(--fh);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--navy2);opacity:0;transform:translateX(-12px);transition:opacity .5s .05s,transform .5s .05s}
+.card:hover .go{opacity:1;transform:none}
+/* content */
+section.s{padding:78px 0}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:70px;align-items:start}.split>*,.cols>*,.steps>*{min-width:0}
+.split h2{font-size:clamp(17px,2.2vw,24px);letter-spacing:.2em;line-height:1.35;margin-top:14px}
+.txt2{display:grid;gap:16px;color:#686b71;max-width:62ch}
+.txt2 b{font-weight:500;color:var(--ink)}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:56px}
+.facts div{padding:26px 18px;border-left:1px solid var(--line)}
+.facts div:first-child{border-left:0}
+.facts b{display:block;font-family:var(--fh);font-weight:500;font-size:22px;letter-spacing:.06em;color:var(--navy2)}
+.facts span{font-size:11px;color:var(--mut);letter-spacing:.08em}
+.list{margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.list li{display:grid;grid-template-columns:44px 1fr 1.4fr;gap:20px;padding:24px 0;border-bottom:1px solid var(--line);transition:background .4s,padding .4s}
+.list li:hover{padding-left:12px;background:rgba(255,255,255,.7)}
+.list .n{font-family:var(--fh);font-size:11px;letter-spacing:.2em;color:var(--mut)}
+.list h3{font-size:12px;letter-spacing:.2em}
+.list p{margin:0;color:#6b6e74;font-size:13px}
+.ph{aspect-ratio:4/3;border:1px dashed #c6c9cc;background:rgba(255,255,255,.6);display:flex;align-items:flex-end;padding:14px;font-size:11px;color:var(--mut);letter-spacing:.08em;transition:transform .5s,box-shadow .5s}
+.ph:hover{transform:translateY(-6px);box-shadow:0 18px 30px -18px rgba(20,28,40,.3)}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:36px 28px}
+.cols article{display:grid;gap:12px}
+.cols h3{font-size:12px;letter-spacing:.22em;margin-top:4px}
+.cols p{margin:0;color:#6b6e74;font-size:13px}
+.pagehead{background:radial-gradient(90% 160% at 80% 130%,#6f7d92,#2a3a52 45%,var(--navy) 85%);color:#fff;padding:80px 0 66px}
+.pagehead h1{font-size:clamp(20px,3.4vw,36px);letter-spacing:.34em;font-weight:600}
+.pagehead p{margin:16px 0 0;max-width:56ch;color:#c3ccd8;font-size:13px}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 20px;counter-reset:s;width:100%}
+@media(max-width:1100px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.steps div{border-top:1px solid var(--ink);padding-top:14px;font-size:12.5px;color:#6b6e74}
+.steps b{display:block;font-family:var(--fh);font-weight:500;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);margin-bottom:6px}
+.dl{margin:0;display:grid}
+.dl div{display:flex;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid var(--line)}
+.dl dt{font-family:var(--fh);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
+.dl dd{margin:0;text-align:right}
+.btn{display:inline-block;padding:13px 26px;border:1px solid var(--ink);font-family:var(--fh);font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;background:transparent;color:var(--ink);cursor:pointer;transition:background .3s,color .3s}
+.btn:hover{background:var(--ink);color:#fff}
+.mail{font-family:var(--fh);font-size:clamp(14px,2vw,20px);letter-spacing:.1em;word-break:break-all}
+footer{background:var(--navy);color:#aab4c2;padding:50px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:12px}
+footer .f{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px}
+footer h4{margin:0 0 12px;font:500 10px var(--fh);letter-spacing:.3em;text-transform:uppercase;color:#fff}
+footer a{display:block;padding:3px 0;transition:color .3s,transform .3s}footer a:hover{color:#fff;transform:translateX(4px)}
+footer .c{margin-top:36px;padding-top:20px;border-top:1px solid #22324a;font-size:11px;letter-spacing:.08em}
+@media(max-width:860px){
+.ogrid{grid-template-columns:1fr}.ostage{height:340px;order:-1}.ol .dd>div{padding-left:44px}
+.links{display:none;position:absolute;left:0;right:0;top:100%;background:var(--bg);flex-direction:column;gap:0;padding:8px var(--gr) 16px var(--g);border-bottom:1px solid var(--line)}.links.open{display:flex}.links a{padding:14px 0;border-bottom:1px solid var(--line)}.mb{display:block}
+.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
+.split{grid-template-columns:1fr;gap:28px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}.facts div:nth-child(3){border-left:0}.facts div{border-top:1px solid var(--line)}
+.list li{grid-template-columns:34px 1fr}.list p{grid-column:2}.cols,.steps{grid-template-columns:1fr}footer .f{grid-template-columns:1fr}}
+@media(max-width:520px){.grid3{grid-template-columns:1fr}.card p,.card .go{max-height:none;opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style><script>(function(r){r.classList.add("js");try{if(sessionStorage.getItem("rdp")==="1")r.classList.add("pt-start")}catch(e){}})(document.documentElement)</script><div id="intro" role="dialog" aria-label="RD Global Connect"><div class="in1"><svg viewBox="0 0 2000 1236" aria-hidden="true"><path fill="#23262b" d="M90 22H890C1100 22 1290 190 1310 380L1316 520C1316 700 1190 790 1065 828C1050 833 1050 848 1058 856L1388 1212H1022C1005 1212 995 1205 985 1192L470 583C462 573 470 566 485 566H828C900 566 975 500 978 420C975 350 910 293 835 293H290C275 293 265 287 255 275L75 52C66 40 72 22 90 22Z"/><path fill="#8793a4" d="M95 378C105 376 112 380 118 387L370 708C380 720 386 735 385 752L350 1190C348 1205 340 1212 328 1212H205C180 1212 160 1200 148 1185L35 1040C20 1022 12 1005 14 985L80 395C82 385 88 379 95 378Z"/><path fill="#8793a4" d="M1115 22H1450C1700 22 1905 200 1943 410L1985 760C1992 1010 1790 1212 1540 1212H1455L1168 903H1465C1580 903 1660 815 1655 712L1635 460C1625 360 1545 297 1450 297H1348C1320 190 1230 85 1115 22Z"/></svg><div class="nm">RD Global Connect</div><div class="tg">Power · Connections · Innovation<br>Destination management and production, Chon Buri, Thailand</div><button class="en" id="enter" type="button">Enter</button></div></div><div id="pt" aria-hidden="true"><i></i><i></i><b><svg viewBox="0 0 2000 1236" aria-hidden="true"><path fill="#ffffff" d="M90 22H890C1100 22 1290 190 1310 380L1316 520C1316 700 1190 790 1065 828C1050 833 1050 848 1058 856L1388 1212H1022C1005 1212 995 1205 985 1192L470 583C462 573 470 566 485 566H828C900 566 975 500 978 420C975 350 910 293 835 293H290C275 293 265 287 255 275L75 52C66 40 72 22 90 22Z"/><path fill="#9fb0c6" d="M95 378C105 376 112 380 118 387L370 708C380 720 386 735 385 752L350 1190C348 1205 340 1212 328 1212H205C180 1212 160 1200 148 1185L35 1040C20 1022 12 1005 14 985L80 395C82 385 88 379 95 378Z"/><path fill="#9fb0c6" d="M1115 22H1450C1700 22 1905 200 1943 410L1985 760C1992 1010 1790 1212 1540 1212H1455L1168 903H1465C1580 903 1660 815 1655 712L1635 460C1625 360 1545 297 1450 297H1348C1320 190 1230 85 1115 22Z"/></svg></b></div><div class="bar" id="bar"></div><header><div class="wrap nav"><a class="brand" href="index.html" aria-label="RD Global Connect home"><svg viewBox="0 0 2000 1236" aria-hidden="true"><path fill="#23262b" d="M90 22H890C1100 22 1290 190 1310 380L1316 520C1316 700 1190 790 1065 828C1050 833 1050 848 1058 856L1388 1212H1022C1005 1212 995 1205 985 1192L470 583C462 573 470 566 485 566H828C900 566 975 500 978 420C975 350 910 293 835 293H290C275 293 265 287 255 275L75 52C66 40 72 22 90 22Z"/><path fill="#8793a4" d="M95 378C105 376 112 380 118 387L370 708C380 720 386 735 385 752L350 1190C348 1205 340 1212 328 1212H205C180 1212 160 1200 148 1185L35 1040C20 1022 12 1005 14 985L80 395C82 385 88 379 95 378Z"/><path fill="#8793a4" d="M1115 22H1450C1700 22 1905 200 1943 410L1985 760C1992 1010 1790 1212 1540 1212H1455L1168 903H1465C1580 903 1660 815 1655 712L1635 460C1625 360 1545 297 1450 297H1348C1320 190 1230 85 1115 22Z"/></svg> RD Global Connect</a><button class="mb" id="mb" aria-expanded="false" aria-controls="ln" type="button">Menu</button><nav class="links" id="ln" aria-label="Primary"><a href="index.html" class="on" aria-current="page">Home</a><a href="services.html">Services</a><a href="film.html">Film</a><a href="work.html">Work</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></div></header><main>
+<section class="hero"><div class="txt" id="ht"><div class="lg rv"><svg viewBox="0 0 2000 1236" aria-hidden="true"><path fill="#23262b" d="M90 22H890C1100 22 1290 190 1310 380L1316 520C1316 700 1190 790 1065 828C1050 833 1050 848 1058 856L1388 1212H1022C1005 1212 995 1205 985 1192L470 583C462 573 470 566 485 566H828C900 566 975 500 978 420C975 350 910 293 835 293H290C275 293 265 287 255 275L75 52C66 40 72 22 90 22Z"/><path fill="#8793a4" d="M95 378C105 376 112 380 118 387L370 708C380 720 386 735 385 752L350 1190C348 1205 340 1212 328 1212H205C180 1212 160 1200 148 1185L35 1040C20 1022 12 1005 14 985L80 395C82 385 88 379 95 378Z"/><path fill="#8793a4" d="M1115 22H1450C1700 22 1905 200 1943 410L1985 760C1992 1010 1790 1212 1540 1212H1455L1168 903H1465C1580 903 1660 815 1655 712L1635 460C1625 360 1545 297 1450 297H1348C1320 190 1230 85 1115 22Z"/></svg></div><h1 class="rv">RD Global Connect</h1><div class="sub rv">Power · Connections · Innovation</div>
+<p class="rv">The operating partner behind the destination. We plan, contract and run it on the ground in Thailand, for partners from Switzerland to Dubai.</p><div class="ln rv" aria-hidden="true"></div></div></section>
+<section class="orbsec"><div class="wrap"><h2>What we do</h2><p class="lead">Six capabilities, one accountable team. Choose one to see it move.</p><div class="ogrid"><ol class="ol" id="ol"><li class="on"><button type="button" data-i="0"><span class="n">01</span><span class="t">Destination management</span></button><div class="dd"><div><p>Programmes, itineraries and on-site teams for delegations and groups.</p><a href="services.html">Read more</a></div></div></li><li><button type="button" data-i="1"><span class="n">02</span><span class="t">Ground logistics</span></button><div class="dd"><div><p>Transport, access and timing run as one operation.</p><a href="services.html">Read more</a></div></div></li><li><button type="button" data-i="2"><span class="n">03</span><span class="t">Event production</span></button><div class="dd"><div><p>Staging, technical production and hospitality, from concept to load-out.</p><a href="services.html">Read more</a></div></div></li><li><button type="button" data-i="3"><span class="n">04</span><span class="t">Film production</span></button><div class="dd"><div><p>Locations, permits, crews and logistics for productions in Thailand.</p><a href="services.html">Read more</a></div></div></li><li><button type="button" data-i="4"><span class="n">05</span><span class="t">Vendor and venue contracts</span></button><div class="dd"><div><p>Negotiated and managed so quality and price are agreed in advance.</p><a href="services.html">Read more</a></div></div></li><li><button type="button" data-i="5"><span class="n">06</span><span class="t">Government liaison</span></button><div class="dd"><div><p>Working relationships with TCEB, TAT and DASTA.</p><a href="services.html">Read more</a></div></div></li></ol><div class="ostage" id="ost" aria-hidden="true"><canvas id="oc"></canvas><div class="og"><i class="o o0 on"></i><i class="o o1"></i><i class="o o2"></i><i class="o o3"></i><i class="o o4"></i><i class="o o5"></i></div></div></div></div></section>
+<section class="s"><div class="wrap">
+<div class="split"><div><span class="k">About</span><h2>Operations first. Technology where it helps.</h2></div>
+<div class="txt2"><p>RD Global Connect Co., Ltd. is registered in Nong Prue, Bang Lamung District, Chon Buri, and is the <b>operating partner on the ground for Experience Pattaya City</b>.</p>
+<p>Apps and websites are one thing we do. The core of the company is the work that makes a destination run: contracts, logistics, productions and the relationships with the institutions that approve them.</p>
+<p><a class="btn" href="about.html">About the company</a></p></div></div>
+<div class="facts"><div><b>3</b><span>Institutions we liaise with</span></div><div><b>6</b><span>Capabilities</span></div><div><b>5</b><span>Projects and partners</span></div><div><b>3</b><span>Markets: Thailand, Switzerland, UAE</span></div></div>
+</div></section>
+<section class="s" style="padding-top:0"><div class="wrap"><div class="split"><div><span class="k">Film production</span><h2>The ground behind the picture.</h2></div>
+<div class="txt2"><p>We prepare the location before the crew arrives: permits, venues, vendors, transport and accommodation, coordinated with the people who approve them.</p><p><a class="btn" href="film.html">Film production</a></p></div></div></div></section>
+</main><footer><div class="wrap"><div class="f">
+<div><h4>RD Global Connect Co., Ltd.</h4><p style="margin:0;max-width:34ch">Destination management, ground logistics, event and film production. Operating partner of Experience Pattaya City.</p></div>
+<div><h4>Pages</h4><a href="services.html">Services</a><a href="film.html">Film production</a><a href="work.html">Work</a><a href="about.html">About</a><a href="contact.html">Contact</a></div>
+<div><h4>Base</h4><span>Nong Prue, Bang Lamung<br>Chon Buri, Thailand<br><a href="mailto:info@rdglobalconnect.com" style="display:inline">info@rdglobalconnect.com</a></span></div></div>
+<div class="c">© RD Global Connect Co., Ltd. · Together with besk.ae · Power · Connections · Innovation</div></div></footer><script>
+(function(){
+var d=document;
+var mb=d.getElementById('mb'),ln=d.getElementById('ln');if(mb)mb.addEventListener('click',function(){var o=ln.classList.toggle('open');mb.setAttribute('aria-expanded',o)});
+/* reveal, intro, page transitions */
+var R=d.documentElement,hasIntro=!!d.getElementById('intro'),reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+var arriving=R.classList.contains('pt-start'),pt=d.getElementById('pt');
+function split(el){var t=el.textContent.trim().split(/\s+/),i=0;el.setAttribute('aria-label',el.textContent.trim());el.innerHTML=t.map(function(w){return '<span class="wd" aria-hidden="true"><i style="--i:'+(i++)+'">'+w+'</i></span>'}).join(' ')}
+function prep(){
+  var sel='.pagehead .k,.pagehead h1,.pagehead p,.orbsec h2,.orbsec .lead,.split>*,.facts div,.list li,.cols article,.steps div,.dl div,.mail,.btn,.ph,.hero .rv,.ol li,.split h2';
+  var els=[];[].forEach.call(d.querySelectorAll(sel),function(el){if(els.indexOf(el)<0)els.push(el)});
+  els.forEach(function(el){if(/^H[12]$/.test(el.tagName)){split(el);el.classList.remove('rv');el.classList.add('tt')}else if(!el.classList.contains('ph')){el.classList.add('rv')}});
+  /* h2 inside split blocks */
+  [].forEach.call(d.querySelectorAll('.split h2'),function(h){if(!h.classList.contains('tt')){split(h);h.classList.add('tt')}});
+  var cnt={};els.forEach(function(el){var p=el.parentNode;p.__n=(p.__n||0)+1;el.style.setProperty('--d',(Math.min(p.__n-1,7)*.1).toFixed(2)+'s')});
+  [].forEach.call(d.querySelectorAll('.list li,.dl div,.facts div,.cols article,.steps div,.ol li'),function(el){if(!el.classList.contains('rv')&&!el.classList.contains('tt')&&el.tagName!=='DIV'&&!el.closest('.ol')){}});
+  return els;
+}
+var allEls=prep(),started=false;
+function observe(){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.15,rootMargin:'0px 0px -6% 0px'});
+  allEls.forEach(function(el){if(!el.closest('.hero'))io.observe(el)});
+  var he=allEls.filter(function(el){return el.closest('.hero')});he.forEach(function(el,i){setTimeout(function(){el.classList.add('in')},i*260)});
+  /* count up the facts */
+  [].forEach.call(d.querySelectorAll('.facts b'),function(b){var n=parseInt(b.textContent,10);if(isNaN(n))return;b.textContent='0';var co=new IntersectionObserver(function(es){if(!es[0].isIntersecting)return;co.disconnect();var s0=performance.now();(function f(now){var p=Math.min(1,(now-s0)/1500);b.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(s0)},{threshold:.6});co.observe(b)});
+}
+function ready(){if(started)return;started=true;R.classList.add('ready');setTimeout(observe,hasIntro&&!arriving?500:150)}
+/* arrive: curtain lifts */
+function lift(){if(!pt){ready();return}pt.classList.add('out');setTimeout(ready,450);setTimeout(function(){pt.classList.add('done');R.classList.remove('pt-start')},1300)}
+try{sessionStorage.removeItem('rdp')}catch(e){}
+var intro=d.getElementById('intro'),entered=false;
+function enter(){if(entered)return;entered=true;intro.classList.add('off');ready();setTimeout(function(){intro.style.display='none'},1400);removeEventListener('keydown',kd)}
+function kd(e){if(e.key==='Enter'||e.key===' '||e.key==='Escape'){e.preventDefault();enter()}}
+if(arriving&&!reduce){if(intro)intro.style.display='none';setTimeout(lift,120)}
+else if(intro&&!reduce){
+  setTimeout(function(){intro.classList.add('s1')},200);setTimeout(function(){intro.classList.add('s2')},2200);setTimeout(function(){intro.classList.add('s3');var b=d.getElementById('enter');if(b)b.focus({preventScroll:true})},3600);
+  d.getElementById('enter').addEventListener('click',enter);addEventListener('keydown',kd);
+}else{if(intro)intro.style.display='none';R.classList.remove('pt-start');if(pt)pt.classList.add('done');ready()}
+/* leave: curtain covers, then go */
+d.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a||e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||a.target==='_blank')return;var h=a.getAttribute('href');if(!h||h.charAt(0)==='#'||/^(https?:|mailto:|tel:)/.test(h)||!/\.html(#.*)?$/.test(h)||reduce||!pt)return;
+  if(a.pathname===location.pathname&&a.href.split('#')[0]===location.href.split('#')[0])return;
+  e.preventDefault();pt.classList.remove('done','out');R.classList.remove('pt-start');void pt.offsetWidth;pt.classList.add('in');var nav=document.getElementById('ln');if(nav)nav.classList.remove('open');
+  setTimeout(function(){try{sessionStorage.setItem('rdp','1')}catch(e){}location.href=h},980)});
+addEventListener('pageshow',function(e){if(e.persisted&&pt){pt.classList.remove('in');pt.classList.add('done')}});
+/* progress hairline + hero fade-away */
+var bar=d.getElementById('bar'),ht=d.getElementById('ht');
+addEventListener('scroll',function(){var m=d.documentElement.scrollHeight-innerHeight;if(bar)bar.style.transform='scaleX('+(m>0?Math.min(1,scrollY/m):0).toFixed(4)+')';if(ht){var k=Math.min(1,Math.max(0,scrollY/(innerHeight*.55)));ht.style.opacity=(1-k).toFixed(3);ht.style.transform='translateY('+(-k*28).toFixed(1)+'px)'}},{passive:true});
+/* orb: pick a capability, the big shape changes */
+var ol=d.getElementById('ol'),ost=d.getElementById('ost');
+if(ol&&ost){
+  var rows=[].slice.call(ol.querySelectorAll('li')),orbs=[].slice.call(ost.querySelectorAll('.o')),cur=0,auto=!reduce,tm;
+  /* presets: A=(R,w,soft,wobble) B=(swirl,rings,dark,coreR) fill */
+  var PRE=[[.54,.09,.09,.3, .25,0,0,.5, 0],[0,0,.2,.15, 0,0,.9,.55, 1],[.36,.3,.12,.6, 0,0,.6,.5, 0],[.3,.34,.12,.3, 1.6,0,0,.5, 0],[0,0,.2,1.0, .3,0,0,.55, 1],[.4,.22,.16,.35, 0,3.2,0,.5, 0]];
+  function setO(i){cur=i;rows.forEach(function(r,k){r.classList.toggle('on',k===i)});orbs.forEach(function(o,k){o.classList.toggle('on',k===i)})}
+  function cycle(){clearInterval(tm);if(auto)tm=setInterval(function(){setO((cur+1)%rows.length)},5200)}
+  rows.forEach(function(r,i){var b=r.querySelector('button');['click','focus'].forEach(function(ev){b.addEventListener(ev,function(){auto=false;clearInterval(tm);setO(i)})});b.addEventListener('pointerenter',function(){auto=false;clearInterval(tm);setO(i)})});
+  var sec=ost.closest('.orbsec'),tx=0,ty=0,hov=0,pulse=0;
+  sec.addEventListener('pointermove',function(e){var r=ost.getBoundingClientRect(),m=Math.min(r.width,r.height)/2;tx=(e.clientX-(r.left+r.width/2))/m;ty=-(e.clientY-(r.top+r.height/2))/m;hov=1;var x=Math.max(-1,Math.min(1,(e.clientX-r.left)/r.width-.5)*2),y=Math.max(-1,Math.min(1,(e.clientY-r.top)/r.height-.5)*2);ost.style.setProperty('--mx',x.toFixed(3));ost.style.setProperty('--my',y.toFixed(3))});
+  sec.addEventListener('pointerleave',function(){hov=0;tx=ty=0;ost.style.setProperty('--mx',0);ost.style.setProperty('--my',0)});
+  sec.addEventListener('pointerdown',function(){pulse=1});
+  cycle();
+  /* WebGL: a soft shape that reshapes itself around the pointer */
+  var cv=d.getElementById('oc'),gl=null;try{gl=cv.getContext('webgl',{premultipliedAlpha:true,alpha:true,antialias:false})}catch(e){}
+  if(gl){
+    var vs='attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
+    var fs='precision highp float;uniform vec2 uRes,uM,uV;uniform float uT,uH,uPulse,uFill;uniform vec4 uA,uB;'+
+    'void main(){vec2 p=(gl_FragCoord.xy-.5*uRes)/(.5*min(uRes.x,uRes.y))*1.0;float t=uT;'+
+    'vec2 dm=p-uM;float g=exp(-dot(dm,dm)*3.2)*uH;p-=dm*g*.42;'+
+    'float an=length(uV)*5.0*g;float cs=cos(an),sn=sin(an);vec2 q=p-uM;p=uM+mat2(cs,-sn,sn,cs)*q;'+
+    'p+=.05*vec2(sin(p.y*3.1+t*.8),cos(p.x*2.7+t*.9));'+
+    'float r=length(p),a=atan(p.y,p.x);float rr0=length(p);float wob=(uA.w+uPulse*.6)*smoothstep(.0,.38,rr0);'+
+    'r+=wob*.07*sin(a*3.+t*.9)+wob*.045*sin(a*5.-t*1.2)+wob*.03*sin(a*2.+t*.5);'+
+    'a+=uB.x*r*2.+t*.15;'+
+    'float R=uA.x,w=uA.y,so=uA.z;float ring=1.-smoothstep(w,w+so,abs(r-R));'+
+    'float rip=.5+.5*cos((r-R)*uB.y*5.6-t*1.6);ring*=mix(1.,rip,step(.5,uB.y));'+
+    'float core=uFill*(1.-smoothstep(uB.w*.6,uB.w+so,r));float I=max(ring,core)*(1.-smoothstep(.7,.94,r));'+
+    'float L=.5+.5*cos(a+uB.x*r*3.+.8);L=mix(.7,L,smoothstep(.0,.4,r));float v=clamp(I*(.4+.62*L),0.,1.);'+
+    'vec3 c=mix(vec3(.16,.23,.33),vec3(.56,.62,.71),smoothstep(0.,.6,v));c=mix(c,vec3(.95,.96,.98),smoothstep(.55,1.,v));'+
+    'c=mix(c,vec3(.03,.06,.12),uB.z*(1.-smoothstep(0.,uB.w*.9,r))*core);'+
+    'vec2 uv=gl_FragCoord.xy/uRes;float ed=smoothstep(0.,.12,min(min(uv.x,1.-uv.x),min(uv.y,1.-uv.y)));float al=smoothstep(.02,.45,I)*ed;gl_FragColor=vec4(c*al,al);}';
+    function sh(t,src){var o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);return o}
+    var pg=gl.createProgram();gl.attachShader(pg,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pg,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pg);
+    if(gl.getProgramParameter(pg,gl.LINK_STATUS)){
+      gl.useProgram(pg);var bf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+      var al=gl.getAttribLocation(pg,'a');gl.enableVertexAttribArray(al);gl.vertexAttribPointer(al,2,gl.FLOAT,false,0,0);
+      var U={};['uRes','uM','uV','uT','uH','uPulse','uFill','uA','uB'].forEach(function(n){U[n]=gl.getUniformLocation(pg,n)});
+      gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.clearColor(0,0,0,0);
+      ost.classList.add('gl');
+      var P=PRE[0].slice();var mx=0,my=0,vx=0,vy=0,hv=0,vis=true,t0=performance.now(),dpr=Math.min(devicePixelRatio||1,1.5);
+      function fit(){var w=Math.round(cv.clientWidth*dpr),h=Math.round(cv.clientHeight*dpr);if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}gl.viewport(0,0,cv.width,cv.height)}
+      new IntersectionObserver(function(es){vis=es[0].isIntersecting}).observe(ost);
+      var last=performance.now();(function loop(now){requestAnimationFrame(loop);if(!vis){last=now;return}fit();var dt=Math.min(.25,Math.max(.001,(now-last)/1000));last=now;var f=function(r){return 1-Math.exp(-dt*r)};
+        var T=PRE[cur],kp=f(3.2);for(var k=0;k<9;k++)P[k]+=(T[k]-P[k])*kp;
+        var km=f(5.5),nx=mx+(tx-mx)*km,ny=my+(ty-my)*km;vx+=((nx-mx)/dt*.016-vx)*f(15);vy+=((ny-my)/dt*.016-vy)*f(15);mx=nx;my=ny;hv+=(hov-hv)*f(3.5);pulse*=Math.exp(-dt*3);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniform2f(U.uRes,cv.width,cv.height);gl.uniform2f(U.uM,mx,my);var vl=Math.sqrt(vx*vx+vy*vy),vk=vl>.15?.15/vl:1;gl.uniform2f(U.uV,vx*vk,vy*vk);gl.uniform1f(U.uT,reduce?0:(now-t0)/1000);gl.uniform1f(U.uH,hv);gl.uniform1f(U.uPulse,pulse);gl.uniform1f(U.uFill,P[8]);
+        gl.uniform4f(U.uA,P[0],P[1],P[2],P[3]);gl.uniform4f(U.uB,P[4],P[5],P[6],P[7]);
+        gl.drawArrays(gl.TRIANGLE_STRIP,0,4)})(performance.now());
+    }else{gl=null}
+  }
+}
+/* copy */
+var cp=d.getElementById('cp'),em=d.getElementById('em');
+if(cp)cp.addEventListener('click',function(){function ok(){cp.textContent='Copied';setTimeout(function(){cp.textContent='Copy address'},1800)}function sel(){var r=d.createRange();r.selectNodeContents(em);var s=getSelection();s.removeAllRanges();s.addRange(r)}try{navigator.clipboard.writeText(em.textContent).then(ok,sel)}catch(e){sel()}});
+})();
+</script></body></html>
